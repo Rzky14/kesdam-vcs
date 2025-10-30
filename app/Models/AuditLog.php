@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * AuditLog Model
@@ -80,7 +81,7 @@ class AuditLog extends Model
         ?string $description = null
     ): static {
         return static::create([
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'event' => $event,
             'auditable_type' => $model ? get_class($model) : null,
             'auditable_id' => $model?->id,

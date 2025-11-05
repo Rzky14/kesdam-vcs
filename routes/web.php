@@ -32,4 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    
+    // Schedule Management Routes (requires schedules.* permissions)
+    Route::resource('schedules', \App\Http\Controllers\ScheduleController::class);
 });

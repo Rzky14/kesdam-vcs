@@ -73,6 +73,11 @@
                                 <i class="fas fa-calendar-alt me-1"></i> Schedules
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('documents.*') ? 'active' : '' }}" href="{{ route('documents.index') }}">
+                                <i class="fas fa-file-alt me-1"></i> Documents
+                            </a>
+                        </li>
                     </ul>
                     <ul class="navbar-nav">
                         <li class="nav-item dropdown">

@@ -35,4 +35,10 @@ Route::middleware('auth')->group(function () {
     
     // Schedule Management Routes (requires schedules.* permissions)
     Route::resource('schedules', \App\Http\Controllers\ScheduleController::class);
+    
+    // Document Management Routes (requires documents.* permissions)
+    Route::resource('documents', \App\Http\Controllers\DocumentController::class);
+    Route::post('/documents/{document}/submit', [\App\Http\Controllers\DocumentController::class, 'submit'])->name('documents.submit');
+    Route::post('/documents/{document}/archive', [\App\Http\Controllers\DocumentController::class, 'archive'])->name('documents.archive');
+    Route::get('/documents/{document}/download/{attachmentIndex}', [\App\Http\Controllers\DocumentController::class, 'download'])->name('documents.download');
 });

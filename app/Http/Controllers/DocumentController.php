@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Document;
 use App\Services\EncryptionService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -12,11 +13,12 @@ use Illuminate\Validation\Rule;
 
 class DocumentController extends Controller
 {
+    use AuthorizesRequests;
+    
     protected $encryptionService;
 
     public function __construct(EncryptionService $encryptionService)
     {
-        $this->middleware('auth');
         $this->encryptionService = $encryptionService;
     }
 

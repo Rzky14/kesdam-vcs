@@ -2,13 +2,6 @@
 
 @section('content')
 <style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 20px;
-    }
-    
     .container {
         max-width: 900px;
         margin: 0 auto;
@@ -75,8 +68,8 @@
     
     input:focus, select:focus, textarea:focus {
         outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: #1a472a;
+        box-shadow: 0 0 0 3px rgba(26, 71, 42, 0.1);
     }
     
     .error-message {
@@ -138,8 +131,9 @@
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%);
+        color: #d4af37;
+        border: 1px solid #d4af37;
     }
     
     .btn-secondary {

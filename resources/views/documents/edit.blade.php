@@ -151,7 +151,7 @@
                                         </label>
                                     </div>
                                     <a href="{{ route('documents.download', [$document, $index]) }}" 
-                                       class="btn btn-sm btn-outline-primary"
+                                       class="btn btn-sm" style="color: #1a472a; border-color: #1a472a;"
                                        target="_blank">
                                         <i class="bi bi-download"></i>
                                     </a>
@@ -185,7 +185,7 @@
                     <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Batal
                     </a>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn" style="background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%); color: #d4af37; border: 1px solid #d4af37;">
                         <i class="bi bi-save"></i> Simpan Perubahan
                     </button>
                 </div>

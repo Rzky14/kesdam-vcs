@@ -114,6 +114,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get all permissions for the user (through roles).
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getAllPermissions()
+    {
+        return $this->permissions();
+    }
+
+    /**
      * Assign a role to the user.
      *
      * @param Role|string $role

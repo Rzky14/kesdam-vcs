@@ -2,15 +2,8 @@
 
 @section('content')
 <style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 20px;
-    }
-    
     .container {
-        max-width: 1200px;
+        max-width: 1000px;
         margin: 0 auto;
     }
     
@@ -138,8 +131,9 @@
     }
     
     .badge-primary {
-        background: #cce5ff;
-        color: #004085;
+        background: #c8e6c9;
+        color: #1a472a;
+        border: 1px solid #1a472a;
     }
     
     .personnel-list {
@@ -152,7 +146,7 @@
         background: #f8f9fa;
         padding: 12px;
         border-radius: 8px;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid #1a472a;
     }
     
     .personnel-name {
@@ -172,7 +166,7 @@
         background: #f8f9fa;
         border-radius: 8px;
         margin-bottom: 10px;
-        border-left: 3px solid #667eea;
+        border-left: 3px solid #1a472a;
     }
     
     .audit-header {

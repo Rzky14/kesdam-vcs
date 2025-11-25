@@ -4,9 +4,9 @@
 <style>
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #f5f5f5;
         min-height: 100vh;
-        padding: 20px;
+        padding: 0;
     }
     
     .dashboard-container {
@@ -98,7 +98,7 @@
         padding: 15px;
         background: #f8f9fa;
         border-radius: 8px;
-        border-left: 3px solid #667eea;
+        border-left: 3px solid #1a472a;
     }
     
     .info-label {
@@ -137,11 +137,12 @@
     
     .role-badge {
         padding: 8px 16px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%);
+        color: #d4af37;
         border-radius: 20px;
         font-size: 14px;
         font-weight: 600;
+        border: 1px solid #d4af37;
     }
     
     .status-badge {

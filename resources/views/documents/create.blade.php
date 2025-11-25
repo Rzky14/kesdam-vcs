@@ -148,7 +148,7 @@
                     <a href="{{ route('documents.index') }}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Batal
                     </a>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn" style="background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%); color: #d4af37; border: 1px solid #d4af37;">
                         <i class="bi bi-save"></i> Simpan sebagai Draft
                     </button>
                 </div>

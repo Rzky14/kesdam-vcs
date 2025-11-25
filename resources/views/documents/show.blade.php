@@ -72,8 +72,8 @@
         <div class="col-md-8">
             <!-- Document Details Card -->
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-file-text"></i> Informasi Dokumen</h5>
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%);">
+                    <h5 class="mb-0" style="color: #d4af37;"><i class="bi bi-file-text"></i> Informasi Dokumen</h5>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
@@ -90,7 +90,7 @@
                             <strong>Tipe:</strong>
                         </div>
                         <div class="col-md-8">
-                            <span class="badge {{ $document->isIncoming() ? 'bg-info' : 'bg-primary' }}">
+                            <span class="badge" style="{{ $document->isIncoming() ? 'background-color: #17a2b8;' : 'background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%); color: #d4af37;' }}">
                                 {{ $document->getTypeLabel() }}
                             </span>
                         </div>
@@ -173,7 +173,7 @@
                                                 {{ basename($attachment) }}
                                             </span>
                                             <a href="{{ route('documents.download', [$document, $index]) }}" 
-                                               class="btn btn-sm btn-outline-primary">
+                                               class="btn btn-sm" style="color: #1a472a; border-color: #1a472a;">
                                                 <i class="bi bi-download"></i> Download
                                             </a>
                                         </li>
@@ -318,7 +318,7 @@
                                 <strong>{{ basename($attachment) }}</strong>
                             </div>
                             <a href="{{ route('documents.download', [$document, $index]) }}" 
-                               class="btn btn-sm btn-primary">
+                               class="btn btn-sm" style="background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%); color: #d4af37; border: 1px solid #d4af37;">
                                 <i class="bi bi-download"></i> Download
                             </a>
                         </div>

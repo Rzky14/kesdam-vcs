@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('event'); // created, updated, deleted, login, logout, approved, rejected, etc.
-            $table->string('auditable_type'); // Model class name
+            $table->string('auditable_type')->nullable(); // Model class name (nullable for login_failed, etc)
             $table->unsignedBigInteger('auditable_id')->nullable(); // Model ID
             $table->text('old_values')->nullable(); // JSON of old values
             $table->text('new_values')->nullable(); // JSON of new values

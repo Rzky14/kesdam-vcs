@@ -15,7 +15,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -75,8 +75,8 @@
         
         input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #1a472a;
+            box-shadow: 0 0 0 3px rgba(26, 71, 42, 0.1);
         }
         
         input.error {
@@ -108,9 +108,9 @@
         .btn {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
+            background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%);
+            color: #d4af37;
+            border: 1px solid #d4af37;
             border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
@@ -120,7 +120,7 @@
         
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(26, 71, 42, 0.4);
         }
         
         .btn:active {
@@ -135,7 +135,7 @@
         }
         
         .auth-footer a {
-            color: #667eea;
+            color: #1a472a;
             text-decoration: none;
             font-weight: 600;
         }

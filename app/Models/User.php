@@ -21,6 +21,15 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'nrp',
+        'rank',
+        'position',
+        'unit',
+        'phone',
+        'address',
+        'profile_photo',
+        'is_active',
+        'last_login_at',
     ];
 
     /**
@@ -43,6 +52,154 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the roles assigned to the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all permissions through roles.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function permissions()
+    {
+        return $this->roles->flatMap(function ($role) {
+            return $role->permissions;
+        })->unique('id');
+    }
+
+    /**
+     * Check if user has a specific role.
+     *
+     * @param string $roleName
+     * @return bool
+     */
+    public function hasRole(string $roleName): bool
+    {
+        return $this->roles()->where('name', $roleName)->exists();
+    }
+
+    /**
+     * Check if user has any of the given roles.
+     *
+     * @param array $roles
+     * @return bool
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return $this->roles()->whereIn('name', $roles)->exists();
+    }
+
+    /**
+     * Check if user has a specific permission.
+     *
+     * @param string $permissionName
+     * @return bool
+     */
+    public function hasPermission(string $permissionName): bool
+    {
+        return $this->permissions()->contains('name', $permissionName);
+    }
+
+    /**
+     * Get all permissions for the user (through roles).
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getAllPermissions()
+    {
+        return $this->permissions();
+    }
+
+    /**
+     * Assign a role to the user.
+     *
+     * @param Role|string $role
+     * @return void
+     */
+    public function assignRole($role): void
+    {
+        if (is_string($role)) {
+            $role = Role::where('name', $role)->firstOrFail();
+        }
+
+        $this->roles()->syncWithoutDetaching([$role->id]);
+    }
+
+    /**
+     * Remove a role from the user.
+     *
+     * @param Role|string $role
+     * @return void
+     */
+    public function removeRole($role): void
+    {
+        if (is_string($role)) {
+            $role = Role::where('name', $role)->firstOrFail();
+        }
+
+        $this->roles()->detach($role->id);
+    }
+
+    /**
+     * Get audit logs for this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
+    /**
+     * Get notification preferences for this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function notificationPreferences()
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
+
+    /**
+     * Check if user has enabled notification type for in-app
+     *
+     * @param string $type
+     * @return bool
+     */
+    public function hasInAppNotificationEnabled(string $type): bool
+    {
+        $preference = $this->notificationPreferences()
+            ->where('notification_type', $type)
+            ->first();
+
+        return $preference ? $preference->in_app_enabled : true; // Default: enabled
+    }
+
+    /**
+     * Check if user has enabled notification type for email
+     *
+     * @param string $type
+     * @return bool
+     */
+    public function hasEmailNotificationEnabled(string $type): bool
+    {
+        $preference = $this->notificationPreferences()
+            ->where('notification_type', $type)
+            ->first();
+
+        return $preference ? $preference->email_enabled : false; // Default: disabled
     }
 }

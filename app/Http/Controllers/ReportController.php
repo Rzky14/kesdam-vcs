@@ -16,18 +16,44 @@ class ReportController extends Controller
     }
 
     /**
-     * Display reports listing
+     * Display reports dashboard with statistics
      */
     public function index(Request $request): View
     {
-        $type = $request->query('type');
-        $reports = $this->reportService->getReports($type, 50, 0);
-
-        return view('reports.index', [
-            'reports' => $reports,
-            'selectedType' => $type,
-            'types' => ['schedule' => 'Jadwal', 'document' => 'Dokumen'],
-        ]);
+        // Get latest reports
+        $latestReports = Report::latest()
+            ->take(10)
+            ->get();
+        
+        // Statistics
+        $totalReports = Report::count();
+        $monthlyReports = Report::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+        
+        $completedReports = Report::where('status', 'completed')->count();
+        $inProgressReports = Report::where('status', 'in_progress')->count();
+        
+        // Recent reports by type
+        $scheduleReports = Report::where('type', 'schedule')
+            ->latest()
+            ->take(5)
+            ->get();
+            
+        $documentReports = Report::where('type', 'document')
+            ->latest()
+            ->take(5)
+            ->get();
+        
+        return view('reports.index', compact(
+            'latestReports',
+            'totalReports',
+            'monthlyReports',
+            'completedReports',
+            'inProgressReports',
+            'scheduleReports',
+            'documentReports'
+        ));
     }
 
     /**

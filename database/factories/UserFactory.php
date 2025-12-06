@@ -23,11 +23,20 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        static $nrpCounter = 1;
+        
         return [
             'name' => fake()->name(),
+            'nrp' => 'NRP' . str_pad($nrpCounter++, 8, '0', STR_PAD_LEFT),
+            'rank' => fake()->randomElement(['Prajurit', 'Kopral', 'Sersan', 'Letnan', 'Kapten', 'Mayor', 'Kolonel']),
+            'position' => fake()->randomElement(['Staf', 'Kaur', 'Kasi', 'Komandan']),
+            'unit' => fake()->randomElement(['Kesdam III/Siliwangi', 'Korem 061/SK', 'Kodim 0601/Pandeglang']),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->optional()->numerify('08##########'),
+            'address' => fake()->optional()->address(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'is_active' => true,
             'remember_token' => Str::random(10),
         ];
     }

@@ -14,11 +14,13 @@ class Report extends Model
     protected $fillable = [
         'name',
         'type', // 'schedule', 'document'
+        'reportable_type',
+        'reportable_id',
         'period_start',
         'period_end',
-        'created_by',
+        'generated_by',
         'data',
-        'status', // 'generated', 'exported'
+        'status', // 'draft', 'in_progress', 'completed', 'failed'
     ];
 
     protected $casts = [
@@ -31,7 +33,23 @@ class Report extends Model
     ];
 
     /**
-     * Relationship: Report belongs to User
+     * Relationship: Report belongs to User (generator)
+     */
+    public function generatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'generated_by');
+    }
+
+    /**
+     * Polymorphic relationship to reportable model
+     */
+    public function reportable()
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * Legacy: Report belongs to User (creator)
      */
     public function creator(): BelongsTo
     {

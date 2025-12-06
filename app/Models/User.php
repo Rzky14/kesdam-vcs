@@ -162,4 +162,56 @@ class User extends Authenticatable
     {
         return $this->hasMany(AuditLog::class);
     }
+
+    /**
+     * Get notifications for this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get unread notifications count.
+     *
+     * @return int
+     */
+    public function getUnreadNotificationCount(): int
+    {
+        return $this->notifications()->unread()->count();
+    }
+
+    /**
+     * Get notification preferences for this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function notificationPreferences()
+    {
+        return $this->hasOne(UserNotificationPreference::class);
+    }
+
+    /**
+     * Get or create notification preferences for this user.
+     *
+     * @return UserNotificationPreference
+     */
+    public function getOrCreateNotificationPreferences(): UserNotificationPreference
+    {
+        return $this->notificationPreferences()->firstOrCreate([
+            'user_id' => $this->id,
+        ]);
+    }
+
+    /**
+     * Get notification logs for this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function notificationLogs()
+    {
+        return $this->hasMany(NotificationLog::class);
+    }
 }

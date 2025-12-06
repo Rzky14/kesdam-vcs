@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ApprovalController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -44,4 +45,30 @@ Route::middleware('auth')->group(function () {
     Route::post('/documents/{document}/submit', [\App\Http\Controllers\DocumentController::class, 'submit'])->name('documents.submit');
     Route::post('/documents/{document}/archive', [\App\Http\Controllers\DocumentController::class, 'archive'])->name('documents.archive');
     Route::get('/documents/{document}/download/{attachmentIndex}', [\App\Http\Controllers\DocumentController::class, 'download'])->name('documents.download');
+    
+    // Approval Workflow Routes (requires approval permissions)
+    Route::prefix('approvals')->name('approvals.')->group(function () {
+        Route::get('/dashboard', [ApprovalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/pending', [ApprovalController::class, 'pending'])->name('pending');
+        Route::get('/corrections', [ApprovalController::class, 'corrections'])->name('corrections');
+        
+        // Document approval routes
+        Route::get('/{document}', [ApprovalController::class, 'show'])->name('show');
+        Route::get('/{document}/history', [ApprovalController::class, 'history'])->name('history');
+        
+        // Approval actions
+        Route::get('/{document}/approve', [ApprovalController::class, 'approveForm'])->name('approve-form');
+        Route::post('/{document}/approve', [ApprovalController::class, 'approve'])->name('approve');
+        
+        Route::get('/{document}/reject', [ApprovalController::class, 'rejectForm'])->name('reject-form');
+        Route::post('/{document}/reject', [ApprovalController::class, 'reject'])->name('reject');
+        
+        Route::get('/{document}/correction', [ApprovalController::class, 'correctionForm'])->name('correction-form');
+        Route::post('/{document}/correction', [ApprovalController::class, 'requestCorrection'])->name('correction');
+        
+        Route::get('/{document}/resubmit', [ApprovalController::class, 'resubmitForm'])->name('resubmit-form');
+        Route::post('/{document}/resubmit', [ApprovalController::class, 'resubmit'])->name('resubmit');
+        
+        Route::get('/{document}/report', [ApprovalController::class, 'downloadReport'])->name('report');
+    });
 });

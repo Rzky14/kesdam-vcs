@@ -73,6 +73,60 @@ class Document extends Model
     }
 
     /**
+     * Get all approval histories for this document.
+     */
+    public function approvalHistories()
+    {
+        return $this->hasMany(ApprovalHistory::class);
+    }
+
+    /**
+     * Get all correction requests for this document.
+     */
+    public function correctionRequests()
+    {
+        return $this->hasMany(CorrectionRequest::class);
+    }
+
+    /**
+     * Get all approval deadlines for this document.
+     */
+    public function approvalDeadlines()
+    {
+        return $this->hasMany(ApprovalDeadline::class);
+    }
+
+    /**
+     * Get the current approval status
+     */
+    public function getCurrentApprovalLevel()
+    {
+        return $this->approvalHistories()
+            ->orderBy('approval_level', 'desc')
+            ->value('approval_level') ?? 0;
+    }
+
+    /**
+     * Get the last approval action
+     */
+    public function getLastApprovalAction()
+    {
+        return $this->approvalHistories()
+            ->orderBy('created_at', 'desc')
+            ->first();
+    }
+
+    /**
+     * Check if document has pending corrections
+     */
+    public function hasPendingCorrections()
+    {
+        return $this->correctionRequests()
+            ->where('status', 'pending')
+            ->exists();
+    }
+
+    /**
      * Scope a query to only include documents of a given type.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query

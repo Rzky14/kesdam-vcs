@@ -413,4 +413,100 @@ class DocumentController extends Controller
             ? "{$prefix}-{$classPrefix}/{$number}/{$month}/{$year}" 
             : "{$prefix}/{$number}/{$month}/{$year}";
     }
+
+    /**
+     * Approve document
+     */
+    public function approve(Request $request, Document $document)
+    {
+        $this->authorize('approve', $document);
+
+        try {
+            // Get next approver before approval
+            $nextRole = $document->getNextApproverRole();
+            
+            $document->approve(
+                auth()->user(),
+                $request->input('notes')
+            );
+
+            // Refresh document to get updated status
+            $document->refresh();
+            
+            // Determine success message based on document status
+            if ($document->isApproved()) {
+                $message = 'Dokumen berhasil disetujui secara penuh. Semua tahap persetujuan telah selesai.';
+            } else {
+                $nextApproverLabel = match($nextRole) {
+                    'kaur' => 'Kepala Urusan (KAUR)',
+                    'kasi' => 'Kepala Seksi (KASI)',
+                    'pimpinan' => 'Pimpinan/Pejabat Tinggi',
+                    default => 'Level berikutnya',
+                };
+                $message = "Dokumen berhasil Anda setujui dan akan diteruskan ke {$nextApproverLabel}.";
+            }
+
+            return redirect()
+                ->route('documents.index')
+                ->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Reject document
+     */
+    public function reject(Request $request, Document $document)
+    {
+        $this->authorize('reject', $document);
+
+        $request->validate([
+            'reason' => 'required|string|min:10',
+        ]);
+
+        try {
+            $document->reject(
+                auth()->user(),
+                $request->input('reason')
+            );
+
+            return redirect()
+                ->route('documents.index')
+                ->with('success', 'Dokumen berhasil ditolak dan dikembalikan kepada pembuat.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Request correction for document
+     */
+    public function requestCorrection(Request $request, Document $document)
+    {
+        $this->authorize('requestCorrection', $document);
+
+        $request->validate([
+            'reason' => 'required|string|min:10',
+        ]);
+
+        try {
+            $document->requestCorrection(
+                auth()->user(),
+                $request->input('reason')
+            );
+
+            return redirect()
+                ->route('documents.index')
+                ->with('success', 'Permintaan koreksi berhasil dikirim kepada pembuat dokumen.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage());
+        }
+    }
 }

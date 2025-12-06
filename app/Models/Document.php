@@ -433,4 +433,198 @@ class Document extends Model
         }
         return $value;
     }
+
+    /**
+     * Get the next required approver role for this document
+     * 
+     * @return string|null Role name of next approver (kaur, kasi, pimpinan) or null if fully approved
+     */
+    public function getNextApproverRole(): ?string
+    {
+        $currentLevel = $this->getCurrentApprovalLevel();
+        
+        return match($currentLevel) {
+            0 => 'kaur',        // Level 1: Menunggu Kaur
+            1 => 'kasi',        // Level 2: Menunggu Kasi (Kaur sudah approve)
+            2 => 'pimpinan',    // Level 3: Menunggu Pimpinan (Kasi sudah approve)
+            default => null,    // Semua sudah approve
+        };
+    }
+
+    /**
+     * Check if user can approve at current level
+     * 
+     * @param User $user
+     * @return bool
+     */
+    public function canUserApprove(User $user): bool
+    {
+        // Document must be pending approval
+        if (!$this->isPendingApproval()) {
+            return false;
+        }
+
+        $nextApproverRole = $this->getNextApproverRole();
+        
+        if (!$nextApproverRole) {
+            return false; // Already fully approved
+        }
+
+        // Check if user has the required role
+        return $user->hasRole($nextApproverRole);
+    }
+
+    /**
+     * Get approval level by role name
+     * 
+     * @param string $role
+     * @return int
+     */
+    protected function getApprovalLevelByRole(string $role): int
+    {
+        return match($role) {
+            'kaur' => 1,
+            'kasi' => 2,
+            'pimpinan' => 3,
+            default => 0,
+        };
+    }
+
+    /**
+     * Approve document by user
+     * 
+     * @param User $user
+     * @param string|null $notes Optional approval notes
+     * @return bool
+     * @throws \Exception
+     */
+    public function approve(User $user, ?string $notes = null): bool
+    {
+        if (!$this->canUserApprove($user)) {
+            throw new \Exception('Anda tidak berwenang menyetujui dokumen ini pada level saat ini.');
+        }
+
+        $nextRole = $this->getNextApproverRole();
+        $approvalLevel = $this->getApprovalLevelByRole($nextRole);
+
+        \DB::beginTransaction();
+        try {
+            // Create approval history
+            $this->approvalHistories()->create([
+                'user_id' => $user->id,
+                'action' => 'approved',
+                'status' => 'approved',
+                'approval_level' => $approvalLevel,
+                'comment' => $notes,
+                'action_date' => now(),
+            ]);
+
+            // Check if this is the final approval (Pimpinan)
+            if ($nextRole === 'pimpinan') {
+                $this->update([
+                    'status' => 'approved',
+                    'updated_by' => $user->id,
+                ]);
+            } else {
+                // Still need more approvals, keep pending
+                $this->touch(); // Update timestamp
+                $this->update(['updated_by' => $user->id]);
+            }
+
+            \DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Reject document by user
+     * 
+     * @param User $user
+     * @param string $reason Rejection reason
+     * @return bool
+     * @throws \Exception
+     */
+    public function reject(User $user, string $reason): bool
+    {
+        if (!$this->canUserApprove($user)) {
+            throw new \Exception('Anda tidak berwenang menolak dokumen ini pada level saat ini.');
+        }
+
+        if (empty($reason)) {
+            throw new \Exception('Alasan penolakan harus diisi.');
+        }
+
+        $nextRole = $this->getNextApproverRole();
+        $approvalLevel = $this->getApprovalLevelByRole($nextRole);
+
+        \DB::beginTransaction();
+        try {
+            // Create approval history with rejection
+            $this->approvalHistories()->create([
+                'user_id' => $user->id,
+                'action' => 'rejected',
+                'status' => 'rejected',
+                'approval_level' => $approvalLevel,
+                'comment' => $reason,
+                'action_date' => now(),
+            ]);
+
+            // Update document status to rejected
+            $this->update([
+                'status' => 'rejected',
+                'updated_by' => $user->id,
+            ]);
+
+            \DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Request correction for document
+     * 
+     * @param User $user
+     * @param string $reason Correction reason
+     * @return bool
+     * @throws \Exception
+     */
+    public function requestCorrection(User $user, string $reason): bool
+    {
+        if (!$this->canUserApprove($user)) {
+            throw new \Exception('Anda tidak berwenang meminta koreksi dokumen ini.');
+        }
+
+        if (empty($reason)) {
+            throw new \Exception('Alasan permintaan koreksi harus diisi.');
+        }
+
+        \DB::beginTransaction();
+        try {
+            // Create correction request
+            $this->correctionRequests()->create([
+                'requested_by' => $user->id,
+                'reason' => $reason,
+                'status' => 'pending',
+            ]);
+
+            // Update document status
+            $this->update([
+                'status' => 'correction_requested',
+                'updated_by' => $user->id,
+            ]);
+
+            \DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            throw $e;
+        }
+    }
 }
+

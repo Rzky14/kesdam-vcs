@@ -49,6 +49,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/documents/{document}/archive', [\App\Http\Controllers\DocumentController::class, 'archive'])->name('documents.archive');
     Route::get('/documents/{document}/download/{attachmentIndex}', [\App\Http\Controllers\DocumentController::class, 'download'])->name('documents.download');
     
+    // Document Approval Actions (directly from document detail page)
+    Route::post('/documents/{document}/approve', [\App\Http\Controllers\DocumentController::class, 'approve'])->name('documents.approve');
+    Route::post('/documents/{document}/reject', [\App\Http\Controllers\DocumentController::class, 'reject'])->name('documents.reject');
+    Route::post('/documents/{document}/request-correction', [\App\Http\Controllers\DocumentController::class, 'requestCorrection'])->name('documents.request-correction');
+    
     // Approval Workflow Routes (requires approval permissions)
     Route::prefix('approvals')->name('approvals.')->group(function () {
         Route::get('/dashboard', [ApprovalController::class, 'dashboard'])->name('dashboard');

@@ -442,6 +442,16 @@
                         <span class="badge badge-draft">Draft</span>
                     @elseif($document->status == 'pending_approval')
                         <span class="badge badge-pending">Menunggu TTD</span>
+                        @php
+                            $nextRole = $document->getNextApproverRole();
+                            $nextRoleLabel = match($nextRole) {
+                                'kaur' => 'KAUR',
+                                'kasi' => 'KASI',
+                                'pimpinan' => 'PIMPINAN',
+                                default => 'Selesai',
+                            };
+                        @endphp
+                        <span class="badge" style="background: #ffc107; color: #000; font-size: 10px;">→ {{ $nextRoleLabel }}</span>
                     @elseif($document->status == 'approved')
                         <span class="badge badge-approved">Selesai</span>
                     @elseif(request('status') == 'archived' || $document->archived_at)

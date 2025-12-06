@@ -99,13 +99,47 @@ class DocumentPolicy
 
     /**
      * Determine whether the user can approve the document.
+     * User must have appropriate role for current approval level.
      */
     public function approve(User $user, Document $document): bool
     {
-        // Only Pimpinan and Kasi/Kaur can approve documents
-        return $user->hasAnyRole(['Pimpinan/Pejabat Tinggi', 'Kasi/Kaur']) 
-            && $user->hasPermission('approve_documents')
-            && $document->isPendingApproval();
+        // Document must be pending approval
+        if (!$document->isPendingApproval()) {
+            return false;
+        }
+
+        // User must have approve permission
+        if (!$user->hasPermission('approve_documents')) {
+            return false;
+        }
+
+        // Check if user has the required role for current approval level
+        $currentLevel = $document->getCurrentApprovalLevel();
+        
+        return match($currentLevel) {
+            0 => $user->hasRole('kaur'),        // Level 1: KAUR
+            1 => $user->hasRole('kasi'),        // Level 2: KASI  
+            2 => $user->hasRole('pimpinan'),    // Level 3: PIMPINAN
+            default => false,
+        };
+    }
+
+    /**
+     * Determine whether the user can reject the document.
+     */
+    public function reject(User $user, Document $document): bool
+    {
+        // Same authorization as approve
+        return $this->approve($user, $document);
+    }
+
+    /**
+     * Determine whether the user can request correction.
+     */
+    public function requestCorrection(User $user, Document $document): bool
+    {
+        // Same authorization as approve
+        return $this->approve($user, $document);
     }
 
     /**

@@ -250,10 +250,64 @@
                     @endif
 
                     @if($document->isPendingApproval())
+                        @php
+                            $nextRole = $document->getNextApproverRole();
+                            $nextRoleLabel = match($nextRole) {
+                                'kaur' => 'Kepala Urusan (KAUR)',
+                                'kasi' => 'Kepala Seksi (KASI)',
+                                'pimpinan' => 'Pimpinan/Pejabat Tinggi',
+                                default => 'Tidak diketahui',
+                            };
+                            $currentLevel = $document->getCurrentApprovalLevel();
+                        @endphp
+                        
                         <div class="alert alert-warning">
                             <i class="bi bi-clock"></i>
-                            <small>Dokumen sedang menunggu persetujuan.</small>
+                            <strong>Status Persetujuan:</strong><br>
+                            <small>
+                                Menunggu persetujuan dari <strong>{{ $nextRoleLabel }}</strong>
+                                @if($currentLevel > 0)
+                                    <br>Level saat ini: {{ $currentLevel }} dari 3
+                                @endif
+                            </small>
                         </div>
+
+                        {{-- Approval Actions --}}
+                        @can('approve', $document)
+                            <div class="card border-success mb-3">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="bi bi-shield-check"></i> Tindakan Persetujuan</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info mb-3">
+                                        <i class="bi bi-info-circle"></i>
+                                        <strong>Giliran Anda!</strong><br>
+                                        <small>Anda berwenang untuk menyetujui dokumen ini sebagai <strong>{{ $nextRoleLabel }}</strong>.</small>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        {{-- Approve Button --}}
+                                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#approveModal">
+                                            <i class="bi bi-check-circle"></i> Setujui Dokumen
+                                        </button>
+
+                                        {{-- Reject Button --}}
+                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                            <i class="bi bi-x-circle"></i> Tolak Dokumen
+                                        </button>
+
+                                        {{-- Request Correction Button --}}
+                                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#correctionModal">
+                                            <i class="bi bi-pencil-square"></i> Minta Koreksi
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="alert alert-secondary">
+                                <i class="bi bi-info-circle"></i>
+                                <small>Dokumen menunggu persetujuan dari <strong>{{ $nextRoleLabel }}</strong>. Anda tidak berwenang menyetujui pada level ini.</small>
+                            </div>
+                        @endcan
                     @endif
 
                     @if($document->isApproved())
@@ -331,4 +385,157 @@
     </div>
 </div>
 @endif
+
+<!-- Approve Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('documents.approve', $document) }}">
+                @csrf
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="approveModalLabel">
+                        <i class="bi bi-check-circle"></i> Setujui Dokumen
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Konfirmasi Persetujuan</strong><br>
+                        <small>Dengan menyetujui dokumen ini, Anda menyatakan bahwa dokumen telah sesuai dan layak untuk diproses ke tahap selanjutnya.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="approve_notes" class="form-label">Catatan Persetujuan (Opsional)</label>
+                        <textarea 
+                            name="notes" 
+                            id="approve_notes" 
+                            class="form-control" 
+                            rows="3"
+                            placeholder="Tambahkan catatan jika diperlukan..."></textarea>
+                        <small class="text-muted">Catatan akan dicatat dalam riwayat persetujuan.</small>
+                    </div>
+
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <small><strong>Perhatian:</strong> Tindakan ini tidak dapat dibatalkan.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Ya, Setujui Dokumen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('documents.reject', $document) }}">
+                @csrf
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="rejectModalLabel">
+                        <i class="bi bi-x-circle"></i> Tolak Dokumen
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Konfirmasi Penolakan</strong><br>
+                        <small>Dokumen yang ditolak akan dikembalikan kepada pembuat untuk diperbaiki.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="reject_reason" class="form-label">Alasan Penolakan <span class="text-danger">*</span></label>
+                        <textarea 
+                            name="reason" 
+                            id="reject_reason" 
+                            class="form-control @error('reason') is-invalid @enderror" 
+                            rows="4"
+                            required
+                            placeholder="Jelaskan alasan penolakan secara detail (minimal 10 karakter)..."></textarea>
+                        @error('reason')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Minimal 10 karakter. Alasan akan dikirimkan kepada pembuat dokumen.</small>
+                    </div>
+
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <small><strong>Perhatian:</strong> Tindakan ini tidak dapat dibatalkan.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle"></i> Ya, Tolak Dokumen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Request Correction Modal -->
+<div class="modal fade" id="correctionModal" tabindex="-1" aria-labelledby="correctionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('documents.request-correction', $document) }}">
+                @csrf
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="correctionModalLabel">
+                        <i class="bi bi-pencil-square"></i> Minta Koreksi Dokumen
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Permintaan Koreksi</strong><br>
+                        <small>Dokumen akan dikembalikan kepada pembuat untuk diperbaiki sesuai catatan Anda.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="correction_reason" class="form-label">Catatan Koreksi <span class="text-danger">*</span></label>
+                        <textarea 
+                            name="reason" 
+                            id="correction_reason" 
+                            class="form-control @error('reason') is-invalid @enderror" 
+                            rows="4"
+                            required
+                            placeholder="Jelaskan apa yang perlu dikoreksi secara detail (minimal 10 karakter)..."></textarea>
+                        @error('reason')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Minimal 10 karakter. Berikan petunjuk yang jelas agar pembuat dokumen dapat memperbaiki dengan tepat.</small>
+                    </div>
+
+                    <div class="alert alert-secondary mb-0">
+                        <i class="bi bi-lightbulb"></i>
+                        <small><strong>Tips:</strong> Sebutkan bagian mana yang perlu diperbaiki dan bagaimana seharusnya.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-pencil-square"></i> Kirim Permintaan Koreksi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection

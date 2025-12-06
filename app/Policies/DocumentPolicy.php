@@ -45,18 +45,18 @@ class DocumentPolicy
      */
     public function update(User $user, Document $document): bool
     {
-        // Admin can update any document
+        // Admin can update any draft or rejected document
         if ($user->hasRole('Admin Sistem')) {
-            return true;
+            return in_array($document->status, ['draft', 'rejected']);
         }
 
         // Users can only update their own draft or rejected documents
         if ($document->created_by === $user->id && in_array($document->status, ['draft', 'rejected'])) {
-            return $user->hasPermission('update_documents');
+            return $user->hasPermission('edit_documents'); // Fixed: was 'update_documents'
         }
 
-        // Pimpinan and Kasi/Kaur can update documents for approval workflow
-        if ($user->hasAnyRole(['Pimpinan/Pejabat Tinggi', 'Kasi/Kaur'])) {
+        // Pimpinan and Kasi/Kaur can update draft or rejected documents for workflow purposes
+        if ($user->hasAnyRole(['Pimpinan/Pejabat Tinggi', 'Kasi/Kaur']) && in_array($document->status, ['draft', 'rejected'])) {
             return $user->hasPermission('approve_documents');
         }
 

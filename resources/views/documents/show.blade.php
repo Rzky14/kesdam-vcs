@@ -19,6 +19,8 @@
                     <a href="{{ route('documents.edit', $document) }}" class="btn btn-warning">
                         <i class="bi bi-pencil"></i> Edit
                     </a>
+                @else
+                    <!-- Edit button not shown: Status is '{{ $document->status }}' (only 'draft' or 'rejected' can be edited) -->
                 @endif
                 
                 @if($document->isDraft())

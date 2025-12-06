@@ -251,6 +251,144 @@
             background: #f8f9fa;
         }
         
+        /* Notification Bell */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .notification-icon {
+            font-size: 20px;
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .notification-icon:hover {
+            color: var(--tni-gold);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            width: 350px;
+            display: none;
+            border: 1px solid #e9ecef;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .notification-dropdown.show {
+            display: block;
+        }
+        
+        .notification-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notification-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f1f3f5;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .notification-item.unread {
+            background: #e7f3ff;
+        }
+        
+        .notification-icon-small {
+            font-size: 18px;
+            color: #0066cc;
+            flex-shrink: 0;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 500;
+            color: #333;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+        
+        .notification-message {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 5px;
+        }
+        
+        .notification-time {
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .notification-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .notification-footer a {
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .notification-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .empty-notification {
+            padding: 30px 20px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
+        
+        .user-dropdown a:hover,
+        .user-dropdown button:hover {
+            background: #f8f9fa;
+        }
+        
         .user-dropdown button.text-danger {
             color: #dc3545;
         }
@@ -347,6 +485,51 @@
         <div class="main-content">
             <div class="top-bar">
                 <div class="top-bar-right">
+                    <!-- Notification Bell -->
+                    <div class="notification-bell" onclick="document.getElementById('notificationDropdown').classList.toggle('show')">
+                        <i class="fas fa-bell notification-icon"></i>
+                        @if(auth()->user()->getUnreadNotificationCount() > 0)
+                            <span class="notification-badge">{{ auth()->user()->getUnreadNotificationCount() }}</span>
+                        @endif
+                        
+                        <div class="notification-dropdown" id="notificationDropdown">
+                            <div class="notification-header">
+                                Notifikasi
+                                @if(auth()->user()->getUnreadNotificationCount() > 0)
+                                    <small style="font-weight: normal; color: #0066cc;">{{ auth()->user()->getUnreadNotificationCount() }} Baru</small>
+                                @endif
+                            </div>
+                            
+                            @php
+                                $notifications = auth()->user()->notifications()->limit(5)->get();
+                            @endphp
+                            
+                            @if($notifications->isEmpty())
+                                <div class="empty-notification">
+                                    <i class="fas fa-inbox" style="font-size: 28px; color: #ccc; display: block; margin-bottom: 10px;"></i>
+                                    Tidak ada notifikasi
+                                </div>
+                            @else
+                                @foreach($notifications as $notification)
+                                    <a href="{{ $notification->action_url ? $notification->action_url : '#' }}" style="text-decoration: none; color: inherit;">
+                                        <div class="notification-item {{ !$notification->isRead() ? 'unread' : '' }}">
+                                            <i class="fas fa-{{ $notification->icon }} notification-icon-small"></i>
+                                            <div class="notification-content">
+                                                <div class="notification-title">{{ $notification->title }}</div>
+                                                <div class="notification-message">{{ Str::limit($notification->message, 60) }}</div>
+                                                <div class="notification-time">{{ $notification->created_at->diffForHumans() }}</div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            @endif
+                            
+                            <div class="notification-footer">
+                                <a href="{{ route('notifications.index') }}">Lihat Semua Notifikasi</a>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="user-menu">
                         <div class="user-toggle" onclick="document.getElementById('userDropdown').classList.toggle('show')">
                             <i class="fas fa-user-circle"></i>
@@ -359,6 +542,9 @@
                         <div class="user-dropdown" id="userDropdown">
                             <a href="{{ route('profile.edit') }}">
                                 <i class="fas fa-user-edit"></i> Profile
+                            </a>
+                            <a href="{{ route('notifications.preferences') }}">
+                                <i class="fas fa-bell"></i> Preferensi Notifikasi
                             </a>
                             <hr>
                             <form method="POST" action="{{ route('logout') }}">
@@ -392,8 +578,15 @@
         document.addEventListener('click', function(event) {
             const userMenu = document.querySelector('.user-menu');
             const userDropdown = document.getElementById('userDropdown');
+            const notificationBell = document.querySelector('.notification-bell');
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            
             if (userMenu && !userMenu.contains(event.target)) {
                 userDropdown.classList.remove('show');
+            }
+            
+            if (notificationBell && !notificationBell.contains(event.target)) {
+                notificationDropdown.classList.remove('show');
             }
         });
     </script>

@@ -589,46 +589,47 @@ Core Team: Rian, Rizky, Fikri
 Branch: feature/notification-system  
 Duration: Week 9-10  
 Dependency: Parallelizable (Bisa bersamaan dengan Phase 5\. Bergantung pada Phase 3 & 5\)  
-Core Team: Syafril, Fikri
+Core Team: Syafril, Fikri  
+**Status: ✅ COMPLETED (100%)**
 
 #### **Tasks:**
 
 * **\[NOTIF-001\]** Database schema untuk Notifications  
   * **Assigned:** Syafril  
-  * Status: Not Started  
-  * Description: Migrations untuk notifications dan preferences  
+  * Status: ✅ Completed (Commit: 98a3ae6)  
+  * Description: 3 migrations untuk notifications, user_notification_preferences, notification_logs  
 * **\[NOTIF-002\]** Implementasi In-App Notification System  
   * **Assigned:** Syafril  
-  * Status: Not Started  
-  * Description: Notifikasi dalam aplikasi untuk events penting  
+  * Status: ✅ Completed (Commit: 98a3ae6)  
+  * Description: NotificationService dengan 15+ methods, Notification & UserNotificationPreference models  
 * **\[NOTIF-003\]** Implementasi Email Notification (Optional)  
   * **Assigned:** Syafril  
-  * Status: Not Started  
-  * Description: Email notification untuk approval dan reminder  
+  * Status: ✅ Completed (Commit: a5396ab)  
+  * Description: 3 Mailable classes untuk approval request, document approved, document rejected  
 * **\[NOTIF-004\]** Implementasi Notification for Schedule Reminders  
   * **Assigned:** Syafril  
-  * Status: Not Started  
-  * Description: Reminder otomatis untuk jadwal yang akan datang  
+  * Status: ✅ Completed (Commit: b6fb0e9)  
+  * Description: ScheduleReminderTriggeredEvent & SendScheduleReminderNotification listener  
 * **\[NOTIF-005\]** Implementasi Notification for Approval Requests  
   * **Assigned:** Syafril  
-  * Status: Not Started  
-  * Description: Notifikasi untuk dokumen yang butuh approval  
+  * Status: ✅ Completed (Commit: b6fb0e9)  
+  * Description: ApprovalRequestedEvent & SendApprovalNotification listener dengan role-based routing  
 * **\[NOTIF-006\]** Implementasi Notification for Document Status Changes  
   * **Assigned:** Syafril  
-  * Status: Not Started  
-  * Description: Notifikasi perubahan status dokumen (approved, rejected, corrected)  
+  * Status: ✅ Completed (Commit: b6fb0e9)  
+  * Description: DocumentApprovedEvent, DocumentRejectedEvent & corresponding listeners  
 * **\[NOTIF-007\]** UI for Notification Center  
   * **Assigned:** Fikri  
-  * Status: Not Started  
-  * Description: Notification bell dan list notifikasi di header  
+  * Status: ✅ Completed (Commit: eeaba10)  
+  * Description: NotificationController, notification index view dengan statistics & actions  
 * **\[NOTIF-008\]** Implementasi Notification Preferences  
   * **Assigned:** Syafril (Logic), Fikri (UI)  
-  * Status: Not Started  
-  * Description: User dapat set preferensi jenis notifikasi yang diterima  
+  * Status: ✅ Completed (Commit: eeaba10)  
+  * Description: NotificationPreferenceController, preferences blade with toggles & timing options  
 * **\[NOTIF-009\]** Testing Notification System  
   * **Assigned:** Syafril, Fikri  
-  * Status: Not Started  
-  * Description: Unit test dan feature test untuk notification
+  * Status: ✅ Completed (Commit: 97b0e2c)  
+  * Description: 15 feature tests, NotificationFactory dengan multiple states
 
 ### **Phase 7: Reporting & Archive Module**
 

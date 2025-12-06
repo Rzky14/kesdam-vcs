@@ -71,4 +71,26 @@ Route::middleware('auth')->group(function () {
         
         Route::get('/{document}/report', [ApprovalController::class, 'downloadReport'])->name('report');
     });
+
+    // Notification Routes
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+        Route::get('/preferences', [\App\Http\Controllers\NotificationPreferenceController::class, 'show'])->name('preferences');
+        Route::post('/preferences', [\App\Http\Controllers\NotificationPreferenceController::class, 'update'])->name('preferences.update');
+        
+        // API endpoints for notifications
+        Route::get('/api/unread', [\App\Http\Controllers\NotificationController::class, 'getUnread'])->name('api.unread');
+        Route::get('/api/all', [\App\Http\Controllers\NotificationController::class, 'getAll'])->name('api.all');
+        Route::get('/api/by-type/{type}', [\App\Http\Controllers\NotificationController::class, 'getByType'])->name('api.by-type');
+        Route::get('/api/count', [\App\Http\Controllers\NotificationController::class, 'getCount'])->name('api.count');
+        Route::get('/api/statistics', [\App\Http\Controllers\NotificationController::class, 'getStatistics'])->name('api.statistics');
+        
+        // Mark as read
+        Route::post('/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('mark-as-read');
+        Route::post('/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+        
+        // Delete
+        Route::delete('/{notification}', [\App\Http\Controllers\NotificationController::class, 'delete'])->name('delete');
+        Route::post('/delete-all', [\App\Http\Controllers\NotificationController::class, 'deleteAll'])->name('delete-all');
+    });
 });

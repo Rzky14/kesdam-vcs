@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class Document extends Model
 {
@@ -507,7 +508,7 @@ class Document extends Model
         $nextRole = $this->getNextApproverRole();
         $approvalLevel = $this->getApprovalLevelByRole($nextRole);
 
-        \DB::beginTransaction();
+        DB::beginTransaction();
         try {
             // Create approval history
             $this->approvalHistories()->create([
@@ -531,10 +532,10 @@ class Document extends Model
                 $this->update(['updated_by' => $user->id]);
             }
 
-            \DB::commit();
+            DB::commit();
             return true;
         } catch (\Exception $e) {
-            \DB::rollBack();
+            DB::rollBack();
             throw $e;
         }
     }
@@ -560,7 +561,7 @@ class Document extends Model
         $nextRole = $this->getNextApproverRole();
         $approvalLevel = $this->getApprovalLevelByRole($nextRole);
 
-        \DB::beginTransaction();
+        DB::beginTransaction();
         try {
             // Create approval history with rejection
             $this->approvalHistories()->create([
@@ -578,10 +579,10 @@ class Document extends Model
                 'updated_by' => $user->id,
             ]);
 
-            \DB::commit();
+            DB::commit();
             return true;
         } catch (\Exception $e) {
-            \DB::rollBack();
+            DB::rollBack();
             throw $e;
         }
     }
@@ -604,7 +605,7 @@ class Document extends Model
             throw new \Exception('Alasan permintaan koreksi harus diisi.');
         }
 
-        \DB::beginTransaction();
+        DB::beginTransaction();
         try {
             // Create correction request
             $this->correctionRequests()->create([
@@ -619,10 +620,10 @@ class Document extends Model
                 'updated_by' => $user->id,
             ]);
 
-            \DB::commit();
+            DB::commit();
             return true;
         } catch (\Exception $e) {
-            \DB::rollBack();
+            DB::rollBack();
             throw $e;
         }
     }

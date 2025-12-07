@@ -36,8 +36,10 @@ class LoginController extends Controller
             $user = Auth::user();
             
             // Update last login timestamp
-            $user->last_login_at = now();
-            $user->save();
+            if ($user instanceof \App\Models\User) {
+                $user->last_login_at = now();
+                $user->save();
+            }
 
             // Log successful login
             AuditLog::log(

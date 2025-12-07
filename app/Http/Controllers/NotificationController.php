@@ -16,7 +16,7 @@ class NotificationController extends Controller
 
     public function __construct(NotificationService $notificationService)
     {
-        $this->middleware('auth');
+        // Middleware applied in routes
         $this->notificationService = $notificationService;
     }
 
@@ -25,6 +25,7 @@ class NotificationController extends Controller
      */
     public function index(Request $request): View
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         
         $filter = $request->get('filter', 'all'); // all, unread, read
@@ -50,6 +51,7 @@ class NotificationController extends Controller
      */
     public function show(string $id): View|RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $notification = $user->notifications()->findOrFail($id);
 
@@ -66,6 +68,7 @@ class NotificationController extends Controller
      */
     public function markAsRead(string $id): JsonResponse
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $notification = $user->notifications()->findOrFail($id);
 
@@ -82,6 +85,7 @@ class NotificationController extends Controller
      */
     public function markAllAsRead(): JsonResponse
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $this->notificationService->markAllAsRead($user);
 
@@ -96,6 +100,7 @@ class NotificationController extends Controller
      */
     public function destroy(string $id): RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $notification = $user->notifications()->findOrFail($id);
 
@@ -110,6 +115,7 @@ class NotificationController extends Controller
      */
     public function unreadCount(): JsonResponse
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $count = $this->notificationService->getUnreadCount($user);
 
@@ -123,6 +129,7 @@ class NotificationController extends Controller
      */
     public function recent(Request $request): JsonResponse
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $limit = $request->get('limit', 5);
         
@@ -139,6 +146,7 @@ class NotificationController extends Controller
      */
     public function preferences(): View
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         
         // Get or create default preferences
@@ -167,6 +175,7 @@ class NotificationController extends Controller
      */
     public function updatePreferences(Request $request): RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $validated = $request->validate([

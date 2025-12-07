@@ -17,7 +17,7 @@ class LogoutController extends Controller
         $user = Auth::user();
 
         // Log logout before actually logging out
-        if ($user) {
+        if ($user && $user instanceof \App\Models\User) {
             AuditLog::log(
                 event: 'logout',
                 model: $user,

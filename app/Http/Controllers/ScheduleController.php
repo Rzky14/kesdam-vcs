@@ -22,8 +22,11 @@ class ScheduleController extends Controller
      */
     public function index(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('view_schedules')) {
+        if (!$user->hasPermission('view_schedules')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -61,8 +64,11 @@ class ScheduleController extends Controller
      */
     public function create()
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('create_schedules')) {
+        if (!$user->hasPermission('create_schedules')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -79,8 +85,11 @@ class ScheduleController extends Controller
      */
     public function store(Request $request)
     {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('create_schedules')) {
+        if (!$authUser->hasPermission('create_schedules')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -139,7 +148,7 @@ class ScheduleController extends Controller
             event: 'schedule_created',
             model: $schedule,
             newValues: $schedule->toArray(),
-            description: "Schedule '{$schedule->title}' created by " . Auth::user()->name
+            description: "Schedule '{$schedule->title}' created by " . $authUser->name
         );
 
         return redirect()->route('schedules.index')
@@ -151,8 +160,11 @@ class ScheduleController extends Controller
      */
     public function show(Schedule $schedule)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('view_schedules')) {
+        if (!$user->hasPermission('view_schedules')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -176,8 +188,11 @@ class ScheduleController extends Controller
      */
     public function edit(Schedule $schedule)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('edit_schedules')) {
+        if (!$user->hasPermission('edit_schedules')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -194,8 +209,11 @@ class ScheduleController extends Controller
      */
     public function update(Request $request, Schedule $schedule)
     {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('edit_schedules')) {
+        if (!$authUser->hasPermission('edit_schedules')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -257,7 +275,7 @@ class ScheduleController extends Controller
             model: $schedule,
             oldValues: $oldValues,
             newValues: $schedule->fresh()->toArray(),
-            description: "Schedule '{$schedule->title}' updated by " . Auth::user()->name
+            description: "Schedule '{$schedule->title}' updated by " . $authUser->name
         );
 
         return redirect()->route('schedules.show', $schedule)
@@ -269,8 +287,11 @@ class ScheduleController extends Controller
      */
     public function destroy(Schedule $schedule)
     {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('delete_schedules')) {
+        if (!$authUser->hasPermission('delete_schedules')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -286,7 +307,7 @@ class ScheduleController extends Controller
             'new_values' => [],
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
-            'description' => "Schedule '{$scheduleTitle}' deleted by " . Auth::user()->name,
+            'description' => "Schedule '{$scheduleTitle}' deleted by " . $authUser->name,
         ]);
 
         $schedule->delete();

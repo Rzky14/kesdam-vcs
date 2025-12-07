@@ -87,15 +87,15 @@ class ArchiveTest extends TestCase
     {
         $document = Document::factory()->create();
 
-        $archive = $this->archiveService->archiveDocument(
+        $archive = $this->archiveService->archiveModel(
             $document,
             'dokumen',
-            ['surat', 'masuk'],
-            'Archived for retention'
+            'Archived for retention',
+            ['surat', 'masuk']
         );
 
         $this->assertNotNull($archive);
-        $this->assertEquals('App\\Models\\Document', $archive->archiveable_type);
+        $this->assertEquals('Document', $archive->archiveable_type);
         $this->assertEquals($document->id, $archive->archiveable_id);
         $this->assertEquals('dokumen', $archive->category);
     }

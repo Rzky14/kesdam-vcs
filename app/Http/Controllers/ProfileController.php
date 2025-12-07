@@ -22,6 +22,7 @@ class ProfileController extends Controller
      */
     public function show()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $user->load('roles.permissions');
         
@@ -48,6 +49,7 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $validated = $request->validate([
@@ -84,6 +86,7 @@ class ProfileController extends Controller
      */
     public function updatePassword(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $validated = $request->validate([

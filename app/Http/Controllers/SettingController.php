@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SettingController extends Controller
 {
@@ -26,8 +27,10 @@ class SettingController extends Controller
         ]);
 
         // Update user notification preferences
-        auth()->user()->notificationPreferences()->updateOrCreate(
-            ['user_id' => auth()->id()],
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user->notificationPreferences()->updateOrCreate(
+            ['user_id' => $user->id],
             [
                 'schedule_reminder' => $validated['schedule_reminder'] ?? false,
                 'approval_request' => $validated['approval_request'] ?? false,

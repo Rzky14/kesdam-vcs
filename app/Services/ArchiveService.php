@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Archive;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class ArchiveService
@@ -28,7 +29,7 @@ class ArchiveService
             'description' => $description,
             'archiveable_type' => class_basename($model),
             'archiveable_id' => $model->id,
-            'archived_by' => auth()->id() ?? 1,
+            'archived_by' => Auth::id() ?? 1,
             'archive_date' => now(),
             'retention_until' => $retentionUntil,
             'category' => $category,

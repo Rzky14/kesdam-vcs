@@ -24,8 +24,11 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('view_users')) {
+        if (!$user->hasPermission('view_users')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -65,8 +68,11 @@ class UserController extends Controller
      */
     public function create()
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('create_users')) {
+        if (!$user->hasPermission('create_users')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -79,8 +85,11 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('create_users')) {
+        if (!$authUser->hasPermission('create_users')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -121,7 +130,7 @@ class UserController extends Controller
             event: 'user_created',
             model: $user,
             newValues: $user->toArray(),
-            description: 'User created by ' . Auth::user()->name
+            description: 'User created by ' . $authUser->name
         );
 
         return redirect()->route('users.index')
@@ -133,8 +142,11 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('view_users')) {
+        if (!$authUser->hasPermission('view_users')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -155,8 +167,11 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('edit_users')) {
+        if (!$authUser->hasPermission('edit_users')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -169,8 +184,11 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('edit_users')) {
+        if (!$authUser->hasPermission('edit_users')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -221,7 +239,7 @@ class UserController extends Controller
             model: $user,
             oldValues: $oldValues,
             newValues: $user->fresh()->toArray(),
-            description: 'User updated by ' . Auth::user()->name
+            description: 'User updated by ' . $authUser->name
         );
 
         return redirect()->route('users.index')
@@ -233,8 +251,11 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        
         // Authorization check
-        if (!Auth::user()->hasPermission('delete_users')) {
+        if (!$authUser->hasPermission('delete_users')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -256,7 +277,7 @@ class UserController extends Controller
             'new_values' => [],
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
-            'description' => "User {$userName} ({$userEmail}) deleted by " . Auth::user()->name,
+            'description' => "User {$userName} ({$userEmail}) deleted by " . $authUser->name,
         ]);
 
         $user->delete();

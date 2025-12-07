@@ -93,52 +93,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Arsip Section -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0"><i class="fas fa-archive"></i> Arsip</h5>
-                    <small class="text-muted">Manajemen arsip dan penyimpanan</small>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-4">
-                                <h6 class="mb-2">Retention Policy</h6>
-                                <p class="text-muted small">Atur berapa lama dokumen harus disimpan sebelum bisa dihapus permanen</p>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" value="5" min="1">
-                                    <span class="input-group-text">Tahun</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-4">
-                                <h6 class="mb-2">Auto Archive</h6>
-                                <p class="text-muted small">Arsipkan otomatis dokumen yang sudah selesai</p>
-                                <select class="form-select">
-                                    <option>Setelah 30 hari</option>
-                                    <option>Setelah 60 hari</option>
-                                    <option>Setelah 90 hari</option>
-                                    <option>Manual</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('archives.index') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-folder-open"></i> Buka Arsip
-                        </a>
-                        <button type="button" class="btn btn-outline-secondary" onclick="alert('Fitur dalam pengembangan')">
-                            <i class="fas fa-save"></i> Simpan Pengaturan
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <style>

@@ -175,19 +175,128 @@ class ReportController extends Controller
     /**
      * Export report to PDF
      */
-    public function exportPdf(Report $report)
+    public function exportPdf(Report $report): \Symfony\Component\HttpFoundation\Response
     {
-        // TODO: Implement PDF export using DomPDF or similar
-        return response()->download("reports/{$report->id}.pdf");
+        try {
+            // Prepare PDF content
+            $content = $this->generatePdfContent($report);
+            
+            // Return as downloadable file
+            return response($content, 200)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'attachment; filename="' . $this->sanitizeFileName($report->name) . '.pdf"');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
+        }
     }
 
     /**
      * Export report to Excel
      */
-    public function exportExcel(Report $report)
+    public function exportExcel(Report $report): \Symfony\Component\HttpFoundation\StreamedResponse
     {
-        // TODO: Implement Excel export using Maatwebsite Excel
-        return response()->download("reports/{$report->id}.xlsx");
+        try {
+            // Generate Excel content
+            $csv = $this->generateExcelContent($report);
+            
+            // Return as CSV (Excel compatible)
+            return response()->streamDownload(function () use ($csv) {
+                echo $csv;
+            }, $this->sanitizeFileName($report->name) . '.csv', [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="' . $this->sanitizeFileName($report->name) . '.csv"',
+            ]);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal export Excel: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Generate PDF content from report
+     */
+    private function generatePdfContent(Report $report): string
+    {
+        $html = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{$report->name}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .header { margin-bottom: 30px; }
+        .info { color: #666; font-size: 12px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{$report->name}</h1>
+        <div class="info">
+            <p><strong>Tipe:</strong> {$report->type}</p>
+            <p><strong>Periode:</strong> {$report->period_start->format('d-m-Y')} s/d {$report->period_end->format('d-m-Y')}</p>
+            <p><strong>Dibuat:</strong> {$report->created_at->format('d-m-Y H:i')}</p>
+            <p><strong>Dibuat oleh:</strong> {$report->creator->name ?? 'System'}</p>
+        </div>
+    </div>
+    
+    <h3>Ringkasan Data</h3>
+    <table>
+        <tr>
+            <th>Keterangan</th>
+            <th>Nilai</th>
+        </tr>
+HTML;
+
+        // Add data rows
+        foreach ($report->data as $key => $value) {
+            if (!is_array($value)) {
+                $html .= "<tr><td>{$key}</td><td>{$value}</td></tr>";
+            }
+        }
+
+        $html .= <<<HTML
+    </table>
+</body>
+</html>
+HTML;
+
+        return $html;
+    }
+
+    /**
+     * Generate Excel (CSV) content from report
+     */
+    private function generateExcelContent(Report $report): string
+    {
+        $csv = "LAPORAN,{$report->name}\n";
+        $csv .= "Periode,{$report->period_start->format('d-m-Y')} s/d {$report->period_end->format('d-m-Y')}\n";
+        $csv .= "Tipe,{$report->type}\n";
+        $csv .= "Dibuat,{$report->created_at->format('d-m-Y H:i')}\n";
+        $csv .= "Dibuat oleh,{$report->creator->name ?? 'System'}\n\n";
+        
+        $csv .= "Data:\n";
+        $csv .= "Keterangan,Nilai\n";
+
+        // Add data
+        foreach ($report->data as $key => $value) {
+            if (!is_array($value)) {
+                $csv .= "\"{$key}\",\"{$value}\"\n";
+            }
+        }
+
+        return $csv;
+    }
+
+    /**
+     * Sanitize filename for download
+     */
+    private function sanitizeFileName(string $name): string
+    {
+        return preg_replace('/[^a-zA-Z0-9-_]/', '_', $name);
     }
 
     /**

@@ -113,6 +113,66 @@ class ReportService
     }
 
     /**
+     * Generate schedule effectiveness report
+     */
+    public function generateEffectivenessReport(
+        Carbon $startDate,
+        Carbon $endDate,
+        ?string $scheduleType = null
+    ): Report {
+        $query = Schedule::whereBetween('start_date', [$startDate, $endDate]);
+
+        if ($scheduleType) {
+            $query->where('type', $scheduleType);
+        }
+
+        $schedules = $query->get();
+
+        // Calculate effectiveness metrics
+        $totalSchedules = $schedules->count();
+        $completedSchedules = $schedules->where('status', 'completed')->count();
+        $activeSchedules = $schedules->where('status', 'active')->count();
+        $cancelledSchedules = $schedules->where('status', 'cancelled')->count();
+
+        $effectivenessRate = $totalSchedules > 0 
+            ? round(($completedSchedules / $totalSchedules) * 100, 2)
+            : 0;
+
+        $data = [
+            'total_schedules' => $totalSchedules,
+            'completed_schedules' => $completedSchedules,
+            'active_schedules' => $activeSchedules,
+            'cancelled_schedules' => $cancelledSchedules,
+            'effectiveness_rate' => $effectivenessRate,
+            'by_type' => $schedules->groupBy('type')->map->count(),
+            'average_duration' => $schedules->avg(function ($schedule) {
+                return $schedule->end_date->diffInHours($schedule->start_date);
+            }),
+            'schedules' => $schedules->map(function ($schedule) {
+                return [
+                    'id' => $schedule->id,
+                    'title' => $schedule->title,
+                    'type' => $schedule->type,
+                    'start_date' => $schedule->start_date->toDateTimeString(),
+                    'end_date' => $schedule->end_date->toDateTimeString(),
+                    'status' => $schedule->status,
+                    'personnel_count' => is_array($schedule->personnel) ? count($schedule->personnel) : 0,
+                ];
+            })->toArray(),
+        ];
+
+        return Report::create([
+            'name' => "Laporan Efektivitas Jadwal - {$startDate->format('M Y')}",
+            'type' => 'effectiveness',
+            'period_start' => $startDate,
+            'period_end' => $endDate,
+            'created_by' => auth()->id() ?? 1,
+            'data' => $data,
+            'status' => 'generated',
+        ]);
+    }
+
+    /**
      * Get reports list
      */
     public function getReports(

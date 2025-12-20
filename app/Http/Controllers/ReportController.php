@@ -125,6 +125,35 @@ class ReportController extends Controller
     }
 
     /**
+     * Show form to generate effectiveness report
+     */
+    public function createEffectivenessReport(): View
+    {
+        return view('reports.generate-effectiveness');
+    }
+
+    /**
+     * Generate schedule effectiveness report
+     */
+    public function storeEffectivenessReport(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'period_start' => 'required|date',
+            'period_end' => 'required|date|after:period_start',
+            'schedule_type' => 'nullable|in:dukkes,jaga,kegiatan_satuan',
+        ]);
+
+        $report = $this->reportService->generateEffectivenessReport(
+            Carbon::parse($validated['period_start']),
+            Carbon::parse($validated['period_end']),
+            $validated['schedule_type'] ?? null
+        );
+
+        return redirect()->route('reports.show', $report)
+            ->with('success', 'Laporan efektivitas jadwal berhasil dibuat!');
+    }
+
+    /**
      * Export report to PDF
      */
     public function exportPdf(Report $report)

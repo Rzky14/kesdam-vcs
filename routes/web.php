@@ -103,6 +103,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/store-schedule', [ReportController::class, 'storeScheduleReport'])->name('store.schedule');
         Route::get('/create-document', [ReportController::class, 'createDocumentReport'])->name('create.document');
         Route::post('/store-document', [ReportController::class, 'storeDocumentReport'])->name('store.document');
+        Route::get('/create-effectiveness', [ReportController::class, 'createEffectivenessReport'])->name('create.effectiveness');
+        Route::post('/store-effectiveness', [ReportController::class, 'storeEffectivenessReport'])->name('store.effectiveness');
         Route::get('/{report}', [ReportController::class, 'show'])->name('show');
         Route::get('/{report}/export-pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
         Route::get('/{report}/export-excel', [ReportController::class, 'exportExcel'])->name('export.excel');

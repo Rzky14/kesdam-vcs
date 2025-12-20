@@ -61,7 +61,7 @@ class ReportService
             'period_end' => $endDate,
             'generated_by' => auth()->id() ?? 1,
             'data' => $data,
-            'status' => 'generated',
+            'status' => 'completed',
         ]);
     }
 
@@ -119,7 +119,7 @@ class ReportService
             'period_end' => $endDate,
             'generated_by' => auth()->id() ?? 1,
             'data' => $data,
-            'status' => 'generated',
+            'status' => 'completed',
         ]);
     }
 
@@ -179,7 +179,7 @@ class ReportService
             'period_end' => $endDate,
             'generated_by' => auth()->id() ?? 1,
             'data' => $data,
-            'status' => 'generated',
+            'status' => 'completed',
         ]);
     }
 

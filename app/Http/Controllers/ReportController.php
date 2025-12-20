@@ -182,7 +182,7 @@ class ReportController extends Controller
     /**
      * Export report to Excel
      */
-    public function exportExcel(Report $report): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function exportExcel(Report $report): \Symfony\Component\HttpFoundation\StreamedResponse|\Illuminate\Http\RedirectResponse
     {
         try {
             // Generate Excel content

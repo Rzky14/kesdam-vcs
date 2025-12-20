@@ -58,9 +58,9 @@
                             <p class="text-muted small mb-0">Evaluasi pelaksanaan jadwal</p>
                         </div>
                     </div>
-                    <button class="btn btn-outline-dark btn-sm w-100" onclick="alert('Fitur dalam pengembangan')">
-                        Analisis
-                    </button>
+                    <a href="{{ route('reports.create.effectiveness') }}" class="btn btn-outline-dark btn-sm w-100">
+                        <i class="bi bi-bar-chart-line"></i> Analisis
+                    </a>
                 </div>
             </div>
         </div>

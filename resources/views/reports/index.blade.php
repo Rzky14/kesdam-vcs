@@ -69,7 +69,22 @@
     <!-- Laporan Terbaru -->
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-bottom">
-            <h5 class="mb-0"><i class="bi bi-clock-history"></i> Laporan Terbaru</h5>
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Laporan Terbaru</h5>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+                        <select id="reportFilter" class="form-select form-select-sm" onchange="filterReports()">
+                            <option value="">Semua Laporan</option>
+                            <option value="schedule">Laporan Jadwal</option>
+                            <option value="document">Laporan Dokumen</option>
+                            <option value="effectiveness">Laporan Efektivitas</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="card-body">
             @if($latestReports->isEmpty())
@@ -83,7 +98,7 @@
             @else
                 <div class="list-group list-group-flush">
                     @foreach($latestReports as $report)
-                        <div class="list-group-item px-0 py-3">
+                        <div class="list-group-item px-0 py-3 report-item" data-report-type="{{ $report->type }}">
                             <div class="row align-items-center">
                                 <div class="col-md-6">
                                     <div class="d-flex align-items-start">
@@ -92,50 +107,87 @@
                                                 <div class="bg-info bg-opacity-10 text-info rounded p-2">
                                                     <i class="bi bi-calendar-event fs-5"></i>
                                                 </div>
-                                            @else
+                                            @elseif($report->type === 'document')
                                                 <div class="bg-success bg-opacity-10 text-success rounded p-2">
                                                     <i class="bi bi-file-text fs-5"></i>
+                                                </div>
+                                            @else
+                                                <div class="bg-warning bg-opacity-10 text-warning rounded p-2">
+                                                    <i class="bi bi-bar-chart-line fs-5"></i>
                                                 </div>
                                             @endif
                                         </div>
                                         <div>
                                             <h6 class="mb-1">{{ $report->name }}</h6>
-                                            <small class="text-muted">{{ $report->created_at->format('d M Y') }}</small>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar2"></i> 
+                                                {{ $report->created_at->format('d M Y H:i') }}
+                                            </small>
+                                            <br/>
+                                            <small class="text-muted">
+                                                <i class="bi bi-person"></i> 
+                                                {{ $report->creator->name ?? 'System' }}
+                                            </small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-2 text-center">
-                                    <span class="badge bg-{{ $report->type === 'schedule' ? 'primary' : 'success' }}">
-                                        {{ $report->type === 'schedule' ? 'Jadwal' : 'Dokumen' }}
-                                    </span>
-                                </div>
-                                <div class="col-md-2 text-center">
-                                    @if($report->status === 'completed')
-                                        <span class="badge bg-success">Selesai</span>
-                                    @elseif($report->status === 'in_progress')
-                                        <span class="badge bg-warning">Proses</span>
+                                <div class="col-md-1 text-center">
+                                    @if($report->type === 'schedule')
+                                        <span class="badge bg-primary">Jadwal</span>
+                                    @elseif($report->type === 'document')
+                                        <span class="badge bg-success">Dokumen</span>
                                     @else
-                                        <span class="badge bg-secondary">Draft</span>
+                                        <span class="badge bg-warning text-dark">Efektivitas</span>
+                                    @endif
+                                </div>
+                                <div class="col-md-1 text-center">
+                                    @if($report->status === 'completed')
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Selesai</span>
+                                    @elseif($report->status === 'in_progress')
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Proses</span>
+                                    @else
+                                        <span class="badge bg-secondary"><i class="bi bi-file-earmark-text"></i> Draft</span>
                                     @endif
                                 </div>
                                 <div class="col-md-2 text-end">
-                                    <div class="btn-group btn-group-sm">
+                                    <div class="btn-group btn-group-sm" role="group">
                                         <a href="{{ route('reports.show', $report) }}" 
                                            class="btn btn-outline-secondary" 
-                                           title="Lihat Detail">
-                                            <i class="bi bi-eye"></i>
+                                           title="Lihat Detail"
+                                           data-bs-toggle="tooltip">
+                                            <i class="bi bi-eye"></i> Lihat
                                         </a>
                                         <a href="{{ route('reports.export.pdf', $report) }}" 
                                            class="btn btn-outline-danger" 
-                                           title="Export PDF">
+                                           title="Export PDF"
+                                           data-bs-toggle="tooltip">
                                             <i class="bi bi-file-pdf"></i>
                                         </a>
+                                        <form action="{{ route('reports.destroy', $report) }}" method="POST" style="display:inline;">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger" 
+                                                    title="Hapus" 
+                                                    data-bs-toggle="tooltip"
+                                                    onclick="return confirm('Yakin hapus laporan ini?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     @endforeach
                 </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item"><a class="page-link" href="#">Sebelumnya</a></li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">Selanjutnya</a></li>
+                    </ul>
+                </nav>
             @endif
         </div>
     </div>
@@ -158,5 +210,37 @@
     .list-group-item:hover {
         background-color: #f8f9fa;
     }
+    
+    .report-item {
+        border-left: 3px solid transparent;
+        transition: border-color 0.2s;
+    }
+    
+    .report-item:hover {
+        border-left-color: #0d6efd;
+    }
 </style>
+
+<script>
+function filterReports() {
+    const filterValue = document.getElementById('reportFilter').value;
+    const items = document.querySelectorAll('.report-item');
+    
+    items.forEach(item => {
+        if (filterValue === '' || item.getAttribute('data-report-type') === filterValue) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
 @endsection

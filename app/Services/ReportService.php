@@ -16,13 +16,17 @@ class ReportService
     public function generateScheduleReport(
         Carbon $startDate,
         Carbon $endDate,
-        ?string $scheduleType = null,
+        $scheduleTypes = null,
         ?int $userId = null
     ): Report {
         $query = Schedule::whereBetween('start_date', [$startDate, $endDate]);
 
-        if ($scheduleType) {
-            $query->where('type', $scheduleType);
+        if ($scheduleTypes) {
+            if (is_array($scheduleTypes)) {
+                $query->whereIn('type', $scheduleTypes);
+            } else {
+                $query->where('type', $scheduleTypes);
+            }
         }
 
         if ($userId) {

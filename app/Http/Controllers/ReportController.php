@@ -80,13 +80,14 @@ class ReportController extends Controller
         $validated = $request->validate([
             'period_start' => 'required|date',
             'period_end' => 'required|date|after:period_start',
-            'schedule_type' => 'nullable|in:dukkes,jaga,kegiatan_satuan',
+            'schedule_types' => 'nullable|array',
+            'schedule_types.*' => 'in:Jadwal Dukkes,Jadwal Jaga,Jadwal Kegiatan Satuan',
         ]);
 
         $report = $this->reportService->generateScheduleReport(
             Carbon::parse($validated['period_start']),
             Carbon::parse($validated['period_end']),
-            $validated['schedule_type'] ?? null
+            $validated['schedule_types'] ?? null
         );
 
         return redirect()->route('reports.show', $report)

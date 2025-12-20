@@ -141,7 +141,7 @@
                                             <br/>
                                             <small class="text-muted">
                                                 <i class="bi bi-person"></i> 
-                                                {{ $report->creator->name ?? 'System' }}
+                                                {{ $report->generatedBy?->name ?? 'System' }}
                                             </small>
                                         </div>
                                     </div>
@@ -164,27 +164,44 @@
                                         <span class="badge bg-secondary"><i class="bi bi-file-earmark-text"></i> Draft</span>
                                     @endif
                                 </div>
-                                <div class="col-md-2 text-end">
-                                    <div class="btn-group btn-group-sm" role="group">
+                                <div class="col-md-2">
+                                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                        <!-- Lihat Detail Button -->
                                         <a href="{{ route('reports.show', $report) }}" 
-                                           class="btn btn-outline-secondary" 
-                                           title="Lihat Detail"
+                                           class="btn btn-sm btn-outline-info" 
+                                           title="Lihat Detail Laporan"
                                            data-bs-toggle="tooltip">
-                                            <i class="bi bi-eye"></i> Lihat
+                                            <i class="bi bi-eye"></i>
+                                            <span class="d-none d-lg-inline">Lihat</span>
                                         </a>
+
+                                        <!-- Export PDF Button -->
                                         <a href="{{ route('reports.export.pdf', $report) }}" 
-                                           class="btn btn-outline-danger" 
-                                           title="Export PDF"
+                                           class="btn btn-sm btn-outline-danger" 
+                                           title="Download Laporan PDF"
                                            data-bs-toggle="tooltip">
                                             <i class="bi bi-file-pdf"></i>
+                                            <span class="d-none d-lg-inline">PDF</span>
                                         </a>
-                                        <form action="{{ route('reports.destroy', $report) }}" method="POST" style="display:inline;">
+
+                                        <!-- Export Excel Button -->
+                                        <a href="{{ route('reports.export.excel', $report) }}" 
+                                           class="btn btn-sm btn-outline-success" 
+                                           title="Download Laporan Excel"
+                                           data-bs-toggle="tooltip">
+                                            <i class="bi bi-file-earmark-spreadsheet"></i>
+                                            <span class="d-none d-lg-inline">Excel</span>
+                                        </a>
+
+                                        <!-- Delete Button -->
+                                        <form action="{{ route('reports.destroy', $report) }}" method="POST" style="display:inline;" class="delete-form">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" 
-                                                    title="Hapus" 
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                    title="Hapus Laporan"
                                                     data-bs-toggle="tooltip"
-                                                    onclick="return confirm('Yakin hapus laporan ini?')">
-                                                <i class="bi bi-trash"></i>
+                                                    onclick="return confirm('⚠️ Yakin hapus laporan ini? Data tidak dapat dikembalikan.')">
+                                                <i class="bi bi-trash2"></i>
+                                                <span class="d-none d-lg-inline">Hapus</span>
                                             </button>
                                         </form>
                                     </div>
@@ -233,6 +250,48 @@
     
     .report-item:hover {
         border-left-color: #0d6efd;
+    }
+
+    /* Button styling improvements */
+    .btn-sm {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    .btn-outline-info:hover {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        color: white;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+    }
+
+    .btn-outline-success:hover {
+        background-color: #198754;
+        border-color: #198754;
+        color: white;
+    }
+
+    /* Responsive button layout */
+    @media (max-width: 768px) {
+        .btn-sm {
+            padding: 0.3rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .d-flex.gap-2 {
+            gap: 0.3rem !important;
+        }
+    }
+
+    /* Delete form inline fix */
+    .delete-form {
+        display: inline !important;
     }
 </style>
 

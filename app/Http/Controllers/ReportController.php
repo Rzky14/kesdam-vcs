@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Report;
 use App\Services\ReportService;
+use App\Http\Requests\StoreScheduleReportRequest;
+use App\Http\Requests\StoreDocumentReportRequest;
+use App\Http\Requests\StoreEffectivenessReportRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -75,23 +78,24 @@ class ReportController extends Controller
     /**
      * Generate schedule report
      */
-    public function storeScheduleReport(Request $request): RedirectResponse
+    public function storeScheduleReport(StoreScheduleReportRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'period_start' => 'required|date',
-            'period_end' => 'required|date|after:period_start',
-            'schedule_types' => 'nullable|array',
-            'schedule_types.*' => 'in:Jadwal Dukkes,Jadwal Jaga,Jadwal Kegiatan Satuan',
-        ]);
+        try {
+            $validated = $request->validated();
 
-        $report = $this->reportService->generateScheduleReport(
-            Carbon::parse($validated['period_start']),
-            Carbon::parse($validated['period_end']),
-            $validated['schedule_types'] ?? null
-        );
+            $report = $this->reportService->generateScheduleReport(
+                Carbon::parse($validated['period_start']),
+                Carbon::parse($validated['period_end']),
+                $validated['schedule_types'] ?? null
+            );
 
-        return redirect()->route('reports.show', $report)
-            ->with('success', 'Laporan jadwal berhasil dibuat!');
+            return redirect()->route('reports.show', $report)
+                ->with('success', '✓ Laporan jadwal berhasil dibuat!');
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', '✗ Gagal membuat laporan: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     /**
@@ -105,25 +109,25 @@ class ReportController extends Controller
     /**
      * Generate document report
      */
-    public function storeDocumentReport(Request $request): RedirectResponse
+    public function storeDocumentReport(StoreDocumentReportRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'period_start' => 'required|date',
-            'period_end' => 'required|date|after:period_start',
-            'classifications' => 'nullable|array',
-            'classifications.*' => 'in:Biasa,Rahasia,Telegram',
-            'document_status' => 'nullable|in:pending,approved,rejected,archived',
-        ]);
+        try {
+            $validated = $request->validated();
 
-        $report = $this->reportService->generateDocumentReport(
-            Carbon::parse($validated['period_start']),
-            Carbon::parse($validated['period_end']),
-            $validated['classifications'] ?? null,
-            $validated['document_status'] ?? null
-        );
+            $report = $this->reportService->generateDocumentReport(
+                Carbon::parse($validated['period_start']),
+                Carbon::parse($validated['period_end']),
+                $validated['classifications'] ?? null,
+                $validated['document_status'] ?? null
+            );
 
-        return redirect()->route('reports.show', $report)
-            ->with('success', 'Laporan dokumen berhasil dibuat!');
+            return redirect()->route('reports.show', $report)
+                ->with('success', '✓ Laporan dokumen berhasil dibuat!');
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', '✗ Gagal membuat laporan: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
         $report = $this->reportService->generateDocumentReport(
@@ -148,22 +152,24 @@ class ReportController extends Controller
     /**
      * Generate schedule effectiveness report
      */
-    public function storeEffectivenessReport(Request $request): RedirectResponse
+    public function storeEffectivenessReport(StoreEffectivenessReportRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'period_start' => 'required|date',
-            'period_end' => 'required|date|after:period_start',
-            'schedule_type' => 'nullable|in:dukkes,jaga,kegiatan_satuan',
-        ]);
+        try {
+            $validated = $request->validated();
 
-        $report = $this->reportService->generateEffectivenessReport(
-            Carbon::parse($validated['period_start']),
-            Carbon::parse($validated['period_end']),
-            $validated['schedule_type'] ?? null
-        );
+            $report = $this->reportService->generateEffectivenessReport(
+                Carbon::parse($validated['period_start']),
+                Carbon::parse($validated['period_end']),
+                $validated['schedule_type'] ?? null
+            );
 
-        return redirect()->route('reports.show', $report)
-            ->with('success', 'Laporan efektivitas jadwal berhasil dibuat!');
+            return redirect()->route('reports.show', $report)
+                ->with('success', '✓ Laporan efektivitas jadwal berhasil dibuat!');
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', '✗ Gagal membuat laporan: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     /**

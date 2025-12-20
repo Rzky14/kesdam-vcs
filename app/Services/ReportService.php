@@ -59,7 +59,7 @@ class ReportService
             'type' => 'schedule',
             'period_start' => $startDate,
             'period_end' => $endDate,
-            'created_by' => auth()->id() ?? 1,
+            'generated_by' => auth()->id() ?? 1,
             'data' => $data,
             'status' => 'generated',
         ]);
@@ -117,7 +117,7 @@ class ReportService
             'type' => 'document',
             'period_start' => $startDate,
             'period_end' => $endDate,
-            'created_by' => auth()->id() ?? 1,
+            'generated_by' => auth()->id() ?? 1,
             'data' => $data,
             'status' => 'generated',
         ]);
@@ -177,7 +177,7 @@ class ReportService
             'type' => 'effectiveness',
             'period_start' => $startDate,
             'period_end' => $endDate,
-            'created_by' => auth()->id() ?? 1,
+            'generated_by' => auth()->id() ?? 1,
             'data' => $data,
             'status' => 'generated',
         ]);

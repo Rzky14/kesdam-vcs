@@ -205,7 +205,7 @@ class ReportController extends Controller
      */
     private function generatePdfContent(Report $report): string
     {
-        $creatorName = $report->creator?->name ?? 'System';
+        $creatorName = $report->generatedBy?->name ?? 'System';
         
         $html = <<<HTML
 <!DOCTYPE html>

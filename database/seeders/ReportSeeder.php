@@ -31,7 +31,7 @@ class ReportSeeder extends Seeder
                 'type' => 'schedule',
                 'period_start' => Carbon::now()->subMonths($i)->startOfMonth(),
                 'period_end' => Carbon::now()->subMonths($i)->endOfMonth(),
-                'created_by' => $user->id,
+                'generated_by' => $user->id,
                 'data' => [
                     'total_schedules' => rand(10, 50),
                     'by_type' => [
@@ -46,7 +46,7 @@ class ReportSeeder extends Seeder
                     ],
                     'average_duration' => rand(4, 12),
                 ],
-                'status' => 'generated',
+                'status' => 'completed',
             ]);
         }
 
@@ -57,7 +57,7 @@ class ReportSeeder extends Seeder
                 'type' => 'document',
                 'period_start' => Carbon::now()->subMonths($i)->startOfMonth(),
                 'period_end' => Carbon::now()->subMonths($i)->endOfMonth(),
-                'created_by' => $user->id,
+                'generated_by' => $user->id,
                 'data' => [
                     'total_documents' => rand(20, 100),
                     'by_type' => [
@@ -79,7 +79,7 @@ class ReportSeeder extends Seeder
                     'approved_count' => rand(15, 80),
                     'rejected_count' => rand(0, 5),
                 ],
-                'status' => 'generated',
+                'status' => 'completed',
             ]);
         }
 
@@ -90,7 +90,7 @@ class ReportSeeder extends Seeder
                 'type' => 'effectiveness',
                 'period_start' => Carbon::now()->subMonths($i)->startOfMonth(),
                 'period_end' => Carbon::now()->subMonths($i)->endOfMonth(),
-                'created_by' => $user->id,
+                'generated_by' => $user->id,
                 'data' => [
                     'effectiveness_rate' => round(rand(70, 98), 2),
                     'completed_schedules' => rand(20, 40),
@@ -115,7 +115,7 @@ class ReportSeeder extends Seeder
                         ],
                     ],
                 ],
-                'status' => 'generated',
+                'status' => 'completed',
             ]);
         }
 

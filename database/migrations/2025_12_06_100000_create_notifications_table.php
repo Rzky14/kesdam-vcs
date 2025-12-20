@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Only create if doesn't exist
+        if (Schema::hasTable('notifications')) {
+            return;
+        }
+
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('type');
@@ -22,17 +27,19 @@ return new class extends Migration
             $table->index(['notifiable_type', 'notifiable_id', 'read_at']);
         });
 
-        Schema::create('notification_preferences', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('notification_type')->comment('Type: schedule_reminder, approval_request, document_status, etc.');
-            $table->boolean('in_app_enabled')->default(true);
-            $table->boolean('email_enabled')->default(false);
-            $table->timestamps();
-            
-            $table->unique(['user_id', 'notification_type']);
-            $table->index('user_id');
-        });
+        if (!Schema::hasTable('notification_preferences')) {
+            Schema::create('notification_preferences', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('notification_type')->comment('Type: schedule_reminder, approval_request, document_status, etc.');
+                $table->boolean('in_app_enabled')->default(true);
+                $table->boolean('email_enabled')->default(false);
+                $table->timestamps();
+                
+                $table->unique(['user_id', 'notification_type']);
+                $table->index('user_id');
+            });
+        }
     }
 
     /**

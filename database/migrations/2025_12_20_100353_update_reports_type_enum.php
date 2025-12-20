@@ -12,8 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Using raw SQL to modify the column since it already exists
-        DB::statement("ALTER TABLE reports MODIFY COLUMN generated_by BIGINT UNSIGNED DEFAULT 1");
+        // For MySQL, we need to modify the enum
+        DB::statement("ALTER TABLE reports MODIFY COLUMN type ENUM('schedule', 'document', 'effectiveness')");
     }
 
     /**
@@ -21,6 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE reports MODIFY COLUMN generated_by BIGINT UNSIGNED NOT NULL");
+        DB::statement("ALTER TABLE reports MODIFY COLUMN type ENUM('schedule', 'document')");
     }
 };

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('type', ['schedule', 'document']); // Jenis laporan
+            $table->enum('type', ['schedule', 'document', 'effectiveness']); // Jenis laporan
             
             // Polymorphic relationship
             $table->string('reportable_type')->nullable();

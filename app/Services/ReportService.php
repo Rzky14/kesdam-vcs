@@ -71,17 +71,21 @@ class ReportService
     public function generateDocumentReport(
         Carbon $startDate,
         Carbon $endDate,
-        ?string $type = null,
-        ?string $classification = null
+        $classifications = null,
+        ?string $documentStatus = null
     ): Report {
         $query = Document::whereBetween('created_at', [$startDate, $endDate]);
 
-        if ($type) {
-            $query->where('type', $type);
+        if ($classifications) {
+            if (is_array($classifications)) {
+                $query->whereIn('classification', $classifications);
+            } else {
+                $query->where('classification', $classifications);
+            }
         }
 
-        if ($classification) {
-            $query->where('classification', $classification);
+        if ($documentStatus) {
+            $query->where('status', $documentStatus);
         }
 
         $documents = $query->get();
@@ -93,6 +97,9 @@ class ReportService
             'by_classification' => $documents->groupBy('classification')->map->count(),
             'by_status' => $documents->groupBy('status')->map->count(),
             'approval_rate' => $this->calculateApprovalRate($documents),
+            'pending_count' => $documents->where('status', 'pending')->count(),
+            'approved_count' => $documents->where('status', 'approved')->count(),
+            'rejected_count' => $documents->where('status', 'rejected')->count(),
             'documents' => $documents->map(function ($doc) {
                 return [
                     'id' => $doc->id,

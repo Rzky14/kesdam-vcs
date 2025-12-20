@@ -110,9 +110,21 @@ class ReportController extends Controller
         $validated = $request->validate([
             'period_start' => 'required|date',
             'period_end' => 'required|date|after:period_start',
-            'document_type' => 'nullable|in:masuk,keluar',
-            'classification' => 'nullable|in:biasa,rahasia,telegram',
+            'classifications' => 'nullable|array',
+            'classifications.*' => 'in:Biasa,Rahasia,Telegram',
+            'document_status' => 'nullable|in:pending,approved,rejected,archived',
         ]);
+
+        $report = $this->reportService->generateDocumentReport(
+            Carbon::parse($validated['period_start']),
+            Carbon::parse($validated['period_end']),
+            $validated['classifications'] ?? null,
+            $validated['document_status'] ?? null
+        );
+
+        return redirect()->route('reports.show', $report)
+            ->with('success', 'Laporan dokumen berhasil dibuat!');
+    }
 
         $report = $this->reportService->generateDocumentReport(
             Carbon::parse($validated['period_start']),

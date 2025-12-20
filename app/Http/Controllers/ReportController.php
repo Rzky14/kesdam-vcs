@@ -130,17 +130,6 @@ class ReportController extends Controller
         }
     }
 
-        $report = $this->reportService->generateDocumentReport(
-            Carbon::parse($validated['period_start']),
-            Carbon::parse($validated['period_end']),
-            $validated['document_type'] ?? null,
-            $validated['classification'] ?? null
-        );
-
-        return redirect()->route('reports.show', $report)
-            ->with('success', 'Laporan dokumen berhasil dibuat!');
-    }
-
     /**
      * Show form to generate effectiveness report
      */
@@ -216,6 +205,8 @@ class ReportController extends Controller
      */
     private function generatePdfContent(Report $report): string
     {
+        $creatorName = $report->creator?->name ?? 'System';
+        
         $html = <<<HTML
 <!DOCTYPE html>
 <html>
@@ -239,7 +230,7 @@ class ReportController extends Controller
             <p><strong>Tipe:</strong> {$report->type}</p>
             <p><strong>Periode:</strong> {$report->period_start->format('d-m-Y')} s/d {$report->period_end->format('d-m-Y')}</p>
             <p><strong>Dibuat:</strong> {$report->created_at->format('d-m-Y H:i')}</p>
-            <p><strong>Dibuat oleh:</strong> {$report->creator->name ?? 'System'}</p>
+            <p><strong>Dibuat oleh:</strong> {$creatorName}</p>
         </div>
     </div>
     
@@ -272,11 +263,13 @@ HTML;
      */
     private function generateExcelContent(Report $report): string
     {
+        $creatorName = $report->creator?->name ?? 'System';
+        
         $csv = "LAPORAN,{$report->name}\n";
         $csv .= "Periode,{$report->period_start->format('d-m-Y')} s/d {$report->period_end->format('d-m-Y')}\n";
         $csv .= "Tipe,{$report->type}\n";
         $csv .= "Dibuat,{$report->created_at->format('d-m-Y H:i')}\n";
-        $csv .= "Dibuat oleh,{$report->creator->name ?? 'System'}\n\n";
+        $csv .= "Dibuat oleh,{$creatorName}\n\n";
         
         $csv .= "Data:\n";
         $csv .= "Keterangan,Nilai\n";

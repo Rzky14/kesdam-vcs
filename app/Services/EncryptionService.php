@@ -6,18 +6,18 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
 
 /**
- * EncryptionService
+ * LayananEnkripsi (EncryptionService)
  * 
- * Handles encryption and decryption of sensitive data, especially for classified documents.
- * Uses Laravel's built-in encryption which uses AES-256-CBC cipher.
+ * Menangani enkripsi dan dekripsi data sensitif, terutama untuk dokumen rahasia.
+ * Menggunakan enkripsi bawaan Laravel yang menggunakan cipher AES-256-CBC.
  */
 class EncryptionService
 {
     /**
-     * Encrypt sensitive data.
+     * Enkripsi data sensitif.
      *
-     * @param mixed $data
-     * @return string
+     * @param mixed $data Data yang akan dienkripsi
+     * @return string Data terenkripsi
      * @throws \Illuminate\Contracts\Encryption\EncryptException
      */
     public function encrypt($data): string
@@ -26,11 +26,11 @@ class EncryptionService
     }
 
     /**
-     * Decrypt sensitive data.
+     * Dekripsi data sensitif.
      *
-     * @param string $encrypted
-     * @param bool $asArray
-     * @return mixed
+     * @param string $encrypted Data terenkripsi
+     * @param bool $asArray Kembalikan sebagai array jika true
+     * @return mixed Data yang sudah didekripsi
      * @throws DecryptException
      */
     public function decrypt(string $encrypted, bool $asArray = false)
@@ -44,21 +44,21 @@ class EncryptionService
             
             return $decrypted;
         } catch (DecryptException $e) {
-            throw new DecryptException('Unable to decrypt data: ' . $e->getMessage());
+            throw new DecryptException('Gagal mendekripsi data: ' . $e->getMessage());
         }
     }
 
     /**
-     * Encrypt a file.
+     * Enkripsi file.
      *
-     * @param string $filePath
-     * @return string Encrypted file contents
+     * @param string $filePath Path file yang akan dienkripsi
+     * @return string Konten file terenkripsi
      * @throws \Illuminate\Contracts\Encryption\EncryptException
      */
     public function encryptFile(string $filePath): string
     {
         if (!file_exists($filePath)) {
-            throw new \InvalidArgumentException("File not found: {$filePath}");
+            throw new \InvalidArgumentException("File tidak ditemukan: {$filePath}");
         }
 
         $fileContents = file_get_contents($filePath);
@@ -66,11 +66,11 @@ class EncryptionService
     }
 
     /**
-     * Decrypt and save file.
+     * Dekripsi dan simpan file.
      *
-     * @param string $encrypted
-     * @param string $destinationPath
-     * @return bool
+     * @param string $encrypted Data terenkripsi
+     * @param string $destinationPath Path tujuan penyimpanan
+     * @return bool Status berhasil atau gagal
      * @throws DecryptException
      */
     public function decryptToFile(string $encrypted, string $destinationPath): bool
@@ -80,10 +80,10 @@ class EncryptionService
     }
 
     /**
-     * Check if string is valid JSON.
+     * Periksa apakah string adalah JSON yang valid.
      *
-     * @param string $string
-     * @return bool
+     * @param string $string String yang akan diperiksa
+     * @return bool True jika JSON valid
      */
     private function isJson(string $string): bool
     {
@@ -92,11 +92,11 @@ class EncryptionService
     }
 
     /**
-     * Encrypt file and store it.
+     * Enkripsi file dan simpan.
      *
-     * @param \Illuminate\Http\UploadedFile $file
-     * @param string $directory
-     * @param string|null $filename
+     * @param \Illuminate\Http\UploadedFile $file File yang diupload
+     * @param string $directory Direktori penyimpanan
+     * @param string|null $filename Nama file (opsional)
      * @return array ['path' => string, 'encrypted_content' => string]
      * @throws \Illuminate\Contracts\Encryption\EncryptException
      */
@@ -106,7 +106,7 @@ class EncryptionService
         $fileContents = file_get_contents($file->getRealPath());
         $encrypted = $this->encrypt($fileContents);
 
-        // Store encrypted content
+        // Simpan konten terenkripsi
         $path = storage_path("app/{$directory}/{$filename}.encrypted");
         
         if (!file_exists(dirname($path))) {
@@ -125,10 +125,10 @@ class EncryptionService
     }
 
     /**
-     * Retrieve and decrypt stored file.
+     * Ambil dan dekripsi file yang tersimpan.
      *
-     * @param string $path
-     * @return string Decrypted file contents
+     * @param string $path Path file terenkripsi
+     * @return string Konten file yang sudah didekripsi
      * @throws DecryptException
      */
     public function retrieveAndDecrypt(string $path): string
@@ -136,7 +136,7 @@ class EncryptionService
         $fullPath = storage_path("app/{$path}");
         
         if (!file_exists($fullPath)) {
-            throw new \InvalidArgumentException("Encrypted file not found: {$path}");
+            throw new \InvalidArgumentException("File terenkripsi tidak ditemukan: {$path}");
         }
 
         $encrypted = file_get_contents($fullPath);
@@ -144,12 +144,12 @@ class EncryptionService
     }
 
     /**
-     * Alias untuk encryptAndStore - kompatibilitas bahasa Indonesia.
+     * Alias untuk encryptAndStore - enkripsi dan simpan file.
      *
-     * @param \Illuminate\Http\UploadedFile $file
-     * @param string $directory
-     * @param string|null $filename
-     * @return array
+     * @param \Illuminate\Http\UploadedFile $file File yang diupload
+     * @param string $directory Direktori penyimpanan
+     * @param string|null $filename Nama file (opsional)
+     * @return array Informasi file terenkripsi
      */
     public function enkripsiDanSimpan($file, string $directory, ?string $filename = null): array
     {
@@ -157,10 +157,10 @@ class EncryptionService
     }
 
     /**
-     * Alias untuk retrieveAndDecrypt - kompatibilitas bahasa Indonesia.
+     * Alias untuk retrieveAndDecrypt - ambil dan dekripsi file.
      *
-     * @param string $path
-     * @return string
+     * @param string $path Path file terenkripsi
+     * @return string Konten file yang sudah didekripsi
      */
     public function ambilDanDekripsi(string $path): string
     {

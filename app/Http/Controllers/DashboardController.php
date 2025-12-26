@@ -9,10 +9,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
+/**
+ * DashboardController
+ * 
+ * Mengelola tampilan dasbor berdasarkan peran pengguna.
+ */
 class DashboardController extends Controller
 {
     /**
-     * Display the dashboard.
+     * Tampilkan halaman dasbor.
      *
      * @return \Illuminate\View\View
      */
@@ -20,20 +25,20 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        // Get statistics based on user role
+        // Ambil statistik berdasarkan peran pengguna
         $stats = $this->getStatistics($user);
         
-        // Get recent schedules based on user role
+        // Ambil jadwal terbaru berdasarkan peran pengguna
         $recentSchedules = $this->getRecentSchedules($user);
         
-        // Get recent documents based on user role
+        // Ambil dokumen terbaru berdasarkan peran pengguna
         $recentDocuments = $this->getRecentDocuments($user);
         
         return view('dashboard.index', compact('stats', 'recentSchedules', 'recentDocuments'));
     }
     
     /**
-     * Get statistics based on user role.
+     * Ambil statistik berdasarkan peran pengguna.
      *
      * @param  \App\Models\User  $user
      * @return array
@@ -123,7 +128,7 @@ class DashboardController extends Controller
     }
     
     /**
-     * Get recent schedules based on user role.
+     * Ambil jadwal terbaru berdasarkan peran pengguna.
      *
      * @param  \App\Models\User  $user
      * @return \Illuminate\Database\Eloquent\Collection
@@ -135,7 +140,7 @@ class DashboardController extends Controller
             ->orderBy('start_date', 'asc');
         
         if (!$user->hasRole('admin_sistem') && !$user->hasRole('pimpinan')) {
-            // Filter schedules for Kasi/Kaur and Batih/Staf
+            // Filter jadwal untuk Kasi/Kaur dan Batih/Staf
             $query->where(function($q) use ($user) {
                 $q->where('created_by', $user->id)
                   ->orWhereJsonContains('personnel', $user->id);
@@ -146,7 +151,7 @@ class DashboardController extends Controller
     }
     
     /**
-     * Get recent documents based on user role.
+     * Ambil dokumen terbaru berdasarkan peran pengguna.
      *
      * @param  \App\Models\User  $user
      * @return \Illuminate\Database\Eloquent\Collection
@@ -157,16 +162,16 @@ class DashboardController extends Controller
             ->orderBy('date', 'desc');
         
         if ($user->hasRole('admin_sistem') || $user->hasRole('pimpinan')) {
-            // Admin and Pimpinan see all recent documents
+            // Admin dan Pimpinan melihat semua dokumen terbaru
             $query->whereIn('status', ['pending_approval', 'approved']);
         } elseif ($user->hasRole('kasi_kaur')) {
-            // Kasi/Kaur see unit documents and pending approvals
+            // Kasi/Kaur melihat dokumen unit dan persetujuan yang menunggu
             $query->where(function($q) use ($user) {
                 $q->where('created_by', $user->id)
                   ->orWhere('status', 'pending_approval');
             });
         } else {
-            // Batih/Staf see only their own documents
+            // Batih/Staf hanya melihat dokumen mereka sendiri
             $query->where('created_by', $user->id);
         }
         

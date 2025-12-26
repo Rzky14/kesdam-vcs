@@ -15,14 +15,19 @@ use App\Notifications\DocumentStatusChangedNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Notifications\DatabaseNotification;
 
+/**
+ * LayananNotifikasi (NotificationService)
+ * 
+ * Menangani pengiriman dan pengelolaan notifikasi untuk pengguna.
+ */
 class NotificationService
 {
     /**
-     * Send schedule reminder notification
+     * Kirim notifikasi pengingat jadwal.
      *
-     * @param Schedule $schedule
-     * @param User|Collection $users
-     * @param int $hoursUntilStart
+     * @param Schedule $schedule Jadwal yang akan diingatkan
+     * @param User|Collection $users Pengguna yang akan menerima notifikasi
+     * @param int $hoursUntilStart Jam sebelum jadwal dimulai
      * @return void
      */
     public function sendScheduleReminder(Schedule $schedule, $users, int $hoursUntilStart = 24): void
@@ -38,12 +43,12 @@ class NotificationService
     }
 
     /**
-     * Kirim notifikasi permintaan persetujuan
+     * Kirim notifikasi permintaan persetujuan.
      *
-     * @param Dokumen $document
-     * @param User $approver
-     * @param User $submitter
-     * @param int $currentLevel
+     * @param Dokumen $document Dokumen yang memerlukan persetujuan
+     * @param User $approver Pengguna pemberi persetujuan
+     * @param User $submitter Pengguna yang mengajukan
+     * @param int $currentLevel Level persetujuan saat ini
      * @return void
      */
     public function sendApprovalRequest(Dokumen $document, User $approver, User $submitter, int $currentLevel): void
@@ -55,12 +60,12 @@ class NotificationService
     }
 
     /**
-     * Kirim notifikasi dokumen disetujui
+     * Kirim notifikasi dokumen disetujui.
      *
-     * @param Dokumen $document
-     * @param User $recipient
-     * @param User $approver
-     * @param string|null $notes
+     * @param Dokumen $document Dokumen yang disetujui
+     * @param User $recipient Penerima notifikasi
+     * @param User $approver Pengguna yang menyetujui
+     * @param string|null $notes Catatan tambahan
      * @return void
      */
     public function sendDocumentApproved(Dokumen $document, User $recipient, User $approver, ?string $notes = null): void
@@ -72,12 +77,12 @@ class NotificationService
     }
 
     /**
-     * Kirim notifikasi dokumen ditolak
+     * Kirim notifikasi dokumen ditolak.
      *
-     * @param Dokumen $document
-     * @param User $recipient
-     * @param User $rejector
-     * @param string $reason
+     * @param Dokumen $document Dokumen yang ditolak
+     * @param User $recipient Penerima notifikasi
+     * @param User $rejector Pengguna yang menolak
+     * @param string $reason Alasan penolakan
      * @return void
      */
     public function sendDocumentRejected(Dokumen $document, User $recipient, User $rejector, string $reason): void
@@ -89,12 +94,12 @@ class NotificationService
     }
 
     /**
-     * Kirim notifikasi permintaan koreksi
+     * Kirim notifikasi permintaan koreksi.
      *
-     * @param Dokumen $document
-     * @param CorrectionRequest $correctionRequest
-     * @param User $recipient
-     * @param User $requester
+     * @param Dokumen $document Dokumen yang memerlukan koreksi
+     * @param CorrectionRequest $correctionRequest Detail permintaan koreksi
+     * @param User $recipient Penerima notifikasi
+     * @param User $requester Pengguna yang meminta koreksi
      * @return void
      */
     public function sendCorrectionRequested(Dokumen $document, CorrectionRequest $correctionRequest, User $recipient, User $requester): void
@@ -106,12 +111,12 @@ class NotificationService
     }
 
     /**
-     * Kirim notifikasi perubahan status dokumen
+     * Kirim notifikasi perubahan status dokumen.
      *
-     * @param Dokumen $document
-     * @param User $recipient
-     * @param string $oldStatus
-     * @param string $newStatus
+     * @param Dokumen $document Dokumen yang statusnya berubah
+     * @param User $recipient Penerima notifikasi
+     * @param string $oldStatus Status lama
+     * @param string $newStatus Status baru
      * @return void
      */
     public function sendDocumentStatusChanged(Dokumen $document, User $recipient, string $oldStatus, string $newStatus): void
@@ -123,11 +128,11 @@ class NotificationService
     }
 
     /**
-     * Get unread notifications for user
+     * Ambil notifikasi yang belum dibaca untuk pengguna.
      *
-     * @param User $user
-     * @param int|null $limit
-     * @return Collection
+     * @param User $user Pengguna
+     * @param int|null $limit Batas jumlah notifikasi
+     * @return Collection Daftar notifikasi
      */
     public function getUnreadNotifications(User $user, ?int $limit = null): Collection
     {
@@ -141,11 +146,11 @@ class NotificationService
     }
 
     /**
-     * Get all notifications for user
+     * Ambil semua notifikasi untuk pengguna.
      *
-     * @param User $user
-     * @param int|null $limit
-     * @return Collection
+     * @param User $user Pengguna
+     * @param int|null $limit Batas jumlah notifikasi
+     * @return Collection Daftar notifikasi
      */
     public function getAllNotifications(User $user, ?int $limit = null): Collection
     {
@@ -159,10 +164,10 @@ class NotificationService
     }
 
     /**
-     * Get unread notifications count
+     * Ambil jumlah notifikasi yang belum dibaca.
      *
-     * @param User $user
-     * @return int
+     * @param User $user Pengguna
+     * @return int Jumlah notifikasi belum dibaca
      */
     public function getUnreadCount(User $user): int
     {
@@ -170,9 +175,9 @@ class NotificationService
     }
 
     /**
-     * Mark notification as read
+     * Tandai notifikasi sebagai sudah dibaca.
      *
-     * @param DatabaseNotification $notification
+     * @param DatabaseNotification $notification Notifikasi yang akan ditandai
      * @return void
      */
     public function markAsRead(DatabaseNotification $notification): void
@@ -181,9 +186,9 @@ class NotificationService
     }
 
     /**
-     * Mark all notifications as read for user
+     * Tandai semua notifikasi sebagai sudah dibaca untuk pengguna.
      *
-     * @param User $user
+     * @param User $user Pengguna
      * @return void
      */
     public function markAllAsRead(User $user): void
@@ -192,9 +197,9 @@ class NotificationService
     }
 
     /**
-     * Delete notification
+     * Hapus notifikasi.
      *
-     * @param DatabaseNotification $notification
+     * @param DatabaseNotification $notification Notifikasi yang akan dihapus
      * @return void
      */
     public function deleteNotification(DatabaseNotification $notification): void
@@ -203,9 +208,9 @@ class NotificationService
     }
 
     /**
-     * Delete all notifications for user
+     * Hapus semua notifikasi untuk pengguna.
      *
-     * @param User $user
+     * @param User $user Pengguna
      * @return void
      */
     public function deleteAllNotifications(User $user): void
@@ -214,12 +219,12 @@ class NotificationService
     }
 
     /**
-     * Get notifications by type
+     * Ambil notifikasi berdasarkan tipe.
      *
-     * @param User $user
-     * @param string $type
-     * @param int|null $limit
-     * @return Collection
+     * @param User $user Pengguna
+     * @param string $type Tipe notifikasi
+     * @param int|null $limit Batas jumlah notifikasi
+     * @return Collection Daftar notifikasi
      */
     public function getNotificationsByType(User $user, string $type, ?int $limit = null): Collection
     {

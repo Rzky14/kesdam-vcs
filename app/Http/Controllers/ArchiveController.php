@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * ArchiveController
+ * 
+ * Mengelola operasi pengarsipan dokumen, jadwal, dan laporan.
+ */
 class ArchiveController extends Controller
 {
     public function __construct(private ArchiveService $archiveService)
@@ -16,6 +21,9 @@ class ArchiveController extends Controller
 
     /**
      * Menampilkan daftar arsip.
+     *
+     * @param Request $request
+     * @return View
      */
     public function index(Request $request): View
     {
@@ -43,6 +51,9 @@ class ArchiveController extends Controller
 
     /**
      * Menampilkan detail arsip.
+     *
+     * @param Arsip $arsip
+     * @return View
      */
     public function show(Arsip $arsip): View
     {
@@ -56,6 +67,10 @@ class ArchiveController extends Controller
 
     /**
      * Menambahkan tag ke arsip.
+     *
+     * @param Request $request
+     * @param Arsip $arsip
+     * @return RedirectResponse
      */
     public function addTags(Request $request, Arsip $arsip): RedirectResponse
     {
@@ -71,6 +86,9 @@ class ArchiveController extends Controller
 
     /**
      * Pencarian arsip.
+     *
+     * @param Request $request
+     * @return View
      */
     public function search(Request $request): View
     {
@@ -91,6 +109,8 @@ class ArchiveController extends Controller
 
     /**
      * Statistik arsip.
+     *
+     * @return View
      */
     public function statistics(): View
     {
@@ -105,6 +125,9 @@ class ArchiveController extends Controller
 
     /**
      * Menghapus arsip (soft delete).
+     *
+     * @param Arsip $arsip
+     * @return RedirectResponse
      */
     public function destroy(Arsip $arsip): RedirectResponse
     {
@@ -115,7 +138,10 @@ class ArchiveController extends Controller
     }
 
     /**
-     * Restore deleted archive
+     * Memulihkan arsip yang dihapus.
+     *
+     * @param int $id
+     * @return RedirectResponse
      */
     public function restore(int $id): RedirectResponse
     {

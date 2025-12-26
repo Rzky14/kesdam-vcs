@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 /**
- * BackupService
+ * LayananBackup (BackupService)
  * 
- * Handles automated database and file backups for disaster recovery.
+ * Menangani backup otomatis database dan file untuk pemulihan bencana.
  */
 class BackupService
 {
@@ -28,9 +28,9 @@ class BackupService
     }
 
     /**
-     * Create a full backup (database + files).
+     * Buat backup lengkap (database + file).
      *
-     * @return array
+     * @return array Hasil backup
      */
     public function createFullBackup(): array
     {
@@ -42,21 +42,21 @@ class BackupService
             $dbBackup = $this->backupDatabase($timestamp);
             $results['database'] = $dbBackup;
 
-            // Backup files
+            // Backup file
             $filesBackup = $this->backupFiles($timestamp);
             $results['files'] = $filesBackup;
 
-            // Clean old backups
+            // Hapus backup lama
             $this->cleanOldBackups();
 
             $results['status'] = 'success';
             $results['timestamp'] = $timestamp;
 
-            Log::info('Full backup completed successfully', $results);
+            Log::info('Backup lengkap berhasil diselesaikan', $results);
 
             return $results;
         } catch (\Exception $e) {
-            Log::error('Backup failed', [
+            Log::error('Backup gagal', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -72,8 +72,8 @@ class BackupService
     /**
      * Backup database.
      *
-     * @param string $timestamp
-     * @return array
+     * @param string $timestamp Timestamp untuk nama file
+     * @return array Informasi backup database
      */
     public function backupDatabase(string $timestamp): array
     {
@@ -86,7 +86,7 @@ class BackupService
         $host = config('database.connections.mysql.host');
         $port = config('database.connections.mysql.port', 3306);
 
-        // Use mysqldump command
+        // Gunakan perintah mysqldump
         $command = sprintf(
             'mysqldump --user=%s --password=%s --host=%s --port=%d %s > %s 2>&1',
             escapeshellarg($username),
@@ -100,10 +100,10 @@ class BackupService
         exec($command, $output, $returnVar);
 
         if ($returnVar !== 0) {
-            throw new \Exception('Database backup failed: ' . implode("\n", $output));
+            throw new \Exception('Backup database gagal: ' . implode("\n", $output));
         }
 
-        // Compress the SQL file
+        // Kompres file SQL
         $this->compressFile($filepath);
 
         return [
@@ -115,10 +115,10 @@ class BackupService
     }
 
     /**
-     * Backup important files and directories.
+     * Backup file dan direktori penting.
      *
-     * @param string $timestamp
-     * @return array
+     * @param string $timestamp Timestamp untuk nama file
+     * @return array Informasi backup file
      */
     public function backupFiles(string $timestamp): array
     {
@@ -130,7 +130,7 @@ class BackupService
             storage_path('app/public'),
         ];
 
-        // Create tar.gz archive
+        // Buat arsip tar.gz
         $command = sprintf(
             'tar -czf %s %s 2>&1',
             escapeshellarg($filepath),
@@ -140,7 +140,7 @@ class BackupService
         exec($command, $output, $returnVar);
 
         if ($returnVar !== 0) {
-            throw new \Exception('Files backup failed: ' . implode("\n", $output));
+            throw new \Exception('Backup file gagal: ' . implode("\n", $output));
         }
 
         return [
@@ -152,9 +152,9 @@ class BackupService
     }
 
     /**
-     * Compress a file using gzip.
+     * Kompres file menggunakan gzip.
      *
-     * @param string $filepath
+     * @param string $filepath Path file yang akan dikompres
      * @return void
      */
     protected function compressFile(string $filepath): void
@@ -164,9 +164,9 @@ class BackupService
     }
 
     /**
-     * Clean old backups based on retention policy.
+     * Hapus backup lama berdasarkan kebijakan retensi.
      *
-     * @return int Number of deleted backups
+     * @return int Jumlah backup yang dihapus
      */
     public function cleanOldBackups(): int
     {
@@ -182,7 +182,7 @@ class BackupService
                 if ($fileTime->lt($cutoffDate)) {
                     unlink($file);
                     $deleted++;
-                    Log::info('Deleted old backup', ['file' => basename($file)]);
+                    Log::info('Backup lama dihapus', ['file' => basename($file)]);
                 }
             }
         }
@@ -191,9 +191,9 @@ class BackupService
     }
 
     /**
-     * List all available backups.
+     * Daftar semua backup yang tersedia.
      *
-     * @return array
+     * @return array Daftar backup
      */
     public function listBackups(): array
     {
@@ -211,7 +211,7 @@ class BackupService
             }
         }
 
-        // Sort by creation time, newest first
+        // Urutkan berdasarkan waktu pembuatan, terbaru dulu
         usort($backups, function ($a, $b) {
             return strtotime($b['created_at']) - strtotime($a['created_at']);
         });
@@ -220,20 +220,20 @@ class BackupService
     }
 
     /**
-     * Restore database from backup.
+     * Pulihkan database dari backup.
      *
-     * @param string $backupFile
-     * @return bool
+     * @param string $backupFile Nama file backup
+     * @return bool Status berhasil atau gagal
      */
     public function restoreDatabase(string $backupFile): bool
     {
         $filepath = "{$this->backupPath}/{$backupFile}";
 
         if (!file_exists($filepath)) {
-            throw new \Exception("Backup file not found: {$backupFile}");
+            throw new \Exception("File backup tidak ditemukan: {$backupFile}");
         }
 
-        // Decompress if needed
+        // Dekompresi jika diperlukan
         if (str_ends_with($filepath, '.gz')) {
             $command = sprintf('gunzip -c %s > %s', 
                 escapeshellarg($filepath),
@@ -262,10 +262,10 @@ class BackupService
         exec($command, $output, $returnVar);
 
         if ($returnVar !== 0) {
-            throw new \Exception('Database restore failed: ' . implode("\n", $output));
+            throw new \Exception('Pemulihan database gagal: ' . implode("\n", $output));
         }
 
-        Log::info('Database restored successfully', ['backup' => $backupFile]);
+        Log::info('Database berhasil dipulihkan', ['backup' => $backupFile]);
 
         return true;
     }

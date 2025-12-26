@@ -9,10 +9,21 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
+/**
+ * LayananLaporan (ReportService)
+ * 
+ * Menangani pembuatan dan pengelolaan laporan untuk jadwal, dokumen, dan efektivitas.
+ */
 class ReportService
 {
     /**
-     * Generate schedule report untuk periode tertentu
+     * Buat laporan jadwal untuk periode tertentu.
+     *
+     * @param Carbon $startDate Tanggal mulai periode
+     * @param Carbon $endDate Tanggal akhir periode
+     * @param mixed $scheduleTypes Tipe jadwal (opsional)
+     * @param int|null $userId ID pengguna pembuat (opsional)
+     * @return Report Laporan yang dibuat
      */
     public function generateScheduleReport(
         Carbon $startDate,
@@ -36,7 +47,7 @@ class ReportService
 
         $schedules = $query->get();
 
-        // Calculate statistics
+        // Hitung statistik
         $data = [
             'total_schedules' => $schedules->count(),
             'by_type' => $schedules->groupBy('type')->map->count(),
@@ -67,7 +78,13 @@ class ReportService
     }
 
     /**
-     * Generate document report untuk periode tertentu
+     * Buat laporan dokumen untuk periode tertentu.
+     *
+     * @param Carbon $startDate Tanggal mulai periode
+     * @param Carbon $endDate Tanggal akhir periode
+     * @param mixed $classifications Klasifikasi dokumen (opsional)
+     * @param string|null $documentStatus Status dokumen (opsional)
+     * @return Report Laporan yang dibuat
      */
     public function generateDocumentReport(
         Carbon $startDate,
@@ -91,7 +108,7 @@ class ReportService
 
         $documents = $query->get();
 
-        // Calculate statistics
+        // Hitung statistik
         $data = [
             'total_documents' => $documents->count(),
             'by_type' => $documents->groupBy('type')->map->count(),
@@ -125,7 +142,12 @@ class ReportService
     }
 
     /**
-     * Generate schedule effectiveness report
+     * Buat laporan efektivitas jadwal.
+     *
+     * @param Carbon $startDate Tanggal mulai periode
+     * @param Carbon $endDate Tanggal akhir periode
+     * @param string|null $scheduleType Tipe jadwal (opsional)
+     * @return Report Laporan yang dibuat
      */
     public function generateEffectivenessReport(
         Carbon $startDate,
@@ -140,7 +162,7 @@ class ReportService
 
         $schedules = $query->get();
 
-        // Calculate effectiveness metrics
+        // Hitung metrik efektivitas
         $totalSchedules = $schedules->count();
         $completedSchedules = $schedules->where('status', 'completed')->count();
         $activeSchedules = $schedules->where('status', 'active')->count();
@@ -185,7 +207,12 @@ class ReportService
     }
 
     /**
-     * Get reports list
+     * Ambil daftar laporan.
+     *
+     * @param string|null $type Tipe laporan (opsional)
+     * @param int|null $limit Batas jumlah laporan
+     * @param int|null $offset Offset untuk paginasi
+     * @return Collection Daftar laporan
      */
     public function getReports(
         ?string $type = null,
@@ -205,7 +232,10 @@ class ReportService
     }
 
     /**
-     * Get report by ID
+     * Ambil laporan berdasarkan ID.
+     *
+     * @param int $id ID laporan
+     * @return Report|null Laporan atau null jika tidak ditemukan
      */
     public function getReport(int $id): ?Report
     {
@@ -213,7 +243,10 @@ class ReportService
     }
 
     /**
-     * Delete report
+     * Hapus laporan.
+     *
+     * @param int $id ID laporan
+     * @return bool Status berhasil atau gagal
      */
     public function deleteReport(int $id): bool
     {
@@ -226,7 +259,10 @@ class ReportService
     }
 
     /**
-     * Calculate approval rate
+     * Hitung tingkat persetujuan dokumen.
+     *
+     * @param Collection $documents Koleksi dokumen
+     * @return float Persentase tingkat persetujuan
      */
     private function calculateApprovalRate(Collection $documents): float
     {

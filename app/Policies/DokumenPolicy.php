@@ -15,21 +15,21 @@ use Illuminate\Auth\Access\Response;
 class DokumenPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * Menentukan apakah pengguna dapat melihat daftar dokumen.
      */
     public function viewAny(User $user): bool
     {
-        // All authenticated users can view documents list
+        // Semua pengguna terautentikasi dapat melihat daftar dokumen
         return $user->hasPermission('view_documents');
     }
 
     /**
-     * Menentukan apakah pengguna dapat melihat model.
+     * Menentukan apakah pengguna dapat melihat dokumen.
      */
     public function view(User $user, Dokumen $dokumen): bool
     {
-        // Users can view documents if they have permission
-        // Classified documents require special permission
+        // Pengguna dapat melihat dokumen jika memiliki izin
+        // Dokumen rahasia memerlukan izin khusus
         if ($dokumen->adalahRahasia()) {
             return $user->hasPermission('view_classified_documents');
         }
@@ -38,30 +38,30 @@ class DokumenPolicy
     }
 
     /**
-     * Determine whether the user can create models.
+     * Menentukan apakah pengguna dapat membuat dokumen.
      */
     public function create(User $user): bool
     {
-        // Batih/Staf and above can create documents
+        // Batih/Staf dan level di atasnya dapat membuat dokumen
         return $user->hasPermission('create_documents');
     }
 
     /**
-     * Menentukan apakah pengguna dapat memperbarui model.
+     * Menentukan apakah pengguna dapat memperbarui dokumen.
      */
     public function update(User $user, Dokumen $dokumen): bool
     {
-        // Admin can update any draft or rejected document
+        // Admin dapat memperbarui dokumen draft atau ditolak apapun
         if ($user->hasRole('Admin Sistem')) {
             return in_array($dokumen->status, ['draft', 'rejected']);
         }
 
-        // Users can only update their own draft or rejected documents
+        // Pengguna hanya dapat memperbarui dokumen draft atau ditolak miliknya sendiri
         if ($dokumen->created_by === $user->id && in_array($dokumen->status, ['draft', 'rejected'])) {
-            return $user->hasPermission('edit_documents'); // Fixed: was 'update_documents'
+            return $user->hasPermission('edit_documents');
         }
 
-        // Pimpinan and Kasi/Kaur can update draft or rejected documents for workflow purposes
+        // Pimpinan dan Kasi/Kaur dapat memperbarui dokumen draft atau ditolak untuk keperluan alur kerja
         if ($user->hasAnyRole(['Pimpinan/Pejabat Tinggi', 'Kasi/Kaur']) && in_array($dokumen->status, ['draft', 'rejected'])) {
             return $user->hasPermission('approve_documents');
         }
@@ -70,36 +70,36 @@ class DokumenPolicy
     }
 
     /**
-     * Menentukan apakah pengguna dapat menghapus model.
+     * Menentukan apakah pengguna dapat menghapus dokumen.
      */
     public function delete(User $user, Dokumen $dokumen): bool
     {
-        // Admin can delete any draft document
+        // Admin dapat menghapus dokumen draft apapun
         if ($user->hasRole('Admin Sistem')) {
             return $dokumen->adalahDraf();
         }
 
-        // Users can only delete their own draft documents
+        // Pengguna hanya dapat menghapus dokumen draft miliknya sendiri
         return $dokumen->created_by === $user->id 
             && $dokumen->adalahDraf() 
             && $user->hasPermission('delete_documents');
     }
 
     /**
-     * Menentukan apakah pengguna dapat memulihkan model.
+     * Menentukan apakah pengguna dapat memulihkan dokumen.
      */
     public function restore(User $user, Dokumen $dokumen): bool
     {
-        // Only admin can restore deleted documents
+        // Hanya admin yang dapat memulihkan dokumen yang dihapus
         return $user->hasRole('Admin Sistem');
     }
 
     /**
-     * Menentukan apakah pengguna dapat menghapus permanen model.
+     * Menentukan apakah pengguna dapat menghapus permanen dokumen.
      */
     public function forceDelete(User $user, Dokumen $dokumen): bool
     {
-        // Only admin can permanently delete documents
+        // Hanya admin yang dapat menghapus permanen dokumen
         return $user->hasRole('Admin Sistem');
     }
 
@@ -109,17 +109,17 @@ class DokumenPolicy
      */
     public function approve(User $user, Dokumen $dokumen): bool
     {
-        // Document must be pending approval
+        // Dokumen harus dalam status menunggu persetujuan
         if (!$dokumen->adalahMenungguPersetujuan()) {
             return false;
         }
 
-        // User must have approve permission
+        // Pengguna harus memiliki izin menyetujui
         if (!$user->hasPermission('approve_documents')) {
             return false;
         }
 
-        // Check if user has the required role for current approval level
+        // Periksa apakah pengguna memiliki peran yang sesuai untuk level persetujuan saat ini
         $currentLevel = $dokumen->ambilLevelPersetujuanSaatIni();
         
         return match($currentLevel) {
@@ -135,7 +135,7 @@ class DokumenPolicy
      */
     public function reject(User $user, Dokumen $dokumen): bool
     {
-        // Same authorization as approve
+        // Otorisasi sama dengan menyetujui
         return $this->approve($user, $dokumen);
     }
 
@@ -144,7 +144,7 @@ class DokumenPolicy
      */
     public function requestCorrection(User $user, Dokumen $dokumen): bool
     {
-        // Same authorization as approve
+        // Otorisasi sama dengan menyetujui
         return $this->approve($user, $dokumen);
     }
 
@@ -153,7 +153,7 @@ class DokumenPolicy
      */
     public function archive(User $user, Dokumen $dokumen): bool
     {
-        // Users with archive permission can archive approved documents
+        // Pengguna dengan izin arsip dapat mengarsipkan dokumen yang sudah disetujui
         return $user->hasPermission('archive_documents') && $dokumen->adalahDisetujui();
     }
 }

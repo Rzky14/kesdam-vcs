@@ -4,10 +4,15 @@ namespace App\Policies;
 
 use App\Models\User;
 
+/**
+ * UserPolicy
+ * 
+ * Menentukan otorisasi untuk operasi pada model User (Pengguna).
+ */
 class UserPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * Menentukan apakah pengguna dapat melihat daftar pengguna.
      */
     public function viewAny(User $user): bool
     {
@@ -15,16 +20,16 @@ class UserPolicy
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Menentukan apakah pengguna dapat melihat pengguna tertentu.
      */
     public function view(User $user, User $model): bool
     {
-        // Users can view themselves or if they have permission
+        // Pengguna dapat melihat diri sendiri atau jika memiliki izin
         return $user->id === $model->id || $user->hasPermission('view_users');
     }
 
     /**
-     * Determine whether the user can create models.
+     * Menentukan apakah pengguna dapat membuat pengguna baru.
      */
     public function create(User $user): bool
     {
@@ -32,11 +37,11 @@ class UserPolicy
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Menentukan apakah pengguna dapat memperbarui pengguna.
      */
     public function update(User $user, User $model): bool
     {
-        // Users can update themselves or if they have permission
+        // Pengguna dapat memperbarui diri sendiri atau jika memiliki izin
         if ($user->id === $model->id) {
             return true;
         }
@@ -45,11 +50,11 @@ class UserPolicy
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Menentukan apakah pengguna dapat menghapus pengguna.
      */
     public function delete(User $user, User $model): bool
     {
-        // Cannot delete self
+        // Tidak dapat menghapus diri sendiri
         if ($user->id === $model->id) {
             return false;
         }
@@ -58,7 +63,7 @@ class UserPolicy
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Menentukan apakah pengguna dapat memulihkan pengguna.
      */
     public function restore(User $user, User $model): bool
     {
@@ -66,7 +71,7 @@ class UserPolicy
     }
 
     /**
-     * Determine whether the user can permanently delete the model.
+     * Menentukan apakah pengguna dapat menghapus permanen pengguna.
      */
     public function forceDelete(User $user, User $model): bool
     {

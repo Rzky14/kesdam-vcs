@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Archive;
+use App\Models\Arsip;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -10,130 +10,190 @@ use Carbon\Carbon;
 class ArchiveService
 {
     /**
-     * Archive a model (Document, Schedule, Report)
+     * Arsipkan model (Dokumen, Jadwal, Laporan)
      */
     public function archiveModel(
         $model,
-        string $category,
-        ?string $description = null,
+        string $kategori,
+        ?string $deskripsi = null,
         ?array $tags = null,
-        ?Carbon $retentionUntil = null
-    ): Archive {
-        // Set default retention period (5 years)
-        if (!$retentionUntil) {
-            $retentionUntil = now()->addYears(5);
+        ?Carbon $retensiSampai = null
+    ): Arsip {
+        // Set default periode retensi (5 tahun)
+        if (!$retensiSampai) {
+            $retensiSampai = now()->addYears(5);
         }
 
-        return Archive::create([
-            'name' => $model->name ?? $model->subject ?? $model->title ?? 'Archive Item',
-            'description' => $description,
+        return Arsip::create([
+            'name' => $model->name ?? $model->subject ?? $model->title ?? 'Item Arsip',
+            'description' => $deskripsi,
             'archiveable_type' => class_basename($model),
             'archiveable_id' => $model->id,
             'archived_by' => Auth::id() ?? 1,
             'archive_date' => now(),
-            'retention_until' => $retentionUntil,
-            'category' => $category,
+            'retention_until' => $retensiSampai,
+            'category' => $kategori,
             'tags' => $tags ?? [],
             'is_indexed' => false,
         ]);
     }
 
     /**
-     * Search archives
+     * Cari arsip berdasarkan kata kunci
      */
-    public function search(
-        string $term,
-        ?string $category = null,
-        ?int $limit = 50
+    public function cari(
+        string $kataKunci,
+        ?string $kategori = null,
+        ?int $batas = 50
     ): Collection {
-        $query = Archive::search($term);
+        $query = Arsip::search($kataKunci);
 
-        if ($category) {
-            $query->byCategory($category);
+        if ($kategori) {
+            $query->byCategory($kategori);
         }
 
-        return $query->limit($limit)->get();
+        return $query->limit($batas)->get();
     }
 
     /**
-     * Get archives by category
+     * Ambil arsip berdasarkan kategori
      */
-    public function getByCategory(string $category, ?int $limit = 50): Collection
+    public function ambilBerdasarkanKategori(string $kategori, ?int $batas = 50): Collection
     {
-        return Archive::byCategory($category)
+        return Arsip::byCategory($kategori)
             ->orderBy('archive_date', 'desc')
-            ->limit($limit)
+            ->limit($batas)
             ->get();
     }
 
     /**
-     * Get all indexed archives
+     * Ambil semua arsip yang sudah diindeks
      */
-    public function getIndexedArchives(?int $limit = 50): Collection
+    public function ambilArsipTerindeks(?int $batas = 50): Collection
     {
-        return Archive::indexed()
+        return Arsip::indexed()
             ->orderBy('archive_date', 'desc')
-            ->limit($limit)
+            ->limit($batas)
             ->get();
     }
 
     /**
-     * Index archives (untuk full-text search)
+     * Indeks arsip (untuk full-text search)
      */
-    public function indexArchives(): int
+    public function indeksArsip(): int
     {
-        $archives = Archive::where('is_indexed', false)
+        $arsipList = Arsip::where('is_indexed', false)
             ->limit(100)
             ->get();
 
-        $count = 0;
-        foreach ($archives as $archive) {
-            $archive->markAsIndexed();
-            $count++;
+        $jumlah = 0;
+        foreach ($arsipList as $arsip) {
+            $arsip->markAsIndexed();
+            $jumlah++;
         }
 
-        return $count;
+        return $jumlah;
     }
 
     /**
-     * Get retention expiring archives
+     * Ambil arsip yang retensinya akan kedaluwarsa
      */
-    public function getRetentionExpiringArchives(int $days = 30): Collection
+    public function ambilArsipRetensiKedaluwarsa(int $hari = 30): Collection
     {
-        return Archive::retentionExpiring($days)->get();
+        return Arsip::retentionExpiring($hari)->get();
     }
 
     /**
-     * Permanently delete expired archives
+     * Hapus permanen arsip yang sudah kedaluwarsa
      */
-    public function deleteExpiredArchives(): int
+    public function hapusArsipKedaluwarsa(): int
     {
-        return Archive::where('retention_until', '<', now())
+        return Arsip::where('retention_until', '<', now())
             ->forceDelete();
     }
 
     /**
-     * Add tags to archive
+     * Tambahkan tag ke arsip
      */
-    public function addTags(Archive $archive, array $newTags): Archive
+    public function addTags(Arsip $arsip, array $tagBaru): Arsip
     {
-        $existingTags = $archive->tags ?? [];
-        $archive->tags = array_unique(array_merge($existingTags, $newTags));
-        $archive->save();
+        $tagYangAda = $arsip->tags ?? [];
+        $arsip->tags = array_unique(array_merge($tagYangAda, $tagBaru));
+        $arsip->save();
 
-        return $archive;
+        return $arsip;
     }
 
     /**
-     * Get archive statistics
+     * Ambil statistik arsip
+     */
+    public function ambilStatistik(): array
+    {
+        return [
+            'total_arsip' => Arsip::count(),
+            'berdasarkan_kategori' => Arsip::groupBy('category')->selectRaw('category, COUNT(*) as count')->get()->toArray(),
+            'arsip_terindeks' => Arsip::indexed()->count(),
+            'akan_kedaluwarsa' => Arsip::retentionExpiring(30)->count(),
+        ];
+    }
+
+    // ==========================================
+    // ALIAS METHODS (untuk kompatibilitas)
+    // ==========================================
+
+    /**
+     * Alias: Cari arsip (English method name)
+     */
+    public function search(string $term, ?string $category = null, ?int $limit = 50): Collection
+    {
+        return $this->cari($term, $category, $limit);
+    }
+
+    /**
+     * Alias: Ambil berdasarkan kategori (English method name)
+     */
+    public function getByCategory(string $category, ?int $limit = 50): Collection
+    {
+        return $this->ambilBerdasarkanKategori($category, $limit);
+    }
+
+    /**
+     * Alias: Ambil arsip terindeks (English method name)
+     */
+    public function getIndexedArchives(?int $limit = 50): Collection
+    {
+        return $this->ambilArsipTerindeks($limit);
+    }
+
+    /**
+     * Alias: Indeks arsip (English method name)
+     */
+    public function indexArchives(): int
+    {
+        return $this->indeksArsip();
+    }
+
+    /**
+     * Alias: Ambil arsip retensi kedaluwarsa (English method name)
+     */
+    public function getRetentionExpiringArchives(int $days = 30): Collection
+    {
+        return $this->ambilArsipRetensiKedaluwarsa($days);
+    }
+
+    /**
+     * Alias: Hapus arsip kedaluwarsa (English method name)
+     */
+    public function deleteExpiredArchives(): int
+    {
+        return $this->hapusArsipKedaluwarsa();
+    }
+
+    /**
+     * Alias: Ambil statistik (English method name)
      */
     public function getStatistics(): array
     {
-        return [
-            'total_archives' => Archive::count(),
-            'by_category' => Archive::groupBy('category')->selectRaw('category, COUNT(*) as count')->get()->toArray(),
-            'indexed_archives' => Archive::indexed()->count(),
-            'expiring_soon' => Archive::retentionExpiring(30)->count(),
-        ];
+        return $this->ambilStatistik();
     }
 }

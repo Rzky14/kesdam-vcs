@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Document;
+use App\Models\Dokumen;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -12,14 +12,14 @@ class DocumentStatusChangedNotification extends Notification implements ShouldQu
 {
     use Queueable;
 
-    protected Document $document;
+    protected Dokumen $document;
     protected string $oldStatus;
     protected string $newStatus;
 
     /**
-     * Create a new notification instance.
+    * Buat instance notifikasi baru.
      */
-    public function __construct(Document $document, string $oldStatus, string $newStatus)
+    public function __construct(Dokumen $document, string $oldStatus, string $newStatus)
     {
         $this->document = $document;
         $this->oldStatus = $oldStatus;
@@ -27,7 +27,7 @@ class DocumentStatusChangedNotification extends Notification implements ShouldQu
     }
 
     /**
-     * Get the notification's delivery channels.
+    * Tentukan kanal pengiriman notifikasi.
      *
      * @return array<int, string>
      */
@@ -47,35 +47,36 @@ class DocumentStatusChangedNotification extends Notification implements ShouldQu
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Representasi email dari notifikasi.
      */
     public function toMail(object $notifiable): MailMessage
     {
         $statusLabels = [
             'draft' => 'Draft',
-            'pending' => 'Pending Approval',
-            'approved' => 'Approved',
-            'rejected' => 'Rejected',
-            'correction_needed' => 'Correction Needed',
+            'pending_approval' => 'Menunggu Persetujuan',
+            'approved' => 'Disetujui',
+            'rejected' => 'Ditolak',
+            'correction_requested' => 'Butuh Koreksi',
+            'archived' => 'Diarsipkan',
         ];
 
         $oldLabel = $statusLabels[$this->oldStatus] ?? $this->oldStatus;
         $newLabel = $statusLabels[$this->newStatus] ?? $this->newStatus;
 
         return (new MailMessage)
-            ->subject('Document Status Updated: ' . $this->document->subject)
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('The status of your document has been updated.')
-            ->line('**Document Number:** ' . $this->document->number)
-            ->line('**Subject:** ' . $this->document->subject)
-            ->line('**Previous Status:** ' . $oldLabel)
-            ->line('**New Status:** ' . $newLabel)
-            ->action('View Document', route('documents.show', $this->document->id))
-            ->line('Thank you for using our application!');
+            ->subject('Status Dokumen Diperbarui: ' . $this->document->subject)
+            ->greeting('Halo ' . $notifiable->name . ',')
+            ->line('Status dokumen Anda telah diperbarui.')
+            ->line('**Nomor Dokumen:** ' . $this->document->number)
+            ->line('**Perihal:** ' . $this->document->subject)
+            ->line('**Status Sebelumnya:** ' . $oldLabel)
+            ->line('**Status Baru:** ' . $newLabel)
+            ->action('Lihat Dokumen', route('documents.show', $this->document->id))
+            ->line('Terima kasih telah menggunakan aplikasi KESDAM VCS.');
     }
 
     /**
-     * Get the array representation of the notification.
+     * Representasi array dari notifikasi.
      *
      * @return array<string, mixed>
      */
@@ -89,7 +90,7 @@ class DocumentStatusChangedNotification extends Notification implements ShouldQu
             'document_type' => $this->document->type,
             'old_status' => $this->oldStatus,
             'new_status' => $this->newStatus,
-            'message' => "Document '{$this->document->subject}' status changed from {$this->oldStatus} to {$this->newStatus}",
+            'message' => "Status dokumen '{$this->document->subject}' berubah dari {$this->oldStatus} menjadi {$this->newStatus}",
             'url' => route('documents.show', $this->document->id),
         ];
     }

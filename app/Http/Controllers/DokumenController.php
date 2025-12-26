@@ -2,16 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Services\EncryptionService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
 
-class DocumentController extends Controller
+/**
+ * DokumenController
+ * 
+ * Menangani request HTTP untuk Dokumen.
+ * Mengikuti Single Responsibility Principle - hanya menangani layer HTTP.
+ * Sesuai dengan UML Class Diagram dan SOLID Principles.
+ */
+class DokumenController extends Controller
 {
     use AuthorizesRequests;
     
@@ -23,13 +31,13 @@ class DocumentController extends Controller
     }
 
     /**
-     * Display a listing of documents with search and filter.
+     * Menampilkan daftar dokumen dengan pencarian dan filter.
      */
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Document::class);
+        $this->authorize('viewAny', Dokumen::class);
 
-        $query = Document::with(['creator', 'updater']);
+        $query = Dokumen::with(['pembuat', 'pengubah']);
 
         // Search by subject or number
         if ($request->filled('search')) {
@@ -76,11 +84,11 @@ class DocumentController extends Controller
     }
 
     /**
-     * Show the form for creating a new document.
+     * Menampilkan form untuk membuat dokumen baru.
      */
     public function create(Request $request)
     {
-        $this->authorize('create', Document::class);
+        $this->authorize('create', Dokumen::class);
 
         $type = $request->query('type', 'masuk');
 
@@ -88,11 +96,11 @@ class DocumentController extends Controller
     }
 
     /**
-     * Store a newly created document in storage.
+     * Menyimpan dokumen baru ke database.
      */
     public function store(Request $request)
     {
-        $this->authorize('create', Document::class);
+        $this->authorize('create', Dokumen::class);
 
         $validated = $request->validate([
             'type' => ['required', Rule::in(['masuk', 'keluar'])],
@@ -140,85 +148,85 @@ class DocumentController extends Controller
         $validated['created_by'] = Auth::id();
         $validated['status'] = 'draft';
 
-        $document = Document::create($validated);
+        $dokumen = Dokumen::create($validated);
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('documents.show', $dokumen)
             ->with('success', 'Dokumen berhasil dibuat.');
     }
 
     /**
-     * Display the specified document.
+     * Menampilkan detail dokumen.
      */
-    public function show(Document $document)
+    public function show(Dokumen $dokumen)
     {
-        $this->authorize('view', $document);
+        $this->authorize('view', $dokumen);
 
-        $document->load(['creator', 'updater']);
+        $dokumen->load(['pembuat', 'pengubah']);
 
         // Decrypt sensitive fields if needed
-        if ($document->is_encrypted && $document->isClassified()) {
+        if ($dokumen->is_encrypted && $dokumen->adalahRahasia()) {
             try {
-                $document->subject = Crypt::decryptString($document->subject);
-                if (!empty($document->description)) {
-                    $document->description = Crypt::decryptString($document->description);
+                $dokumen->subject = Crypt::decryptString($dokumen->subject);
+                if (!empty($dokumen->description)) {
+                    $dokumen->description = Crypt::decryptString($dokumen->description);
                 }
             } catch (\Exception $e) {
                 // Log error but continue
-                \Log::error('Failed to decrypt document: ' . $e->getMessage());
+                Log::error('Failed to decrypt document: ' . $e->getMessage());
             }
         }
 
-        return view('documents.show', compact('document'));
+        return view('documents.show', compact('dokumen'));
     }
 
     /**
-     * Show the form for editing the specified document.
+     * Menampilkan form untuk edit dokumen.
      */
-    public function edit(Document $document)
+    public function edit(Dokumen $dokumen)
     {
-        $this->authorize('update', $document);
+        $this->authorize('update', $dokumen);
 
         // Only allow editing draft or rejected documents
-        if (!in_array($document->status, ['draft', 'rejected'])) {
+        if (!in_array($dokumen->status, ['draft', 'rejected'])) {
             return redirect()
-                ->route('documents.show', $document)
+                ->route('documents.show', $dokumen)
                 ->with('error', 'Hanya dokumen dengan status Draft atau Ditolak yang dapat diedit.');
         }
 
         // Decrypt sensitive fields if needed
-        if ($document->is_encrypted && $document->isClassified()) {
+        if ($dokumen->is_encrypted && $dokumen->adalahRahasia()) {
             try {
-                $document->subject = Crypt::decryptString($document->subject);
-                if (!empty($document->description)) {
-                    $document->description = Crypt::decryptString($document->description);
+                $dokumen->subject = Crypt::decryptString($dokumen->subject);
+                if (!empty($dokumen->description)) {
+                    $dokumen->description = Crypt::decryptString($dokumen->description);
                 }
             } catch (\Exception $e) {
-                \Log::error('Failed to decrypt document: ' . $e->getMessage());
+                Log::error('Failed to decrypt document: ' . $e->getMessage());
             }
         }
 
-        return view('documents.edit', compact('document'));
+        return view('documents.edit', compact('dokumen'));
     }
 
     /**
-     * Update the specified document in storage.
+     * Memperbarui dokumen di database.
      */
-    public function update(Request $request, Document $document)
+    public function update(Request $request, Dokumen $dokumen)
     {
-        $this->authorize('update', $document);
+        $this->authorize('update', $dokumen);
 
         // Only allow editing draft or rejected documents
-        if (!in_array($document->status, ['draft', 'rejected'])) {
+        if (!in_array($dokumen->status, ['draft', 'rejected'])) {
             return redirect()
-                ->route('documents.show', $document)
+                ->route('documents.show', $dokumen)
                 ->with('error', 'Hanya dokumen dengan status Draft atau Ditolak yang dapat diedit.');
         }
 
         $validated = $request->validate([
             'type' => ['required', Rule::in(['masuk', 'keluar'])],
             'classification' => ['required', Rule::in(['biasa', 'rahasia', 'telegram'])],
-            'number' => ['nullable', 'string', 'max:255', Rule::unique('documents', 'number')->ignore($document->id)],
+            'number' => ['nullable', 'string', 'max:255', Rule::unique('documents', 'number')->ignore($dokumen->id)],
             'date' => ['required', 'date'],
             'sender' => ['required_if:type,masuk', 'nullable', 'string', 'max:255'],
             'recipient' => ['required_if:type,keluar', 'nullable', 'string', 'max:255'],
@@ -230,7 +238,7 @@ class DocumentController extends Controller
         ]);
 
         // Handle file uploads
-        $existingAttachments = $document->attachments ?? [];
+        $existingAttachments = $dokumen->attachments ?? [];
         
         // Remove specified attachments
         if ($request->filled('remove_attachments')) {
@@ -267,35 +275,35 @@ class DocumentController extends Controller
         // Set updater
         $validated['updated_by'] = Auth::id();
 
-        $document->update($validated);
+        $dokumen->update($validated);
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('documents.show', $dokumen)
             ->with('success', 'Dokumen berhasil diperbarui.');
     }
 
     /**
-     * Remove the specified document from storage.
+     * Menghapus dokumen dari database.
      */
-    public function destroy(Document $document)
+    public function destroy(Dokumen $dokumen)
     {
-        $this->authorize('delete', $document);
+        $this->authorize('delete', $dokumen);
 
         // Only allow deleting draft documents
-        if ($document->status !== 'draft') {
+        if ($dokumen->status !== 'draft') {
             return redirect()
                 ->route('documents.index')
                 ->with('error', 'Hanya dokumen dengan status Draft yang dapat dihapus.');
         }
 
         // Delete associated files
-        if (!empty($document->attachments)) {
-            foreach ($document->attachments as $path) {
+        if (!empty($dokumen->attachments)) {
+            foreach ($dokumen->attachments as $path) {
                 Storage::disk('private')->delete($path);
             }
         }
 
-        $document->delete();
+        $dokumen->delete();
 
         return redirect()
             ->route('documents.index')
@@ -303,70 +311,91 @@ class DocumentController extends Controller
     }
 
     /**
-     * Submit document for approval.
+     * Ajukan dokumen untuk persetujuan.
      */
-    public function submit(Document $document)
+    public function submit(Dokumen $dokumen)
     {
-        $this->authorize('update', $document);
+        $this->authorize('update', $dokumen);
 
-        if ($document->status !== 'draft') {
+        if ($dokumen->status !== 'draft') {
             return redirect()
-                ->route('documents.show', $document)
+                ->route('documents.show', $dokumen)
                 ->with('error', 'Hanya dokumen dengan status Draft yang dapat diajukan.');
         }
 
-        $document->update([
+        $dokumen->update([
             'status' => 'pending_approval',
             'updated_by' => Auth::id(),
         ]);
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('documents.show', $dokumen)
             ->with('success', 'Dokumen berhasil diajukan untuk persetujuan.');
     }
 
     /**
-     * Archive the document.
+     * Arsipkan dokumen.
      */
-    public function archive(Document $document)
+    public function archive(Dokumen $dokumen)
     {
-        $this->authorize('update', $document);
+        $this->authorize('update', $dokumen);
 
-        if ($document->status !== 'approved') {
+        if ($dokumen->status !== 'approved') {
             return redirect()
-                ->route('documents.show', $document)
+                ->route('documents.show', $dokumen)
                 ->with('error', 'Hanya dokumen yang sudah disetujui yang dapat diarsipkan.');
         }
 
-        $document->update([
+        $dokumen->update([
             'status' => 'archived',
             'archived_at' => now(),
             'updated_by' => Auth::id(),
         ]);
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('documents.show', $dokumen)
             ->with('success', 'Dokumen berhasil diarsipkan.');
     }
 
     /**
-     * Download document attachment.
+     * Download lampiran dokumen.
      */
-    public function download(Document $document, $attachmentIndex)
+    public function download(Dokumen $dokumen, $attachmentIndex)
     {
-        $this->authorize('view', $document);
+        $this->authorize('view', $dokumen);
 
-        if (empty($document->attachments) || !isset($document->attachments[$attachmentIndex])) {
+        if (empty($dokumen->attachments) || !isset($dokumen->attachments[$attachmentIndex])) {
             abort(404, 'Attachment not found.');
         }
 
-        $path = $document->attachments[$attachmentIndex];
+        $path = $dokumen->attachments[$attachmentIndex];
 
         if (!Storage::disk('private')->exists($path)) {
             abort(404, 'File not found.');
         }
 
-        return Storage::disk('private')->download($path);
+        $file = Storage::disk('private')->get($path);
+        $fileName = basename($path);
+        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+        
+        $mimeTypes = [
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+        ];
+        
+        $mimeType = $mimeTypes[strtolower($extension)] ?? 'application/octet-stream';
+
+        return response($file, 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+        ]);
     }
 
     /**
@@ -390,7 +419,7 @@ class DocumentController extends Controller
         $month = date('m');
 
         // Get the last document number for this type, classification, and month
-        $lastDocument = Document::where('type', $type)
+        $lastDokumen = Dokumen::where('type', $type)
             ->where('classification', $classification)
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
@@ -399,9 +428,9 @@ class DocumentController extends Controller
 
         $sequenceNumber = 1;
         
-        if ($lastDocument) {
+        if ($lastDokumen) {
             // Extract sequence number from last document number
-            preg_match('/(\d+)\//', $lastDocument->number, $matches);
+            preg_match('/(\\d+)\\//', $lastDokumen->number, $matches);
             if (!empty($matches[1])) {
                 $sequenceNumber = intval($matches[1]) + 1;
             }
@@ -415,26 +444,26 @@ class DocumentController extends Controller
     }
 
     /**
-     * Approve document
+     * Setujui dokumen.
      */
-    public function approve(Request $request, Document $document)
+    public function approve(Request $request, Dokumen $dokumen)
     {
-        $this->authorize('approve', $document);
+        $this->authorize('approve', $dokumen);
 
         try {
             // Get next approver before approval
-            $nextRole = $document->getNextApproverRole();
+            $nextRole = $dokumen->ambilRolePenyetujuBerikutnya();
             
-            $document->approve(
-                auth()->user(),
+            $dokumen->setujui(
+                Auth::user(),
                 $request->input('notes')
             );
 
             // Refresh document to get updated status
-            $document->refresh();
+            $dokumen->refresh();
             
             // Determine success message based on document status
-            if ($document->isApproved()) {
+            if ($dokumen->adalahDisetujui()) {
                 $message = 'Dokumen berhasil disetujui secara penuh. Semua tahap persetujuan telah selesai.';
             } else {
                 $nextApproverLabel = match($nextRole) {
@@ -457,19 +486,19 @@ class DocumentController extends Controller
     }
 
     /**
-     * Reject document
+     * Tolak dokumen.
      */
-    public function reject(Request $request, Document $document)
+    public function reject(Request $request, Dokumen $dokumen)
     {
-        $this->authorize('reject', $document);
+        $this->authorize('reject', $dokumen);
 
         $request->validate([
             'reason' => 'required|string|min:10',
         ]);
 
         try {
-            $document->reject(
-                auth()->user(),
+            $dokumen->tolak(
+                Auth::user(),
                 $request->input('reason')
             );
 
@@ -484,19 +513,19 @@ class DocumentController extends Controller
     }
 
     /**
-     * Request correction for document
+     * Minta koreksi untuk dokumen.
      */
-    public function requestCorrection(Request $request, Document $document)
+    public function requestCorrection(Request $request, Dokumen $dokumen)
     {
-        $this->authorize('requestCorrection', $document);
+        $this->authorize('requestCorrection', $dokumen);
 
         $request->validate([
             'reason' => 'required|string|min:10',
         ]);
 
         try {
-            $document->requestCorrection(
-                auth()->user(),
+            $dokumen->mintaKoreksi(
+                Auth::user(),
                 $request->input('reason')
             );
 

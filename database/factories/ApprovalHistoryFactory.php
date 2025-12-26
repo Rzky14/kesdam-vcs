@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\ApprovalHistory;
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,7 +22,7 @@ class ApprovalHistoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'document_id' => Document::factory(),
+            'document_id' => Dokumen::factory(),
             'user_id' => User::factory(),
             'action' => $this->faker->randomElement(['submitted', 'approved', 'rejected', 'correction_requested']),
             'status' => 'pending',

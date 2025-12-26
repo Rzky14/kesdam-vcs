@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,14 +13,14 @@ class ApprovalRequestNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected Document $document;
+    protected Dokumen $document;
     protected User $submitter;
     protected int $currentLevel;
 
     /**
-     * Create a new notification instance.
+    * Buat instance notifikasi baru.
      */
-    public function __construct(Document $document, User $submitter, int $currentLevel)
+    public function __construct(Dokumen $document, User $submitter, int $currentLevel)
     {
         $this->document = $document;
         $this->submitter = $submitter;
@@ -28,7 +28,7 @@ class ApprovalRequestNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the notification's delivery channels.
+    * Tentukan kanal pengiriman notifikasi.
      *
      * @return array<int, string>
      */
@@ -48,27 +48,27 @@ class ApprovalRequestNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Representasi email dari notifikasi.
      */
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Approval Request: ' . $this->document->subject)
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('You have a new document awaiting your approval:')
-            ->line('**Document Number:** ' . $this->document->number)
-            ->line('**Subject:** ' . $this->document->subject)
-            ->line('**Type:** ' . $this->document->type_label)
-            ->line('**Classification:** ' . $this->document->classification_label)
-            ->line('**Priority:** ' . $this->document->priority_label)
-            ->line('**Submitted by:** ' . $this->submitter->name . ' (' . $this->submitter->rank . ')')
-            ->line('**Approval Level:** ' . $this->currentLevel)
-            ->action('Review Document', route('documents.show', $this->document->id))
-            ->line('Please review and take appropriate action.');
+            ->subject('Permintaan Persetujuan: ' . $this->document->subject)
+            ->greeting('Halo ' . $notifiable->name . ',')
+            ->line('Anda memiliki dokumen baru menunggu persetujuan:')
+            ->line('**Nomor Dokumen:** ' . $this->document->number)
+            ->line('**Perihal:** ' . $this->document->subject)
+            ->line('**Jenis:** ' . $this->document->type_label)
+            ->line('**Klasifikasi:** ' . $this->document->classification_label)
+            ->line('**Prioritas:** ' . $this->document->priority_label)
+            ->line('**Diajukan oleh:** ' . $this->submitter->name . ' (' . $this->submitter->rank . ')')
+            ->line('**Level Persetujuan:** ' . $this->currentLevel)
+            ->action('Tinjau Dokumen', route('documents.show', $this->document->id))
+            ->line('Silakan tinjau dan ambil tindakan yang sesuai.');
     }
 
     /**
-     * Get the array representation of the notification.
+     * Representasi array dari notifikasi.
      *
      * @return array<string, mixed>
      */
@@ -86,7 +86,7 @@ class ApprovalRequestNotification extends Notification implements ShouldQueue
             'submitter_id' => $this->submitter->id,
             'submitter_name' => $this->submitter->name,
             'current_level' => $this->currentLevel,
-            'message' => "New approval request: '{$this->document->subject}' from {$this->submitter->name}",
+            'message' => "Permintaan persetujuan baru: '{$this->document->subject}' dari {$this->submitter->name}",
             'url' => route('documents.show', $this->document->id),
         ];
     }

@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\Report;
 use App\Models\Schedule;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class ReportService
@@ -59,7 +60,7 @@ class ReportService
             'type' => 'schedule',
             'period_start' => $startDate,
             'period_end' => $endDate,
-            'generated_by' => auth()->id() ?? 1,
+            'generated_by' => Auth::id() ?? 1,
             'data' => $data,
             'status' => 'completed',
         ]);
@@ -74,7 +75,7 @@ class ReportService
         $classifications = null,
         ?string $documentStatus = null
     ): Report {
-        $query = Document::whereBetween('created_at', [$startDate, $endDate]);
+        $query = Dokumen::whereBetween('created_at', [$startDate, $endDate]);
 
         if ($classifications) {
             if (is_array($classifications)) {
@@ -97,7 +98,7 @@ class ReportService
             'by_classification' => $documents->groupBy('classification')->map->count(),
             'by_status' => $documents->groupBy('status')->map->count(),
             'approval_rate' => $this->calculateApprovalRate($documents),
-            'pending_count' => $documents->where('status', 'pending')->count(),
+            'pending_count' => $documents->where('status', 'pending_approval')->count(),
             'approved_count' => $documents->where('status', 'approved')->count(),
             'rejected_count' => $documents->where('status', 'rejected')->count(),
             'documents' => $documents->map(function ($doc) {
@@ -117,7 +118,7 @@ class ReportService
             'type' => 'document',
             'period_start' => $startDate,
             'period_end' => $endDate,
-            'generated_by' => auth()->id() ?? 1,
+            'generated_by' => Auth::id() ?? 1,
             'data' => $data,
             'status' => 'completed',
         ]);
@@ -177,7 +178,7 @@ class ReportService
             'type' => 'effectiveness',
             'period_start' => $startDate,
             'period_end' => $endDate,
-            'generated_by' => auth()->id() ?? 1,
+            'generated_by' => Auth::id() ?? 1,
             'data' => $data,
             'status' => 'completed',
         ]);

@@ -307,11 +307,11 @@ try {
 // 7. Check Document Policies
 echo "7. Document Authorization:\n";
 try {
-    $policyExists = class_exists('App\Policies\DocumentPolicy');
-    echo "   " . ($policyExists ? "✅" : "❌") . " DocumentPolicy class: " . ($policyExists ? "EXISTS" : "MISSING") . "\n";
+    $policyExists = class_exists('App\Policies\DokumenPolicy');
+    echo "   " . ($policyExists ? "✅" : "❌") . " DokumenPolicy class: " . ($policyExists ? "EXISTS" : "MISSING") . "\n";
     
     if ($policyExists) {
-        $policy = new \App\Policies\DocumentPolicy();
+        $policy = new \App\Policies\DokumenPolicy();
         $policyMethods = ['viewAny', 'view', 'create', 'update', 'delete'];
         foreach ($policyMethods as $method) {
             $exists = method_exists($policy, $method);
@@ -324,10 +324,10 @@ try {
 }
 
 // 8. Check Document Controller
-echo "8. Document Controller:\n";
+echo "8. Dokumen Controller:\n";
 try {
-    $controllerExists = class_exists('App\Http\Controllers\DocumentController');
-    echo "   " . ($controllerExists ? "✅" : "❌") . " DocumentController class: " . ($controllerExists ? "EXISTS" : "MISSING") . "\n";
+    $controllerExists = class_exists('App\Http\Controllers\DokumenController');
+    echo "   " . ($controllerExists ? "✅" : "❌") . " DokumenController class: " . ($controllerExists ? "EXISTS" : "MISSING") . "\n";
     
     if ($controllerExists) {
         $controller = app('App\Http\Controllers\DocumentController');

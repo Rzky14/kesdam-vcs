@@ -12,13 +12,13 @@ use Illuminate\Validation\Rules\Password;
 /**
  * ProfileController
  * 
- * Handle user profile management for authenticated users.
- * Users can view and update their own profile and password.
+ * Mengelola profil pengguna yang telah terautentikasi.
+ * Pengguna dapat melihat dan memperbarui profil serta kata sandi mereka sendiri.
  */
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile.
+     * Tampilkan profil pengguna.
      */
     public function show()
     {
@@ -26,7 +26,7 @@ class ProfileController extends Controller
         $user = Auth::user();
         $user->load('roles.permissions');
         
-        // Get recent audit logs for this user's actions
+        // Ambil log audit terbaru untuk aktivitas pengguna ini
         $recentActivities = AuditLog::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->take(10)
@@ -36,7 +36,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Show the form for editing the user's profile.
+     * Tampilkan formulir pengubahan profil.
      */
     public function edit()
     {
@@ -45,7 +45,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information.
+     * Perbarui informasi profil pengguna.
      */
     public function update(Request $request)
     {
@@ -65,10 +65,10 @@ class ProfileController extends Controller
 
         $oldValues = $user->toArray();
 
-        // Update profile
+        // Perbarui profil
         $user->update($validated);
 
-        // Log profile update
+        // Catat perubahan profil
         AuditLog::log(
             event: 'profile_updated',
             model: $user,
@@ -82,7 +82,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's password.
+     * Perbarui kata sandi pengguna.
      */
     public function updatePassword(Request $request)
     {
@@ -94,12 +94,12 @@ class ProfileController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        // Update password
+        // Perbarui kata sandi
         $user->update([
             'password' => Hash::make($validated['password']),
         ]);
 
-        // Log password change
+        // Catat perubahan kata sandi
         AuditLog::log(
             event: 'password_changed',
             model: $user,

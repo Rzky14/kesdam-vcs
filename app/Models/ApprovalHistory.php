@@ -29,15 +29,27 @@ class ApprovalHistory extends Model
     ];
 
     /**
-     * Get the document this approval history belongs to
+     * Mendapatkan dokumen yang terkait dengan riwayat persetujuan ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function document()
+    public function dokumen()
     {
-        return $this->belongsTo(Document::class);
+        return $this->belongsTo(Dokumen::class, 'document_id');
     }
 
     /**
-     * Get the user who performed this approval action
+     * Alias untuk dokumen() - kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function document()
+    {
+        return $this->dokumen();
+    }
+
+    /**
+     * Mendapatkan pengguna yang melakukan aksi persetujuan ini.
      */
     public function user()
     {
@@ -45,7 +57,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Get the signature associated with this approval (if any)
+     * Mendapatkan tanda tangan yang terkait dengan persetujuan ini (jika ada).
      */
     public function signature()
     {
@@ -53,7 +65,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Scope to get histories for specific document
+     * Scope untuk mendapatkan riwayat untuk dokumen tertentu.
      */
     public function scopeForDocument($query, $documentId)
     {
@@ -61,7 +73,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Scope to get histories for specific approval action
+     * Scope untuk mendapatkan riwayat berdasarkan aksi tertentu.
      */
     public function scopeByAction($query, $action)
     {
@@ -69,7 +81,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Scope to get pending approvals
+     * Scope untuk mendapatkan persetujuan yang tertunda.
      */
     public function scopePending($query)
     {
@@ -77,7 +89,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Scope to get approved items
+     * Scope untuk mendapatkan item yang disetujui.
      */
     public function scopeApproved($query)
     {
@@ -85,7 +97,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Scope to get rejected items
+     * Scope untuk mendapatkan item yang ditolak.
      */
     public function scopeRejected($query)
     {
@@ -93,7 +105,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Scope to get correction requests
+     * Scope untuk mendapatkan permintaan koreksi.
      */
     public function scopeCorrectionRequested($query)
     {
@@ -101,7 +113,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Get the approval history sorted by approval level
+     * Mendapatkan riwayat persetujuan yang diurutkan berdasarkan tingkat persetujuan.
      */
     public function scopeOrderedByLevel($query)
     {
@@ -109,7 +121,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Get the approver role details
+     * Mendapatkan detail peran penyetuju.
      */
     public function approverRole()
     {
@@ -117,7 +129,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Check if this is the final approval
+     * Cek apakah ini persetujuan terakhir.
      */
     public function isFinalApproval($totalLevels)
     {
@@ -125,7 +137,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Get formatted action label
+     * Mendapatkan label aksi yang terformat.
      */
     public function getActionLabel()
     {
@@ -140,7 +152,7 @@ class ApprovalHistory extends Model
     }
 
     /**
-     * Get formatted status badge color
+     * Mendapatkan warna badge status yang terformat.
      */
     public function getStatusBadgeColor()
     {

@@ -16,12 +16,12 @@ class NotificationController extends Controller
 
     public function __construct(NotificationService $notificationService)
     {
-        // Middleware applied in routes
+        // Middleware diterapkan di routes
         $this->notificationService = $notificationService;
     }
 
     /**
-     * Display a listing of notifications.
+     * Tampilkan daftar notifikasi.
      */
     public function index(Request $request): View
     {
@@ -47,7 +47,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Display the specified notification.
+     * Tampilkan detail notifikasi.
      */
     public function show(string $id): View|RedirectResponse
     {
@@ -55,7 +55,7 @@ class NotificationController extends Controller
         $user = Auth::user();
         $notification = $user->notifications()->findOrFail($id);
 
-        // Mark as read if unread
+        // Tandai dibaca jika belum dibaca
         if (!$notification->read_at) {
             $this->notificationService->markAsRead($notification);
         }
@@ -64,7 +64,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Mark notification as read.
+     * Tandai satu notifikasi sebagai dibaca.
      */
     public function markAsRead(string $id): JsonResponse
     {
@@ -76,12 +76,12 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification marked as read',
+            'message' => 'Notifikasi ditandai telah dibaca',
         ]);
     }
 
     /**
-     * Mark all notifications as read.
+     * Tandai semua notifikasi sebagai dibaca.
      */
     public function markAllAsRead(): JsonResponse
     {
@@ -91,12 +91,12 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'All notifications marked as read',
+            'message' => 'Semua notifikasi ditandai telah dibaca',
         ]);
     }
 
     /**
-     * Delete the specified notification.
+     * Hapus satu notifikasi.
      */
     public function destroy(string $id): RedirectResponse
     {
@@ -107,11 +107,11 @@ class NotificationController extends Controller
         $this->notificationService->deleteNotification($notification);
 
         return redirect()->route('notifications.index')
-            ->with('success', 'Notification deleted successfully');
+            ->with('success', 'Notifikasi berhasil dihapus');
     }
 
     /**
-     * Get unread notifications count (for AJAX)
+     * Ambil jumlah notifikasi belum dibaca (untuk AJAX)
      */
     public function unreadCount(): JsonResponse
     {
@@ -125,7 +125,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Get recent notifications (for dropdown)
+     * Ambil notifikasi terbaru (untuk dropdown)
      */
     public function recent(Request $request): JsonResponse
     {
@@ -142,14 +142,14 @@ class NotificationController extends Controller
     }
 
     /**
-     * Display notification preferences page.
+     * Tampilkan halaman preferensi notifikasi.
      */
     public function preferences(): View
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Get or create default preferences
+        // Ambil atau buat preferensi bawaan
         $preferences = [];
         foreach (NotificationPreference::TYPES as $type => $label) {
             $preference = $user->notificationPreferences()
@@ -171,7 +171,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Update notification preferences.
+     * Perbarui preferensi notifikasi.
      */
     public function updatePreferences(Request $request): RedirectResponse
     {
@@ -195,11 +195,11 @@ class NotificationController extends Controller
         }
 
         return redirect()->route('notifications.preferences')
-            ->with('success', 'Notification preferences updated successfully');
+            ->with('success', 'Preferensi notifikasi berhasil diperbarui');
     }
 
     /**
-     * Delete all notifications for the user.
+     * Hapus semua notifikasi milik pengguna.
      */
     public function deleteAll(): RedirectResponse
     {
@@ -207,6 +207,6 @@ class NotificationController extends Controller
         $this->notificationService->deleteAllNotifications($user);
 
         return redirect()->route('notifications.index')
-            ->with('success', 'All notifications deleted successfully');
+            ->with('success', 'Semua notifikasi berhasil dihapus');
     }
 }

@@ -2,18 +2,18 @@
 
 namespace Database\Factories;
 
-use App\Models\Archive;
-use App\Models\Document;
+use App\Models\Arsip;
+use App\Models\Dokumen;
 use App\Models\Schedule;
 use App\Models\Report;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Archive>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<App\Models\Arsip>
  */
 class ArchiveFactory extends Factory
 {
-    protected $model = Archive::class;
+    protected $model = Arsip::class;
 
     /**
      * Define the model's default state.
@@ -28,7 +28,7 @@ class ArchiveFactory extends Factory
 
         // Random archiveable type
         $archiveableType = $this->faker->randomElement([
-            'App\\Models\\Document',
+            'App\\Models\\Dokumen',
             'App\\Models\\Schedule',
             'App\\Models\\Report',
         ]);
@@ -36,7 +36,7 @@ class ArchiveFactory extends Factory
         return [
             'archiveable_type' => $archiveableType,
             'archiveable_id' => 1, // Will be set by states
-            'archived_at' => $archivedAt,
+            'archive_date' => $archivedAt,
             'retention_until' => $retentionUntil,
             'category' => $this->faker->randomElement(['dokumen', 'jadwal', 'laporan', 'administratif', 'operasional']),
             'tags' => json_encode([$this->faker->word(), $this->faker->word()]),
@@ -46,13 +46,13 @@ class ArchiveFactory extends Factory
     }
 
     /**
-     * Indicate archive is for a document
+     * Menandai arsip untuk dokumen.
      */
     public function forDocument(): static
     {
         return $this->state(fn (array $attributes) => [
-            'archiveable_type' => 'App\\Models\\Document',
-            'archiveable_id' => Document::factory(),
+            'archiveable_type' => 'App\\Models\\Dokumen',
+            'archiveable_id' => Dokumen::factory(),
             'category' => 'dokumen',
             'tags' => json_encode(['dokumen', 'surat', $this->faker->randomElement(['masuk', 'keluar'])]),
         ]);

@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Archive;
-use App\Models\Document;
+use App\Models\Arsip;
+use App\Models\Dokumen;
 use App\Models\Schedule;
 use App\Models\Report;
 use App\Models\User;
@@ -23,10 +23,10 @@ class ArchiveSeeder extends Seeder
         }
 
         // Archive Documents
-        $documents = Document::take(10)->get();
+        $documents = Dokumen::take(10)->get();
         foreach ($documents as $document) {
-            Archive::create([
-                'archivable_type' => Document::class,
+            Arsip::create([
+                'archivable_type' => Dokumen::class,
                 'archivable_id' => $document->id,
                 'title' => "Archive: " . $document->subject,
                 'description' => "Archived document from " . $document->created_at->format('d M Y'),
@@ -40,7 +40,7 @@ class ArchiveSeeder extends Seeder
         // Archive Schedules
         $schedules = Schedule::take(10)->get();
         foreach ($schedules as $schedule) {
-            Archive::create([
+            Arsip::create([
                 'archivable_type' => Schedule::class,
                 'archivable_id' => $schedule->id,
                 'title' => "Archive: " . $schedule->type,
@@ -55,7 +55,7 @@ class ArchiveSeeder extends Seeder
         // Archive Reports
         $reports = Report::take(5)->get();
         foreach ($reports as $report) {
-            Archive::create([
+            Arsip::create([
                 'archivable_type' => Report::class,
                 'archivable_id' => $report->id,
                 'title' => "Archive: " . $report->name,

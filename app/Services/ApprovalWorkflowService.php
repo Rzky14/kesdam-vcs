@@ -7,7 +7,7 @@ use App\Models\ApprovalHistory;
 use App\Models\ApprovalRolePermission;
 use App\Models\CorrectionRequest;
 use App\Models\ApprovalDeadline;
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Log;
 class ApprovalWorkflowService
 {
     /**
-     * Get the appropriate workflow for a document
+     * Ambil alur persetujuan yang sesuai untuk dokumen
      */
-    public function getWorkflow(Document $document): ?ApprovalWorkflow
+    public function getWorkflow(Dokumen $document): ?ApprovalWorkflow
     {
         return ApprovalWorkflow::active()
             ->byDocumentType($document->type)
@@ -27,17 +27,17 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Submit a document for approval
+     * Ajukan dokumen untuk proses persetujuan
      */
-    public function submitForApproval(Document $document, User $submittedBy): ApprovalHistory
+    public function submitForApproval(Dokumen $document, User $submittedBy): ApprovalHistory
     {
         $workflow = $this->getWorkflow($document);
 
         if (!$workflow) {
-            throw new \Exception('No approval workflow found for this document type and classification');
+            throw new \Exception('Tidak ada alur persetujuan untuk tipe dan klasifikasi dokumen ini');
         }
 
-        // Create initial approval history entry
+        // Buat entri awal riwayat persetujuan
         $approvalHistory = ApprovalHistory::create([
             'document_id' => $document->id,
             'user_id' => $submittedBy->id,
@@ -50,14 +50,14 @@ class ApprovalWorkflowService
             'action_date' => now(),
         ]);
 
-        // Update document status
+        // Perbarui status dokumen
         $document->update(['status' => 'pending_approval']);
 
-        // Create approval deadlines
+        // Buat batas waktu persetujuan
         $this->createApprovalDeadlines($document, $workflow);
 
-        // Log audit trail
-        Log::info('Document submitted for approval', [
+        // Catat audit trail
+        Log::info('Dokumen diajukan untuk persetujuan', [
             'document_id' => $document->id,
             'submitted_by' => $submittedBy->id,
             'workflow_id' => $workflow->id,
@@ -67,28 +67,28 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Approve a document at current level
+     * Setujui dokumen pada level saat ini
      */
-    public function approveDocument(Document $document, User $approver, ?string $comment = null): ApprovalHistory
+    public function approveDocument(Dokumen $document, User $approver, ?string $comment = null): ApprovalHistory
     {
         $workflow = $this->getWorkflow($document);
         $lastApproval = $document->approvalHistories()->orderBy('approval_level', 'desc')->first();
 
         if (!$lastApproval) {
-            throw new \Exception('No approval history found for this document');
+            throw new \Exception('Riwayat persetujuan untuk dokumen ini tidak ditemukan');
         }
 
-        // Check if approver has permission
+        // Pastikan pemberi persetujuan memiliki hak akses
         if (!ApprovalRolePermission::canPerform(
             $approver->roles()->first()->id,
             'approve',
             $document->type,
             $document->classification
         )) {
-            throw new \Exception('User does not have permission to approve this document');
+            throw new \Exception('Pengguna tidak memiliki izin untuk menyetujui dokumen ini');
         }
 
-        // Create approval history entry
+        // Buat entri riwayat persetujuan
         $approval = ApprovalHistory::create([
             'document_id' => $document->id,
             'user_id' => $approver->id,
@@ -102,11 +102,11 @@ class ApprovalWorkflowService
             'action_date' => now(),
         ]);
 
-        // Check if all approvals are complete
+        // Cek apakah seluruh level persetujuan sudah selesai
         if ($workflow->isApprovalComplete($lastApproval->approval_level)) {
             $document->update(['status' => 'approved']);
         } else {
-            // Move to next approval level
+            // Lanjut ke level persetujuan berikutnya
             $nextLevel = $lastApproval->approval_level + 1;
             $nextRole = $workflow->getNextApproverRole($nextLevel - 1);
 
@@ -125,7 +125,7 @@ class ApprovalWorkflowService
             $document->update(['status' => 'pending_approval']);
         }
 
-        // Update deadline status
+        // Tandai batas waktu pada level ini
         $deadline = ApprovalDeadline::where('document_id', $document->id)
             ->where('approval_level', $lastApproval->approval_level)
             ->first();
@@ -134,7 +134,7 @@ class ApprovalWorkflowService
             $deadline->markAsMet();
         }
 
-        Log::info('Document approved', [
+        Log::info('Dokumen disetujui', [
             'document_id' => $document->id,
             'approved_by' => $approver->id,
             'approval_level' => $lastApproval->approval_level,
@@ -144,17 +144,17 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Reject a document at current level
+     * Tolak dokumen pada level saat ini
      */
-    public function rejectDocument(Document $document, User $rejector, string $reason): ApprovalHistory
+    public function rejectDocument(Dokumen $document, User $rejector, string $reason): ApprovalHistory
     {
         $lastApproval = $document->approvalHistories()->orderBy('approval_level', 'desc')->first();
 
         if (!$lastApproval) {
-            throw new \Exception('No approval history found for this document');
+            throw new \Exception('Riwayat persetujuan untuk dokumen ini tidak ditemukan');
         }
 
-        // Create rejection history entry
+        // Buat entri riwayat penolakan
         $rejection = ApprovalHistory::create([
             'document_id' => $document->id,
             'user_id' => $rejector->id,
@@ -168,10 +168,10 @@ class ApprovalWorkflowService
             'action_date' => now(),
         ]);
 
-        // Update document status
+        // Perbarui status dokumen
         $document->update(['status' => 'rejected']);
 
-        // Update deadline status
+        // Tandai batas waktu pada level ini
         $deadline = ApprovalDeadline::where('document_id', $document->id)
             ->where('approval_level', $lastApproval->approval_level)
             ->first();
@@ -180,7 +180,7 @@ class ApprovalWorkflowService
             $deadline->markAsMissed();
         }
 
-        Log::warning('Document rejected', [
+        Log::warning('Dokumen ditolak', [
             'document_id' => $document->id,
             'rejected_by' => $rejector->id,
             'reason' => $reason,
@@ -190,17 +190,17 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Request corrections on a document
+     * Ajukan permintaan koreksi pada dokumen
      */
-    public function requestCorrection(Document $document, User $requestor, string $notes, ?string $dueDateDays = null): CorrectionRequest
+    public function requestCorrection(Dokumen $document, User $requestor, string $notes, ?string $dueDateDays = null): CorrectionRequest
     {
         $lastApproval = $document->approvalHistories()->orderBy('approval_level', 'desc')->first();
 
         if (!$lastApproval) {
-            throw new \Exception('No approval history found for this document');
+            throw new \Exception('Riwayat persetujuan untuk dokumen ini tidak ditemukan');
         }
 
-        // Create correction request entry
+        // Buat entri permintaan koreksi
         $correctionRequest = CorrectionRequest::create([
             'document_id' => $document->id,
             'approval_history_id' => $lastApproval->id,
@@ -213,7 +213,7 @@ class ApprovalWorkflowService
             'due_date' => $dueDateDays ? now()->addDays((int)$dueDateDays) : now()->addDays(3),
         ]);
 
-        // Create approval history entry for correction request
+        // Tambahkan entri riwayat untuk permintaan koreksi
         ApprovalHistory::create([
             'document_id' => $document->id,
             'user_id' => $requestor->id,
@@ -227,10 +227,10 @@ class ApprovalWorkflowService
             'action_date' => now(),
         ]);
 
-        // Update document status
+        // Perbarui status dokumen
         $document->update(['status' => 'correction_requested']);
 
-        Log::info('Correction requested for document', [
+        Log::info('Permintaan koreksi diajukan untuk dokumen', [
             'document_id' => $document->id,
             'requested_by' => $requestor->id,
             'correction_request_id' => $correctionRequest->id,
@@ -240,18 +240,18 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Resubmit a corrected document
+     * Kirim ulang dokumen yang telah dikoreksi
      */
-    public function resubmitDocument(Document $document, User $submittedBy): ApprovalHistory
+    public function resubmitDocument(Dokumen $document, User $submittedBy): ApprovalHistory
     {
         $workflow = $this->getWorkflow($document);
         $lastApproval = $document->approvalHistories()->orderBy('approval_level', 'desc')->first();
 
         if (!$lastApproval) {
-            throw new \Exception('No approval history found for this document');
+            throw new \Exception('Riwayat persetujuan untuk dokumen ini tidak ditemukan');
         }
 
-        // Create resubmission history entry
+        // Buat entri riwayat pengiriman ulang
         $resubmission = ApprovalHistory::create([
             'document_id' => $document->id,
             'user_id' => $submittedBy->id,
@@ -264,10 +264,10 @@ class ApprovalWorkflowService
             'action_date' => now(),
         ]);
 
-        // Update document status
+        // Perbarui status dokumen
         $document->update(['status' => 'pending_approval']);
 
-        // Update correction request status
+        // Tandai permintaan koreksi telah diselesaikan
         $correctionRequest = CorrectionRequest::where('document_id', $document->id)
             ->where('status', 'pending')
             ->first();
@@ -276,7 +276,7 @@ class ApprovalWorkflowService
             $correctionRequest->markAsCompleted();
         }
 
-        Log::info('Document resubmitted after correction', [
+        Log::info('Dokumen dikirim ulang setelah koreksi', [
             'document_id' => $document->id,
             'resubmitted_by' => $submittedBy->id,
         ]);
@@ -285,13 +285,13 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Get pending approvals for a user
+     * Ambil daftar persetujuan yang menunggu untuk pengguna
      */
     public function getPendingApprovalsForUser(User $user)
     {
         $userRoles = $user->roles->pluck('id')->toArray();
 
-        return Document::where('status', 'pending_approval')
+        return Dokumen::where('status', 'pending_approval')
             ->with(['approvalHistories' => function ($query) {
                 $query->orderBy('approval_level', 'desc')->limit(1);
             }])
@@ -303,9 +303,9 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Get approval history for a document
+     * Ambil riwayat persetujuan untuk dokumen
      */
-    public function getApprovalHistory(Document $document)
+    public function getApprovalHistory(Dokumen $document)
     {
         return $document->approvalHistories()
             ->orderBy('approval_level', 'asc')
@@ -314,11 +314,11 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Create approval deadlines for a document
+     * Buat batas waktu persetujuan untuk dokumen
      */
-    private function createApprovalDeadlines(Document $document, ApprovalWorkflow $workflow): void
+    private function createApprovalDeadlines(Dokumen $document, ApprovalWorkflow $workflow): void
     {
-        // Get SLA configuration (you can customize this per document type/classification)
+        // Ambil konfigurasi SLA (dapat disesuaikan per tipe/klasifikasi dokumen)
         $slaDays = $this->getApprovalSLA($document->type, $document->classification);
 
         $totalLevels = $workflow->getTotalApprovalLevels();
@@ -337,7 +337,7 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Get SLA days for approval based on document type and classification
+     * Ambil SLA persetujuan berdasarkan tipe dan klasifikasi dokumen
      */
     private function getApprovalSLA(string $documentType, string $classification): int
     {
@@ -350,17 +350,17 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Get next revision number for a document
+     * Ambil nomor revisi berikutnya untuk dokumen
      */
-    private function getNextRevisionNumber(Document $document): int
+    private function getNextRevisionNumber(Dokumen $document): int
     {
         return CorrectionRequest::where('document_id', $document->id)->count() + 1;
     }
 
     /**
-     * Check if user can approve document
+     * Periksa apakah pengguna dapat menyetujui dokumen
      */
-    public function canUserApproveDocument(User $user, Document $document): bool
+    public function canUserApproveDocument(User $user, Dokumen $document): bool
     {
         $userRoles = $user->roles->pluck('id')->toArray();
         $lastApproval = $document->approvalHistories()->orderBy('approval_level', 'desc')->first();
@@ -373,17 +373,17 @@ class ApprovalWorkflowService
     }
 
     /**
-     * Check if user can request correction
+     * Periksa apakah pengguna dapat meminta koreksi
      */
-    public function canUserRequestCorrection(User $user, Document $document): bool
+    public function canUserRequestCorrection(User $user, Dokumen $document): bool
     {
         return $this->canUserApproveDocument($user, $document);
     }
 
     /**
-     * Get approval workflow statistics for a document
+     * Ambil statistik alur persetujuan untuk dokumen
      */
-    public function getWorkflowStatistics(Document $document): array
+    public function getWorkflowStatistics(Dokumen $document): array
     {
         $approvalHistories = $document->approvalHistories()->get();
         $workflow = $this->getWorkflow($document);

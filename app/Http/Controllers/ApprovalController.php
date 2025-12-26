@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\ApprovalHistory;
 use App\Models\CorrectionRequest;
 use App\Models\ApprovalDeadline;
@@ -10,48 +10,50 @@ use App\Services\ApprovalWorkflowService;
 use App\Http\Requests\ApproveDocumentRequest;
 use App\Http\Requests\RejectDocumentRequest;
 use App\Http\Requests\RequestCorrectionRequest;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class ApprovalController extends Controller
 {
+    use AuthorizesRequests;
+
     protected $approvalService;
 
     public function __construct(ApprovalWorkflowService $approvalService)
     {
         $this->approvalService = $approvalService;
-        $this->middleware('auth');
     }
 
     /**
-     * Show approval dashboard with pending approvals
+     * Tampilkan dasbor persetujuan dengan antrean yang menunggu
      */
     public function dashboard()
     {
         $user = Auth::user();
 
-        // Get pending approvals for current user
+        // Ambil antrean persetujuan untuk pengguna saat ini
         $pendingApprovals = $this->approvalService->getPendingApprovalsForUser($user);
 
-        // Get recent approval actions
+        // Ambil aktivitas persetujuan terbaru
         $recentApprovals = ApprovalHistory::whereIn('user_id', [$user->id])
             ->with(['document', 'user'])
             ->orderBy('action_date', 'desc')
             ->limit(10)
             ->get();
 
-        // Get overdue deadlines
+        // Ambil batas waktu yang sudah lewat
         $overdueDeadlines = ApprovalDeadline::overdue()
             ->with('document')
             ->get();
 
-        // Get upcoming deadlines (next 3 days)
+        // Ambil batas waktu yang akan datang (3 hari ke depan)
         $upcomingDeadlines = ApprovalDeadline::upcoming(3)
             ->with('document')
             ->get();
 
-        // Get correction requests assigned to user
+        // Ambil permintaan koreksi yang ditugaskan ke pengguna
         $pendingCorrections = CorrectionRequest::pending()
             ->where('assigned_to_user_id', $user->id)
             ->with(['document', 'requestedBy'])
@@ -77,9 +79,9 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Show approval details for a document
+     * Tampilkan detail persetujuan untuk dokumen
      */
-    public function show(Document $document)
+    public function show(Dokumen $document)
     {
         $this->authorize('view', $document);
 
@@ -103,14 +105,14 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Show form to approve document
+     * Form persetujuan dokumen
      */
-    public function approveForm(Document $document)
+    public function approveForm(Dokumen $document)
     {
         $this->authorize('update', $document);
 
         if (!$this->approvalService->canUserApproveDocument(Auth::user(), $document)) {
-            abort(403, 'You do not have permission to approve this document.');
+            abort(403, 'Anda tidak memiliki izin untuk menyetujui dokumen ini.');
         }
 
         $approvalHistory = $this->approvalService->getApprovalHistory($document);
@@ -120,14 +122,14 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Store approval
+     * Simpan persetujuan
      */
-    public function approve(ApproveDocumentRequest $request, Document $document)
+    public function approve(ApproveDocumentRequest $request, Dokumen $document)
     {
         $this->authorize('approve', $document);
 
         if (!$this->approvalService->canUserApproveDocument(Auth::user(), $document)) {
-            abort(403, 'You do not have permission to approve this document.');
+            abort(403, 'Anda tidak memiliki izin untuk menyetujui dokumen ini.');
         }
 
         $validated = $request->validated();
@@ -140,35 +142,35 @@ class ApprovalController extends Controller
             );
 
             return redirect()->route('approvals.show', $document)
-                ->with('success', 'Document approved successfully.');
+                ->with('success', 'Dokumen berhasil disetujui.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to approve document: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menyetujui dokumen: ' . $e->getMessage());
         }
     }
 
     /**
-     * Show form to reject document
+     * Form penolakan dokumen
      */
-    public function rejectForm(Document $document)
+    public function rejectForm(Dokumen $document)
     {
         $this->authorize('reject', $document);
 
         if (!$this->approvalService->canUserApproveDocument(Auth::user(), $document)) {
-            abort(403, 'You do not have permission to reject this document.');
+            abort(403, 'Anda tidak memiliki izin untuk menolak dokumen ini.');
         }
 
         return view('approvals.reject', compact('document'));
     }
 
     /**
-     * Store rejection
+     * Simpan penolakan
      */
-    public function reject(RejectDocumentRequest $request, Document $document)
+    public function reject(RejectDocumentRequest $request, Dokumen $document)
     {
         $this->authorize('reject', $document);
 
         if (!$this->approvalService->canUserApproveDocument(Auth::user(), $document)) {
-            abort(403, 'You do not have permission to reject this document.');
+            abort(403, 'Anda tidak memiliki izin untuk menolak dokumen ini.');
         }
 
         $validated = $request->validated();
@@ -181,35 +183,35 @@ class ApprovalController extends Controller
             );
 
             return redirect()->route('approvals.show', $document)
-                ->with('success', 'Document rejected successfully.');
+                ->with('success', 'Dokumen berhasil ditolak.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to reject document: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menolak dokumen: ' . $e->getMessage());
         }
     }
 
     /**
-     * Show form to request correction
+     * Form permintaan koreksi
      */
-    public function correctionForm(Document $document)
+    public function correctionForm(Dokumen $document)
     {
         $this->authorize('requestCorrection', $document);
 
         if (!$this->approvalService->canUserRequestCorrection(Auth::user(), $document)) {
-            abort(403, 'You do not have permission to request corrections.');
+            abort(403, 'Anda tidak memiliki izin untuk meminta koreksi.');
         }
 
         return view('approvals.request-correction', compact('document'));
     }
 
     /**
-     * Store correction request
+     * Simpan permintaan koreksi
      */
-    public function requestCorrection(RequestCorrectionRequest $request, Document $document)
+    public function requestCorrection(RequestCorrectionRequest $request, Dokumen $document)
     {
         $this->authorize('requestCorrection', $document);
 
         if (!$this->approvalService->canUserRequestCorrection(Auth::user(), $document)) {
-            abort(403, 'You do not have permission to request corrections.');
+            abort(403, 'Anda tidak memiliki izin untuk meminta koreksi.');
         }
 
         $validated = $request->validated();
@@ -223,16 +225,16 @@ class ApprovalController extends Controller
             );
 
             return redirect()->route('approvals.show', $document)
-                ->with('success', 'Correction request sent successfully.');
+                ->with('success', 'Permintaan koreksi berhasil dikirim.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to request correction: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mengirim permintaan koreksi: ' . $e->getMessage());
         }
     }
 
     /**
-     * Show form to resubmit document after correction
+     * Form unggah ulang dokumen setelah koreksi
      */
-    public function resubmitForm(Document $document)
+    public function resubmitForm(Dokumen $document)
     {
         $this->authorize('update', $document);
 
@@ -241,18 +243,18 @@ class ApprovalController extends Controller
             ->first();
 
         if (!$correctionRequest) {
-            abort(404, 'No pending correction request found.');
+            abort(404, 'Tidak ada permintaan koreksi tertunda.');
         }
 
         return view('approvals.resubmit', compact('document', 'correctionRequest'));
     }
 
     /**
-     * Store resubmission
+     * Simpan unggah ulang
      */
     public function resubmit(Request $request)
     {
-        $doc = Document::findOrFail($request->document_id);
+        $doc = Dokumen::findOrFail($request->document_id);
         $this->authorize('update', $doc);
 
         $correctionRequest = $doc->correctionRequests()
@@ -260,7 +262,7 @@ class ApprovalController extends Controller
             ->first();
 
         if (!$correctionRequest) {
-            abort(404, 'No pending correction request found.');
+            abort(404, 'Tidak ada permintaan koreksi tertunda.');
         }
 
         $validated = $request->validate([
@@ -271,16 +273,16 @@ class ApprovalController extends Controller
             $this->approvalService->resubmitDocument($doc, Auth::user());
 
             return redirect()->route('approvals.show', $doc)
-                ->with('success', 'Document resubmitted successfully.');
+                ->with('success', 'Dokumen berhasil dikirim ulang.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to resubmit document: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mengirim ulang dokumen: ' . $e->getMessage());
         }
     }
 
     /**
-     * Show approval history for a document
+     * Tampilkan riwayat persetujuan untuk dokumen
      */
-    public function history(Document $document)
+    public function history(Dokumen $document)
     {
         $this->authorize('view', $document);
 
@@ -291,7 +293,7 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Show pending approvals list
+     * Tampilkan daftar persetujuan yang menunggu
      */
     public function pending()
     {
@@ -302,7 +304,7 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Show correction requests list
+     * Tampilkan daftar permintaan koreksi
      */
     public function corrections()
     {
@@ -316,17 +318,16 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Download approval report
+     * Unduh laporan persetujuan
      */
-    public function downloadReport(Document $document)
+    public function downloadReport(Dokumen $document)
     {
         $this->authorize('view', $document);
 
         $approvalHistory = $this->approvalService->getApprovalHistory($document);
         $statistics = $this->approvalService->getWorkflowStatistics($document);
 
-        // Generate PDF or Excel
-        // This is a placeholder - implement based on your requirements
+        // TODO: Implementasi ekspor PDF atau Excel sesuai kebutuhan
         return view('approvals.report', compact('document', 'approvalHistory', 'statistics'));
     }
 }

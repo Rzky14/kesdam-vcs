@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 class SettingController extends Controller
 {
     /**
-     * Display settings page
+     * Tampilkan halaman pengaturan.
      */
     public function index()
     {
@@ -16,7 +16,7 @@ class SettingController extends Controller
     }
 
     /**
-     * Update notification preferences
+     * Perbarui preferensi notifikasi.
      */
     public function updateNotifications(Request $request)
     {
@@ -26,7 +26,7 @@ class SettingController extends Controller
             'document_status' => 'boolean',
         ]);
 
-        // Update user notification preferences
+        // Perbarui preferensi notifikasi pengguna
         /** @var \App\Models\User $user */
         $user = Auth::user();
         $user->notificationPreferences()->updateOrCreate(
@@ -42,11 +42,11 @@ class SettingController extends Controller
     }
 
     /**
-     * Update system settings (admin only)
+     * Perbarui pengaturan sistem (khusus admin).
      */
     public function updateSystem(Request $request)
     {
-        // TODO: Implement system settings (backup, document format, etc.)
+        // TODO: Implementasi pengaturan sistem (backup, format dokumen, dll.)
         return redirect()->route('settings.index')->with('success', 'Pengaturan sistem berhasil diperbarui');
     }
 }

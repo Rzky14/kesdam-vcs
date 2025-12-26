@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,14 +13,14 @@ class DocumentApprovedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected Document $document;
+    protected Dokumen $document;
     protected User $approver;
     protected ?string $notes;
 
     /**
-     * Create a new notification instance.
+    * Buat instance notifikasi baru.
      */
-    public function __construct(Document $document, User $approver, ?string $notes = null)
+    public function __construct(Dokumen $document, User $approver, ?string $notes = null)
     {
         $this->document = $document;
         $this->approver = $approver;
@@ -28,7 +28,7 @@ class DocumentApprovedNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the notification's delivery channels.
+    * Tentukan kanal pengiriman notifikasi.
      *
      * @return array<int, string>
      */
@@ -48,29 +48,29 @@ class DocumentApprovedNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Representasi email dari notifikasi.
      */
     public function toMail(object $notifiable): MailMessage
     {
         $mail = (new MailMessage)
-            ->subject('Document Approved: ' . $this->document->subject)
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('Great news! Your document has been approved.')
-            ->line('**Document Number:** ' . $this->document->number)
-            ->line('**Subject:** ' . $this->document->subject)
-            ->line('**Approved by:** ' . $this->approver->name . ' (' . $this->approver->rank . ')');
+            ->subject('Dokumen Disetujui: ' . $this->document->subject)
+            ->greeting('Halo ' . $notifiable->name . ',')
+            ->line('Kabar baik! Dokumen Anda telah disetujui.')
+            ->line('**Nomor Dokumen:** ' . $this->document->number)
+            ->line('**Perihal:** ' . $this->document->subject)
+            ->line('**Disetujui oleh:** ' . $this->approver->name . ' (' . $this->approver->rank . ')');
 
         if ($this->notes) {
-            $mail->line('**Notes:** ' . $this->notes);
+            $mail->line('**Catatan:** ' . $this->notes);
         }
 
         return $mail
-            ->action('View Document', route('documents.show', $this->document->id))
-            ->line('The document status has been updated to approved.');
+            ->action('Lihat Dokumen', route('documents.show', $this->document->id))
+            ->line('Status dokumen telah diperbarui menjadi disetujui.');
     }
 
     /**
-     * Get the array representation of the notification.
+     * Representasi array dari notifikasi.
      *
      * @return array<string, mixed>
      */
@@ -86,7 +86,7 @@ class DocumentApprovedNotification extends Notification implements ShouldQueue
             'approver_name' => $this->approver->name,
             'approver_rank' => $this->approver->rank,
             'notes' => $this->notes,
-            'message' => "Document '{$this->document->subject}' has been approved by {$this->approver->name}",
+            'message' => "Dokumen '{$this->document->subject}' telah disetujui oleh {$this->approver->name}",
             'url' => route('documents.show', $this->document->id),
         ];
     }

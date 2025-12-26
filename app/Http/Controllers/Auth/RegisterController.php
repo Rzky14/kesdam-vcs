@@ -51,7 +51,7 @@ class RegisterController extends Controller
         ]);
 
         // Assign default role (Batih/Staf)
-        $user->assignRole('batih_staf');
+        $user->berikanPeran('batih_staf');
 
         // Log registration
         AuditLog::log(

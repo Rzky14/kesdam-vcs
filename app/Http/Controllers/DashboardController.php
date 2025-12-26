@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Schedule;
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -50,11 +50,11 @@ class DashboardController extends Controller
                 'active_schedules' => Schedule::where('status', 'active')
                     ->where('end_date', '>=', $today)
                     ->count(),
-                'incoming_documents' => Document::where('type', 'masuk')
+                'incoming_documents' => Dokumen::where('type', 'masuk')
                     ->whereDate('date', $today)
                     ->count(),
-                'pending_approvals' => Document::where('status', 'pending_approval')->count(),
-                'completed_this_month' => Document::where('status', 'approved')
+                'pending_approvals' => Dokumen::where('status', 'pending_approval')->count(),
+                'completed_this_month' => Dokumen::where('status', 'approved')
                     ->whereMonth('updated_at', $thisMonth)
                     ->whereYear('updated_at', $thisYear)
                     ->count(),
@@ -65,11 +65,11 @@ class DashboardController extends Controller
                 'active_schedules' => Schedule::where('status', 'active')
                     ->where('end_date', '>=', $today)
                     ->count(),
-                'incoming_documents' => Document::where('type', 'masuk')
+                'incoming_documents' => Dokumen::where('type', 'masuk')
                     ->whereDate('date', $today)
                     ->count(),
-                'pending_approvals' => Document::where('status', 'pending_approval')->count(),
-                'completed_this_month' => Document::where('status', 'approved')
+                'pending_approvals' => Dokumen::where('status', 'pending_approval')->count(),
+                'completed_this_month' => Dokumen::where('status', 'approved')
                     ->whereMonth('updated_at', $thisMonth)
                     ->whereYear('updated_at', $thisYear)
                     ->count(),
@@ -84,13 +84,13 @@ class DashboardController extends Controller
                               ->orWhereJsonContains('personnel', $user->id);
                     })
                     ->count(),
-                'incoming_documents' => Document::where('type', 'masuk')
+                'incoming_documents' => Dokumen::where('type', 'masuk')
                     ->whereDate('date', $today)
                     ->count(),
-                'pending_approvals' => Document::where('status', 'pending_approval')
+                'pending_approvals' => Dokumen::where('status', 'pending_approval')
                     ->where('created_by', $user->id)
                     ->count(),
-                'completed_this_month' => Document::where('status', 'approved')
+                'completed_this_month' => Dokumen::where('status', 'approved')
                     ->where('created_by', $user->id)
                     ->whereMonth('updated_at', $thisMonth)
                     ->whereYear('updated_at', $thisYear)
@@ -106,14 +106,14 @@ class DashboardController extends Controller
                               ->orWhereJsonContains('personnel', $user->id);
                     })
                     ->count(),
-                'incoming_documents' => Document::where('type', 'masuk')
+                'incoming_documents' => Dokumen::where('type', 'masuk')
                     ->where('created_by', $user->id)
                     ->whereDate('date', $today)
                     ->count(),
-                'pending_approvals' => Document::where('status', 'pending_approval')
+                'pending_approvals' => Dokumen::where('status', 'pending_approval')
                     ->where('created_by', $user->id)
                     ->count(),
-                'completed_this_month' => Document::where('status', 'approved')
+                'completed_this_month' => Dokumen::where('status', 'approved')
                     ->where('created_by', $user->id)
                     ->whereMonth('updated_at', $thisMonth)
                     ->whereYear('updated_at', $thisYear)
@@ -153,7 +153,7 @@ class DashboardController extends Controller
      */
     protected function getRecentDocuments($user)
     {
-        $query = Document::with('creator')
+        $query = Dokumen::with('creator')
             ->orderBy('date', 'desc');
         
         if ($user->hasRole('admin_sistem') || $user->hasRole('pimpinan')) {

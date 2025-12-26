@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Report;
-use App\Models\Archive;
-use App\Models\Document;
+use App\Models\Arsip;
+use App\Models\Dokumen;
 use App\Models\Schedule;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -139,12 +139,12 @@ class ReportArchiveSeeder extends Seeder
         // Create Archives for Documents (if Document model exists)
         $this->command->info('Creating archives...');
         
-        if (class_exists('App\\Models\\Document')) {
-            $documents = Document::limit(5)->get();
+        if (class_exists('App\\Models\\Dokumen')) {
+            $documents = Dokumen::limit(5)->get();
             if ($documents->count() > 0) {
                 foreach ($documents as $document) {
-                    Archive::create([
-                        'archiveable_type' => 'App\\Models\\Document',
+                    Arsip::create([
+                        'archiveable_type' => 'App\\Models\\Dokumen',
                         'archiveable_id' => $document->id,
                         'archived_at' => Carbon::now()->subMonths(rand(1, 6)),
                         'retention_until' => Carbon::now()->addYears(rand(2, 5)),
@@ -165,7 +165,7 @@ class ReportArchiveSeeder extends Seeder
             $schedules = Schedule::limit(5)->get();
             if ($schedules->count() > 0) {
                 foreach ($schedules as $schedule) {
-                    Archive::create([
+                    Arsip::create([
                         'archiveable_type' => 'App\\Models\\Schedule',
                         'archiveable_id' => $schedule->id,
                         'archived_at' => Carbon::now()->subMonths(rand(1, 6)),
@@ -183,7 +183,7 @@ class ReportArchiveSeeder extends Seeder
         }
 
         // Create Archives for Reports
-        Archive::create([
+        Arsip::create([
             'archiveable_type' => 'App\\Models\\Report',
             'archiveable_id' => $scheduleReport1->id,
             'archived_at' => Carbon::now()->subMonth(),
@@ -194,7 +194,7 @@ class ReportArchiveSeeder extends Seeder
             'notes' => 'Laporan bulanan - archive jangka panjang',
         ]);
 
-        Archive::create([
+        Arsip::create([
             'archiveable_type' => 'App\\Models\\Report',
             'archiveable_id' => $documentReport1->id,
             'archived_at' => Carbon::now()->subMonth(),
@@ -205,7 +205,7 @@ class ReportArchiveSeeder extends Seeder
             'notes' => 'Laporan bulanan - archive jangka panjang',
         ]);
 
-        $totalArchives = Archive::count();
+        $totalArchives = Arsip::count();
         $this->command->info("Total archives created: {$totalArchives}");
 
         $this->command->info('✅ Report and Archive seeding completed!');

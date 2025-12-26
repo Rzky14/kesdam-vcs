@@ -9,12 +9,35 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Model Dokumen
+ * 
+ * Representasi dokumen dalam sistem KESDAM VCS.
+ * Mendukung berbagai jenis dokumen: surat masuk, surat keluar, rahasia, telegram.
+ * 
+ * @property int $id
+ * @property string $type Jenis dokumen (masuk/keluar)
+ * @property string $classification Klasifikasi (biasa/rahasia/telegram)
+ * @property string $number Nomor dokumen
+ * @property \Carbon\Carbon $date Tanggal dokumen
+ * @property string $sender Pengirim
+ * @property string $recipient Penerima
+ * @property string $subject Perihal
+ * @property string $description Deskripsi
+ * @property array $attachments Lampiran
+ * @property string $status Status dokumen
+ * @property string $priority Prioritas
+ * @property bool $is_encrypted Apakah terenkripsi
+ * @property \Carbon\Carbon $archived_at Tanggal diarsipkan
+ * @property int $created_by Dibuat oleh
+ * @property int $updated_by Diperbarui oleh
+ */
 class Document extends Model
 {
     use HasFactory, SoftDeletes, Auditable;
 
     /**
-     * The attributes that are mass assignable.
+     * Atribut yang dapat diisi secara massal.
      *
      * @var array<int, string>
      */
@@ -37,7 +60,7 @@ class Document extends Model
     ];
 
     /**
-     * The attributes that should be cast.
+     * Atribut yang harus di-cast ke tipe tertentu.
      *
      * @var array<string, string>
      */
@@ -49,7 +72,7 @@ class Document extends Model
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Atribut yang disembunyikan saat serialisasi.
      *
      * @var array<int, string>
      */
@@ -57,78 +80,198 @@ class Document extends Model
         'is_encrypted',
     ];
 
+    // ==========================================
+    // RELASI (RELATIONSHIPS)
+    // ==========================================
+
     /**
-     * Get the creator of the document.
+     * Mendapatkan pembuat dokumen.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function creator()
+    public function pembuat()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
-     * Get the last updater of the document.
+     * Alias untuk pembuat() - kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function updater()
+    public function creator()
+    {
+        return $this->pembuat();
+    }
+
+    /**
+     * Mendapatkan pengubah terakhir dokumen.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function pengubah()
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
-     * Get all approval histories for this document.
+     * Alias untuk pengubah() - kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function approvalHistories()
+    public function updater()
+    {
+        return $this->pengubah();
+    }
+
+    /**
+     * Mendapatkan semua riwayat persetujuan untuk dokumen ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function riwayatPersetujuan()
     {
         return $this->hasMany(ApprovalHistory::class);
     }
 
     /**
-     * Get all correction requests for this document.
+     * Alias untuk riwayatPersetujuan() - kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function correctionRequests()
+    public function approvalHistories()
+    {
+        return $this->riwayatPersetujuan();
+    }
+
+    /**
+     * Mendapatkan semua permintaan koreksi untuk dokumen ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function permintaanKoreksi()
     {
         return $this->hasMany(CorrectionRequest::class);
     }
 
     /**
-     * Get all approval deadlines for this document.
+     * Alias untuk permintaanKoreksi() - kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function approvalDeadlines()
+    public function correctionRequests()
+    {
+        return $this->permintaanKoreksi();
+    }
+
+    /**
+     * Mendapatkan semua batas waktu persetujuan untuk dokumen ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function batasWaktuPersetujuan()
     {
         return $this->hasMany(ApprovalDeadline::class);
     }
 
     /**
-     * Get the current approval status
+     * Alias untuk batasWaktuPersetujuan() - kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function getCurrentApprovalLevel()
+    public function approvalDeadlines()
     {
-        return $this->approvalHistories()
+        return $this->batasWaktuPersetujuan();
+    }
+
+    // ==========================================
+    // HELPER METHODS - STATUS PERSETUJUAN
+    // ==========================================
+
+    /**
+     * Mendapatkan level persetujuan saat ini.
+     *
+     * @return int
+     */
+    public function ambilLevelPersetujuanSaatIni(): int
+    {
+        return $this->riwayatPersetujuan()
             ->orderBy('approval_level', 'desc')
             ->value('approval_level') ?? 0;
     }
 
     /**
-     * Get the last approval action
+     * Alias untuk ambilLevelPersetujuanSaatIni() - kompatibilitas.
+     *
+     * @return int
      */
-    public function getLastApprovalAction()
+    public function getCurrentApprovalLevel(): int
     {
-        return $this->approvalHistories()
+        return $this->ambilLevelPersetujuanSaatIni();
+    }
+
+    /**
+     * Mendapatkan aksi persetujuan terakhir.
+     *
+     * @return \App\Models\ApprovalHistory|null
+     */
+    public function ambilAksiPersetujuanTerakhir()
+    {
+        return $this->riwayatPersetujuan()
             ->orderBy('created_at', 'desc')
             ->first();
     }
 
     /**
-     * Check if document has pending corrections
+     * Alias untuk ambilAksiPersetujuanTerakhir() - kompatibilitas.
+     *
+     * @return \App\Models\ApprovalHistory|null
      */
-    public function hasPendingCorrections()
+    public function getLastApprovalAction()
     {
-        return $this->correctionRequests()
+        return $this->ambilAksiPersetujuanTerakhir();
+    }
+
+    /**
+     * Cek apakah dokumen memiliki koreksi yang tertunda.
+     *
+     * @return bool
+     */
+    public function punyaKoreksiTertunda(): bool
+    {
+        return $this->permintaanKoreksi()
             ->where('status', 'pending')
             ->exists();
     }
 
     /**
-     * Scope a query to only include documents of a given type.
+     * Alias untuk punyaKoreksiTertunda() - kompatibilitas.
+     *
+     * @return bool
+     */
+    public function hasPendingCorrections(): bool
+    {
+        return $this->punyaKoreksiTertunda();
+    }
+
+    // ==========================================
+    // QUERY SCOPES
+    // ==========================================
+
+    /**
+     * Scope untuk filter berdasarkan jenis dokumen.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $jenis
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeBerdasarkanJenis($query, $jenis)
+    {
+        return $query->where('type', $jenis);
+    }
+
+    /**
+     * Alias untuk scopeBerdasarkanJenis() - kompatibilitas.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  string  $type
@@ -136,11 +279,23 @@ class Document extends Model
      */
     public function scopeOfType($query, $type)
     {
-        return $query->where('type', $type);
+        return $this->scopeBerdasarkanJenis($query, $type);
     }
 
     /**
-     * Scope a query to only include documents with a given classification.
+     * Scope untuk filter berdasarkan klasifikasi.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $klasifikasi
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeBerdasarkanKlasifikasi($query, $klasifikasi)
+    {
+        return $query->where('classification', $klasifikasi);
+    }
+
+    /**
+     * Alias untuk scopeBerdasarkanKlasifikasi() - kompatibilitas.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  string  $classification
@@ -148,11 +303,23 @@ class Document extends Model
      */
     public function scopeOfClassification($query, $classification)
     {
-        return $query->where('classification', $classification);
+        return $this->scopeBerdasarkanKlasifikasi($query, $classification);
     }
 
     /**
-     * Scope a query to only include documents with a given status.
+     * Scope untuk filter berdasarkan status.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $status
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeDenganStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    /**
+     * Alias untuk scopeDenganStatus() - kompatibilitas.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  string  $status
@@ -160,55 +327,112 @@ class Document extends Model
      */
     public function scopeWithStatus($query, $status)
     {
-        return $query->where('status', $status);
+        return $this->scopeDenganStatus($query, $status);
     }
 
     /**
-     * Scope a query to only include draft documents.
+     * Scope untuk dokumen draft saja.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeDraf($query)
+    {
+        return $query->where('status', 'draft');
+    }
+
+    /**
+     * Alias untuk scopeDraf() - kompatibilitas.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeDraft($query)
     {
-        return $query->where('status', 'draft');
+        return $this->scopeDraf($query);
     }
 
     /**
-     * Scope a query to only include pending approval documents.
+     * Scope untuk dokumen menunggu persetujuan.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeMenungguPersetujuan($query)
+    {
+        return $query->where('status', 'pending_approval');
+    }
+
+    /**
+     * Alias untuk scopeMenungguPersetujuan() - kompatibilitas.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopePendingApproval($query)
     {
-        return $query->where('status', 'pending_approval');
+        return $this->scopeMenungguPersetujuan($query);
     }
 
     /**
-     * Scope a query to only include approved documents.
+     * Scope untuk dokumen yang sudah disetujui.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeDisetujui($query)
+    {
+        return $query->where('status', 'approved');
+    }
+
+    /**
+     * Alias untuk scopeDisetujui() - kompatibilitas.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $this->scopeDisetujui($query);
     }
 
     /**
-     * Scope a query to only include archived documents.
+     * Scope untuk dokumen yang diarsipkan.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeDiarsipkan($query)
+    {
+        return $query->where('status', 'archived');
+    }
+
+    /**
+     * Alias untuk scopeDiarsipkan() - kompatibilitas.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeArchived($query)
     {
-        return $query->where('status', 'archived');
+        return $this->scopeDiarsipkan($query);
     }
 
     /**
-     * Scope a query to filter by date range.
+     * Scope untuk filter berdasarkan rentang tanggal.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $tanggalMulai
+     * @param  string  $tanggalSelesai
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeRentangTanggal($query, $tanggalMulai, $tanggalSelesai)
+    {
+        return $query->whereBetween('date', [$tanggalMulai, $tanggalSelesai]);
+    }
+
+    /**
+     * Alias untuk scopeRentangTanggal() - kompatibilitas.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  string  $startDate
@@ -217,105 +441,203 @@ class Document extends Model
      */
     public function scopeDateRange($query, $startDate, $endDate)
     {
-        return $query->whereBetween('date', [$startDate, $endDate]);
+        return $this->scopeRentangTanggal($query, $startDate, $endDate);
     }
 
+    // ==========================================
+    // HELPER METHODS - CEK STATUS
+    // ==========================================
+
     /**
-     * Check if the document is a draft.
+     * Cek apakah dokumen adalah draft.
      *
      * @return bool
      */
-    public function isDraft()
+    public function adalahDraf(): bool
     {
         return $this->status === 'draft';
     }
 
     /**
-     * Check if the document is pending approval.
+     * Alias untuk adalahDraf() - kompatibilitas.
      *
      * @return bool
      */
-    public function isPendingApproval()
+    public function isDraft(): bool
+    {
+        return $this->adalahDraf();
+    }
+
+    /**
+     * Cek apakah dokumen menunggu persetujuan.
+     *
+     * @return bool
+     */
+    public function adalahMenungguPersetujuan(): bool
     {
         return $this->status === 'pending_approval';
     }
 
     /**
-     * Check if the document is approved.
+     * Alias untuk adalahMenungguPersetujuan() - kompatibilitas.
      *
      * @return bool
      */
-    public function isApproved()
+    public function isPendingApproval(): bool
+    {
+        return $this->adalahMenungguPersetujuan();
+    }
+
+    /**
+     * Cek apakah dokumen sudah disetujui.
+     *
+     * @return bool
+     */
+    public function adalahDisetujui(): bool
     {
         return $this->status === 'approved';
     }
 
     /**
-     * Check if the document is rejected.
+     * Alias untuk adalahDisetujui() - kompatibilitas.
      *
      * @return bool
      */
-    public function isRejected()
+    public function isApproved(): bool
+    {
+        return $this->adalahDisetujui();
+    }
+
+    /**
+     * Cek apakah dokumen ditolak.
+     *
+     * @return bool
+     */
+    public function adalahDitolak(): bool
     {
         return $this->status === 'rejected';
     }
 
     /**
-     * Check if the document is archived.
+     * Alias untuk adalahDitolak() - kompatibilitas.
      *
      * @return bool
      */
-    public function isArchived()
+    public function isRejected(): bool
+    {
+        return $this->adalahDitolak();
+    }
+
+    /**
+     * Cek apakah dokumen diarsipkan.
+     *
+     * @return bool
+     */
+    public function adalahDiarsipkan(): bool
     {
         return $this->status === 'archived';
     }
 
     /**
-     * Check if the document is incoming.
+     * Alias untuk adalahDiarsipkan() - kompatibilitas.
      *
      * @return bool
      */
-    public function isIncoming()
+    public function isArchived(): bool
+    {
+        return $this->adalahDiarsipkan();
+    }
+
+    /**
+     * Cek apakah dokumen adalah surat masuk.
+     *
+     * @return bool
+     */
+    public function adalahSuratMasuk(): bool
     {
         return $this->type === 'masuk';
     }
 
     /**
-     * Check if the document is outgoing.
+     * Alias untuk adalahSuratMasuk() - kompatibilitas.
      *
      * @return bool
      */
-    public function isOutgoing()
+    public function isIncoming(): bool
+    {
+        return $this->adalahSuratMasuk();
+    }
+
+    /**
+     * Cek apakah dokumen adalah surat keluar.
+     *
+     * @return bool
+     */
+    public function adalahSuratKeluar(): bool
     {
         return $this->type === 'keluar';
     }
 
     /**
-     * Check if the document is classified.
+     * Alias untuk adalahSuratKeluar() - kompatibilitas.
      *
      * @return bool
      */
-    public function isClassified()
+    public function isOutgoing(): bool
+    {
+        return $this->adalahSuratKeluar();
+    }
+
+    /**
+     * Cek apakah dokumen adalah rahasia.
+     *
+     * @return bool
+     */
+    public function adalahRahasia(): bool
     {
         return $this->classification === 'rahasia';
     }
 
     /**
-     * Check if the document is a telegram.
+     * Alias untuk adalahRahasia() - kompatibilitas.
      *
      * @return bool
      */
-    public function isTelegram()
+    public function isClassified(): bool
+    {
+        return $this->adalahRahasia();
+    }
+
+    /**
+     * Cek apakah dokumen adalah telegram.
+     *
+     * @return bool
+     */
+    public function adalahTelegram(): bool
     {
         return $this->classification === 'telegram';
     }
 
     /**
-     * Get the human-readable type label.
+     * Alias untuk adalahTelegram() - kompatibilitas.
+     *
+     * @return bool
+     */
+    public function isTelegram(): bool
+    {
+        return $this->adalahTelegram();
+    }
+
+    // ==========================================
+    // HELPER METHODS - LABEL
+    // ==========================================
+
+    /**
+     * Mendapatkan label jenis yang dapat dibaca manusia.
      *
      * @return string
      */
-    public function getTypeLabel()
+    public function ambilLabelJenis(): string
     {
         return match($this->type) {
             'masuk' => 'Surat Masuk',
@@ -325,11 +647,21 @@ class Document extends Model
     }
 
     /**
-     * Get the human-readable classification label.
+     * Alias untuk ambilLabelJenis() - kompatibilitas.
      *
      * @return string
      */
-    public function getClassificationLabel()
+    public function getTypeLabel(): string
+    {
+        return $this->ambilLabelJenis();
+    }
+
+    /**
+     * Mendapatkan label klasifikasi yang dapat dibaca manusia.
+     *
+     * @return string
+     */
+    public function ambilLabelKlasifikasi(): string
     {
         return match($this->classification) {
             'biasa' => 'Biasa',
@@ -340,11 +672,21 @@ class Document extends Model
     }
 
     /**
-     * Get the human-readable status label.
+     * Alias untuk ambilLabelKlasifikasi() - kompatibilitas.
      *
      * @return string
      */
-    public function getStatusLabel()
+    public function getClassificationLabel(): string
+    {
+        return $this->ambilLabelKlasifikasi();
+    }
+
+    /**
+     * Mendapatkan label status yang dapat dibaca manusia.
+     *
+     * @return string
+     */
+    public function ambilLabelStatus(): string
     {
         return match($this->status) {
             'draft' => 'Draft',
@@ -357,11 +699,21 @@ class Document extends Model
     }
 
     /**
-     * Get the human-readable priority label.
+     * Alias untuk ambilLabelStatus() - kompatibilitas.
      *
      * @return string
      */
-    public function getPriorityLabel()
+    public function getStatusLabel(): string
+    {
+        return $this->ambilLabelStatus();
+    }
+
+    /**
+     * Mendapatkan label prioritas yang dapat dibaca manusia.
+     *
+     * @return string
+     */
+    public function ambilLabelPrioritas(): string
     {
         return match($this->priority) {
             'normal' => 'Normal',
@@ -372,11 +724,25 @@ class Document extends Model
     }
 
     /**
-     * Get the status badge CSS class.
+     * Alias untuk ambilLabelPrioritas() - kompatibilitas.
      *
      * @return string
      */
-    public function getStatusBadgeClass()
+    public function getPriorityLabel(): string
+    {
+        return $this->ambilLabelPrioritas();
+    }
+
+    // ==========================================
+    // HELPER METHODS - BADGE CLASS
+    // ==========================================
+
+    /**
+     * Mendapatkan kelas CSS badge status.
+     *
+     * @return string
+     */
+    public function ambilKelasBadgeStatus(): string
     {
         return match($this->status) {
             'draft' => 'badge bg-secondary',
@@ -389,11 +755,21 @@ class Document extends Model
     }
 
     /**
-     * Get the priority badge CSS class.
+     * Alias untuk ambilKelasBadgeStatus() - kompatibilitas.
      *
      * @return string
      */
-    public function getPriorityBadgeClass()
+    public function getStatusBadgeClass(): string
+    {
+        return $this->ambilKelasBadgeStatus();
+    }
+
+    /**
+     * Mendapatkan kelas CSS badge prioritas.
+     *
+     * @return string
+     */
+    public function ambilKelasBadgePrioritas(): string
     {
         return match($this->priority) {
             'normal' => 'badge bg-secondary',
@@ -404,47 +780,87 @@ class Document extends Model
     }
 
     /**
-     * Encrypt sensitive fields for classified documents.
+     * Alias untuk ambilKelasBadgePrioritas() - kompatibilitas.
+     *
+     * @return string
+     */
+    public function getPriorityBadgeClass(): string
+    {
+        return $this->ambilKelasBadgePrioritas();
+    }
+
+    // ==========================================
+    // ENKRIPSI & DEKRIPSI
+    // ==========================================
+
+    /**
+     * Enkripsi field sensitif untuk dokumen rahasia.
+     *
+     * @param  string  $nilai
+     * @return string
+     */
+    public function enkripsiBidang($nilai)
+    {
+        if ($this->adalahRahasia() && !empty($nilai)) {
+            return Crypt::encryptString($nilai);
+        }
+        return $nilai;
+    }
+
+    /**
+     * Alias untuk enkripsiBidang() - kompatibilitas.
      *
      * @param  string  $value
      * @return string
      */
     public function encryptField($value)
     {
-        if ($this->isClassified() && !empty($value)) {
-            return Crypt::encryptString($value);
-        }
-        return $value;
+        return $this->enkripsiBidang($value);
     }
 
     /**
-     * Decrypt sensitive fields for classified documents.
+     * Dekripsi field sensitif untuk dokumen rahasia.
+     *
+     * @param  string  $nilai
+     * @return string
+     */
+    public function dekripsiBidang($nilai)
+    {
+        if ($this->adalahRahasia() && !empty($nilai) && $this->is_encrypted) {
+            try {
+                return Crypt::decryptString($nilai);
+            } catch (\Exception $e) {
+                return $nilai;
+            }
+        }
+        return $nilai;
+    }
+
+    /**
+     * Alias untuk dekripsiBidang() - kompatibilitas.
      *
      * @param  string  $value
      * @return string
      */
     public function decryptField($value)
     {
-        if ($this->isClassified() && !empty($value) && $this->is_encrypted) {
-            try {
-                return Crypt::decryptString($value);
-            } catch (\Exception $e) {
-                return $value;
-            }
-        }
-        return $value;
+        return $this->dekripsiBidang($value);
     }
 
+    // ==========================================
+    // WORKFLOW PERSETUJUAN
+    // ==========================================
+
     /**
-     * Get the next required approver role for this document
+     * Mendapatkan role penyetuju berikutnya yang diperlukan untuk dokumen ini.
      * 
-     * @return string|null Role name of next approver (kaur, kasi, pimpinan) or null if fully approved
+     * @return string|null Nama role penyetuju berikutnya (kaur, kasi, pimpinan) atau null jika sudah sepenuhnya disetujui
      */
-    public function getNextApproverRole(): ?string
+    public function ambilRolePenyetujuBerikutnya(): ?string
     {
-        $currentLevel = $this->getCurrentApprovalLevel();
+        $levelSaatIni = $this->ambilLevelPersetujuanSaatIni();
         
-        return match($currentLevel) {
+        return match($levelSaatIni) {
             0 => 'kaur',        // Level 1: Menunggu Kaur
             1 => 'kasi',        // Level 2: Menunggu Kasi (Kaur sudah approve)
             2 => 'pimpinan',    // Level 3: Menunggu Pimpinan (Kasi sudah approve)
@@ -453,35 +869,56 @@ class Document extends Model
     }
 
     /**
-     * Check if user can approve at current level
+     * Alias untuk ambilRolePenyetujuBerikutnya() - kompatibilitas.
+     * 
+     * @return string|null
+     */
+    public function getNextApproverRole(): ?string
+    {
+        return $this->ambilRolePenyetujuBerikutnya();
+    }
+
+    /**
+     * Cek apakah pengguna dapat menyetujui pada level saat ini.
+     * 
+     * @param User $pengguna
+     * @return bool
+     */
+    public function dapatPenggunaMenyetujui(User $pengguna): bool
+    {
+        // Dokumen harus menunggu persetujuan
+        if (!$this->adalahMenungguPersetujuan()) {
+            return false;
+        }
+
+        $rolePenyetujuBerikutnya = $this->ambilRolePenyetujuBerikutnya();
+        
+        if (!$rolePenyetujuBerikutnya) {
+            return false; // Sudah sepenuhnya disetujui
+        }
+
+        // Cek apakah pengguna memiliki role yang diperlukan
+        return $pengguna->hasRole($rolePenyetujuBerikutnya);
+    }
+
+    /**
+     * Alias untuk dapatPenggunaMenyetujui() - kompatibilitas.
      * 
      * @param User $user
      * @return bool
      */
     public function canUserApprove(User $user): bool
     {
-        // Document must be pending approval
-        if (!$this->isPendingApproval()) {
-            return false;
-        }
-
-        $nextApproverRole = $this->getNextApproverRole();
-        
-        if (!$nextApproverRole) {
-            return false; // Already fully approved
-        }
-
-        // Check if user has the required role
-        return $user->hasRole($nextApproverRole);
+        return $this->dapatPenggunaMenyetujui($user);
     }
 
     /**
-     * Get approval level by role name
+     * Mendapatkan level persetujuan berdasarkan nama role.
      * 
      * @param string $role
      * @return int
      */
-    protected function getApprovalLevelByRole(string $role): int
+    protected function ambilLevelPersetujuanBerdasarkanRole(string $role): int
     {
         return match($role) {
             'kaur' => 1,
@@ -492,44 +929,55 @@ class Document extends Model
     }
 
     /**
-     * Approve document by user
+     * Alias untuk ambilLevelPersetujuanBerdasarkanRole() - kompatibilitas.
      * 
-     * @param User $user
-     * @param string|null $notes Optional approval notes
+     * @param string $role
+     * @return int
+     */
+    protected function getApprovalLevelByRole(string $role): int
+    {
+        return $this->ambilLevelPersetujuanBerdasarkanRole($role);
+    }
+
+    /**
+     * Setujui dokumen oleh pengguna.
+     * 
+     * @param User $pengguna
+     * @param string|null $catatan Catatan persetujuan opsional
      * @return bool
      * @throws \Exception
      */
-    public function approve(User $user, ?string $notes = null): bool
+    public function setujui(User $pengguna, ?string $catatan = null): bool
     {
-        if (!$this->canUserApprove($user)) {
+        if (!$this->dapatPenggunaMenyetujui($pengguna)) {
             throw new \Exception('Anda tidak berwenang menyetujui dokumen ini pada level saat ini.');
         }
 
-        $nextRole = $this->getNextApproverRole();
-        $approvalLevel = $this->getApprovalLevelByRole($nextRole);
+        $roleBerikutnya = $this->ambilRolePenyetujuBerikutnya();
+        $levelPersetujuan = $this->ambilLevelPersetujuanBerdasarkanRole($roleBerikutnya);
 
         DB::beginTransaction();
         try {
-            // Create approval history
-            $this->approvalHistories()->create([
-                'user_id' => $user->id,
+            // Buat riwayat persetujuan
+            $this->riwayatPersetujuan()->create([
+                'user_id' => $pengguna->id,
                 'action' => 'approved',
                 'status' => 'approved',
-                'approval_level' => $approvalLevel,
-                'comment' => $notes,
+                'approval_level' => $levelPersetujuan,
+                'comment' => $catatan,
                 'action_date' => now(),
             ]);
 
-            // Check if this is the final approval (Pimpinan)
-            if ($nextRole === 'pimpinan') {
+            // Cek apakah ini persetujuan final (Pimpinan)
+            if ($roleBerikutnya === 'pimpinan') {
                 $this->update([
                     'status' => 'approved',
-                    'updated_by' => $user->id,
+                    'updated_by' => $pengguna->id,
                 ]);
             } else {
-                // Still need more approvals, keep pending
+                // Masih butuh persetujuan lain, tetap pending
                 $this->touch(); // Update timestamp
-                $this->update(['updated_by' => $user->id]);
+                $this->update(['updated_by' => $pengguna->id]);
             }
 
             DB::commit();
@@ -541,42 +989,55 @@ class Document extends Model
     }
 
     /**
-     * Reject document by user
+     * Alias untuk setujui() - kompatibilitas.
      * 
      * @param User $user
-     * @param string $reason Rejection reason
+     * @param string|null $notes
      * @return bool
      * @throws \Exception
      */
-    public function reject(User $user, string $reason): bool
+    public function approve(User $user, ?string $notes = null): bool
     {
-        if (!$this->canUserApprove($user)) {
+        return $this->setujui($user, $notes);
+    }
+
+    /**
+     * Tolak dokumen oleh pengguna.
+     * 
+     * @param User $pengguna
+     * @param string $alasan Alasan penolakan
+     * @return bool
+     * @throws \Exception
+     */
+    public function tolak(User $pengguna, string $alasan): bool
+    {
+        if (!$this->dapatPenggunaMenyetujui($pengguna)) {
             throw new \Exception('Anda tidak berwenang menolak dokumen ini pada level saat ini.');
         }
 
-        if (empty($reason)) {
+        if (empty($alasan)) {
             throw new \Exception('Alasan penolakan harus diisi.');
         }
 
-        $nextRole = $this->getNextApproverRole();
-        $approvalLevel = $this->getApprovalLevelByRole($nextRole);
+        $roleBerikutnya = $this->ambilRolePenyetujuBerikutnya();
+        $levelPersetujuan = $this->ambilLevelPersetujuanBerdasarkanRole($roleBerikutnya);
 
         DB::beginTransaction();
         try {
-            // Create approval history with rejection
-            $this->approvalHistories()->create([
-                'user_id' => $user->id,
+            // Buat riwayat persetujuan dengan penolakan
+            $this->riwayatPersetujuan()->create([
+                'user_id' => $pengguna->id,
                 'action' => 'rejected',
                 'status' => 'rejected',
-                'approval_level' => $approvalLevel,
-                'comment' => $reason,
+                'approval_level' => $levelPersetujuan,
+                'comment' => $alasan,
                 'action_date' => now(),
             ]);
 
-            // Update document status to rejected
+            // Update status dokumen menjadi ditolak
             $this->update([
                 'status' => 'rejected',
-                'updated_by' => $user->id,
+                'updated_by' => $pengguna->id,
             ]);
 
             DB::commit();
@@ -588,36 +1049,49 @@ class Document extends Model
     }
 
     /**
-     * Request correction for document
+     * Alias untuk tolak() - kompatibilitas.
      * 
      * @param User $user
-     * @param string $reason Correction reason
+     * @param string $reason
      * @return bool
      * @throws \Exception
      */
-    public function requestCorrection(User $user, string $reason): bool
+    public function reject(User $user, string $reason): bool
     {
-        if (!$this->canUserApprove($user)) {
+        return $this->tolak($user, $reason);
+    }
+
+    /**
+     * Minta koreksi untuk dokumen.
+     * 
+     * @param User $pengguna
+     * @param string $alasan Alasan koreksi
+     * @return bool
+     * @throws \Exception
+     */
+    public function mintaKoreksi(User $pengguna, string $alasan): bool
+    {
+        if (!$this->dapatPenggunaMenyetujui($pengguna)) {
             throw new \Exception('Anda tidak berwenang meminta koreksi dokumen ini.');
         }
 
-        if (empty($reason)) {
+        if (empty($alasan)) {
             throw new \Exception('Alasan permintaan koreksi harus diisi.');
         }
 
         DB::beginTransaction();
         try {
-            // Create correction request
-            $this->correctionRequests()->create([
-                'requested_by' => $user->id,
-                'reason' => $reason,
+            // Buat permintaan koreksi
+            $this->permintaanKoreksi()->create([
+                'requested_by' => $pengguna->id,
+                'reason' => $alasan,
                 'status' => 'pending',
             ]);
 
-            // Update document status
+            // Update status dokumen
             $this->update([
                 'status' => 'correction_requested',
-                'updated_by' => $user->id,
+                'updated_by' => $pengguna->id,
             ]);
 
             DB::commit();
@@ -626,6 +1100,19 @@ class Document extends Model
             DB::rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Alias untuk mintaKoreksi() - kompatibilitas.
+     * 
+     * @param User $user
+     * @param string $reason
+     * @return bool
+     * @throws \Exception
+     */
+    public function requestCorrection(User $user, string $reason): bool
+    {
+        return $this->mintaKoreksi($user, $reason);
     }
 }
 

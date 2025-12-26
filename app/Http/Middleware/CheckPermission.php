@@ -8,14 +8,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * CheckPermission Middleware
- * 
- * Checks if the authenticated user has the required permission.
- * Usage: Route::middleware('permission:create_users')
+ *
+ * Memeriksa apakah pengguna yang terautentikasi memiliki izin yang diperlukan.
+ * Penggunaan: Route::middleware('permission:create_users')
  */
 class CheckPermission
 {
     /**
-     * Handle an incoming request.
+     * Menangani permintaan masuk.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      * @param  string  $permission
@@ -24,11 +24,11 @@ class CheckPermission
     {
         if (!$request->user()) {
             return redirect()->route('login')
-                ->with('error', 'You must be logged in to access this page.');
+                ->with('error', 'Anda harus login untuk mengakses halaman ini.');
         }
 
         if (!$request->user()->hasPermission($permission)) {
-            abort(403, 'You do not have the required permission to access this page.');
+            abort(403, 'Anda tidak memiliki izin yang diperlukan untuk mengakses halaman ini.');
         }
 
         return $next($request);

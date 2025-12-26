@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\NotificationPreference;
 use App\Models\Schedule;
 use App\Models\User;
@@ -243,7 +243,7 @@ class NotificationTest extends TestCase
     {
         Notification::fake();
 
-        $document = Document::factory()->create();
+        $document = Dokumen::factory()->create();
         $approver = User::factory()->create();
         
         $this->notificationService->sendApprovalRequest($document, $approver, $this->user, 1);

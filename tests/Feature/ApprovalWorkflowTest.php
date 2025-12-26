@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\ApprovalWorkflow;
 use App\Models\ApprovalHistory;
 use App\Services\ApprovalWorkflowService;
@@ -17,7 +17,7 @@ class ApprovalWorkflowTest extends TestCase
     private ApprovalWorkflowService $approvalService;
     private User $approver;
     private User $creator;
-    private Document $document;
+    private Dokumen $document;
     private ApprovalWorkflow $workflow;
 
     protected function setUp(): void
@@ -41,7 +41,7 @@ class ApprovalWorkflowTest extends TestCase
         ]);
 
         // Create document
-        $this->document = Document::factory()->create([
+        $this->document = Dokumen::factory()->create([
             'type' => 'masuk',
             'classification' => 'biasa',
             'created_by' => $this->creator->id,

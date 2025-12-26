@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -33,7 +33,7 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $document = Document::factory()->biasa()->create();
+        $document = Dokumen::factory()->biasa()->create();
 
         $response = $this->actingAs($user)->get(route('documents.index'));
 
@@ -59,8 +59,8 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $document1 = Document::factory()->biasa()->create(['subject' => 'Meeting Minutes', 'created_by' => $user->id]);
-        $document2 = Document::factory()->biasa()->create(['subject' => 'Project Report', 'created_by' => $user->id]);
+        $document1 = Dokumen::factory()->biasa()->create(['subject' => 'Meeting Minutes', 'created_by' => $user->id]);
+        $document2 = Dokumen::factory()->biasa()->create(['subject' => 'Project Report', 'created_by' => $user->id]);
 
         $response = $this->actingAs($user)->get(route('documents.index', ['search' => 'Meeting']));
 
@@ -76,8 +76,8 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $incomingDoc = Document::factory()->incoming()->create(['created_by' => $user->id]);
-        $outgoingDoc = Document::factory()->outgoing()->create(['created_by' => $user->id]);
+        $incomingDoc = Dokumen::factory()->incoming()->create(['created_by' => $user->id]);
+        $outgoingDoc = Dokumen::factory()->outgoing()->create(['created_by' => $user->id]);
 
         $response = $this->actingAs($user)->get(route('documents.index', ['type' => 'masuk']));
 
@@ -93,8 +93,8 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $biasaDoc = Document::factory()->biasa()->create(['created_by' => $user->id]);
-        $rahasiaDoc = Document::factory()->rahasia()->create(['created_by' => $user->id]);
+        $biasaDoc = Dokumen::factory()->biasa()->create(['created_by' => $user->id]);
+        $rahasiaDoc = Dokumen::factory()->rahasia()->create(['created_by' => $user->id]);
 
         $response = $this->actingAs($user)->get(route('documents.index', ['classification' => 'biasa']));
 
@@ -109,8 +109,8 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $draftDoc = Document::factory()->draft()->create(['created_by' => $user->id]);
-        $approvedDoc = Document::factory()->approved()->create(['created_by' => $user->id]);
+        $draftDoc = Dokumen::factory()->draft()->create(['created_by' => $user->id]);
+        $approvedDoc = Dokumen::factory()->approved()->create(['created_by' => $user->id]);
 
         $response = $this->actingAs($user)->get(route('documents.index', ['status' => 'draft']));
 
@@ -187,7 +187,7 @@ class DocumentManagementTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('documents.store'), $documentData);
 
-        $document = Document::latest()->first();
+        $document = Dokumen::latest()->first();
         $this->assertNotNull($document->number);
         $this->assertStringContainsString('DOC', $document->number);
     }
@@ -211,7 +211,7 @@ class DocumentManagementTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('documents.store'), $documentData);
 
-        $document = Document::latest()->first();
+        $document = Dokumen::latest()->first();
         $this->assertTrue($document->is_encrypted);
         $this->assertNotEquals('Secret Description', $document->getRawOriginal('description'));
     }
@@ -275,7 +275,7 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $document = Document::factory()->biasa()->create();
+        $document = Dokumen::factory()->biasa()->create();
 
         $response = $this->actingAs($user)->get(route('documents.show', $document));
 
@@ -291,7 +291,7 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $document = Document::factory()->draft()->create(['created_by' => $user->id]);
+        $document = Dokumen::factory()->draft()->create(['created_by' => $user->id]);
 
         $response = $this->actingAs($user)->get(route('documents.edit', $document));
 
@@ -306,7 +306,7 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $document = Document::factory()->approved()->create(['created_by' => $user->id]);
+        $document = Dokumen::factory()->approved()->create(['created_by' => $user->id]);
 
         $response = $this->actingAs($user)->get(route('documents.edit', $document));
 
@@ -320,7 +320,7 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $document = Document::factory()->draft()->create(['created_by' => $user->id]);
+        $document = Dokumen::factory()->draft()->create(['created_by' => $user->id]);
 
         $updateData = [
             'type' => $document->type,
@@ -349,7 +349,7 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $document = Document::factory()->draft()->create(['created_by' => $user->id]);
+        $document = Dokumen::factory()->draft()->create(['created_by' => $user->id]);
 
         $response = $this->actingAs($user)->delete(route('documents.destroy', $document));
 
@@ -364,7 +364,7 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $document = Document::factory()->approved()->create(['created_by' => $user->id]);
+        $document = Dokumen::factory()->approved()->create(['created_by' => $user->id]);
 
         $response = $this->actingAs($user)->delete(route('documents.destroy', $document));
 
@@ -378,7 +378,7 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $document = Document::factory()->draft()->create(['created_by' => $user->id]);
+        $document = Dokumen::factory()->draft()->create(['created_by' => $user->id]);
 
         $response = $this->actingAs($user)->post(route('documents.submit', $document));
 
@@ -396,7 +396,7 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'batih_staf')->first();
         $user->roles()->attach($role);
 
-        $document = Document::factory()->approved()->create(['created_by' => $user->id]);
+        $document = Dokumen::factory()->approved()->create(['created_by' => $user->id]);
 
         $response = $this->actingAs($user)->post(route('documents.archive', $document));
 
@@ -409,7 +409,7 @@ class DocumentManagementTest extends TestCase
     public function document_model_has_correct_relationships()
     {
         $creator = User::factory()->create();
-        $document = Document::factory()->create(['created_by' => $creator->id]);
+        $document = Dokumen::factory()->create(['created_by' => $creator->id]);
 
         $this->assertInstanceOf(User::class, $document->creator);
         $this->assertEquals($creator->id, $document->creator->id);
@@ -421,25 +421,25 @@ class DocumentManagementTest extends TestCase
         $user = User::factory()->create();
 
         // Clear any existing documents first
-        Document::query()->forceDelete();
+        Dokumen::query()->forceDelete();
 
-        $draftDoc = Document::factory()->draft()->create(['created_by' => $user->id]);
-        $approvedDoc = Document::factory()->approved()->create(['created_by' => $user->id]);
-        $incomingDoc = Document::factory()->incoming()->create(['created_by' => $user->id]);
-        $rahasiaDoc = Document::factory()->rahasia()->create(['created_by' => $user->id]);
+        $draftDoc = Dokumen::factory()->draft()->create(['created_by' => $user->id]);
+        $approvedDoc = Dokumen::factory()->approved()->create(['created_by' => $user->id]);
+        $incomingDoc = Dokumen::factory()->incoming()->create(['created_by' => $user->id]);
+        $rahasiaDoc = Dokumen::factory()->rahasia()->create(['created_by' => $user->id]);
 
-        $this->assertGreaterThanOrEqual(1, Document::draft()->count());
-        $this->assertGreaterThanOrEqual(1, Document::approved()->count());
-        $this->assertGreaterThanOrEqual(1, Document::ofType('masuk')->count());
-        $this->assertGreaterThanOrEqual(1, Document::ofClassification('rahasia')->count());
+        $this->assertGreaterThanOrEqual(1, Dokumen::draft()->count());
+        $this->assertGreaterThanOrEqual(1, Dokumen::approved()->count());
+        $this->assertGreaterThanOrEqual(1, Dokumen::ofType('masuk')->count());
+        $this->assertGreaterThanOrEqual(1, Dokumen::ofClassification('rahasia')->count());
     }
 
     #[Test]
     public function document_status_helpers_work_correctly()
     {
-        $draftDoc = Document::factory()->draft()->create();
-        $approvedDoc = Document::factory()->approved()->create();
-        $archivedDoc = Document::factory()->archived()->create();
+        $draftDoc = Dokumen::factory()->draft()->create();
+        $approvedDoc = Dokumen::factory()->approved()->create();
+        $archivedDoc = Dokumen::factory()->archived()->create();
 
         $this->assertTrue($draftDoc->isDraft());
         $this->assertFalse($draftDoc->isApproved());
@@ -453,8 +453,8 @@ class DocumentManagementTest extends TestCase
     #[Test]
     public function document_type_helpers_work_correctly()
     {
-        $incomingDoc = Document::factory()->incoming()->create();
-        $outgoingDoc = Document::factory()->outgoing()->create();
+        $incomingDoc = Dokumen::factory()->incoming()->create();
+        $outgoingDoc = Dokumen::factory()->outgoing()->create();
 
         $this->assertTrue($incomingDoc->isIncoming());
         $this->assertFalse($incomingDoc->isOutgoing());
@@ -466,9 +466,9 @@ class DocumentManagementTest extends TestCase
     #[Test]
     public function document_classification_helpers_work_correctly()
     {
-        $biasaDoc = Document::factory()->biasa()->create();
-        $rahasiaDoc = Document::factory()->rahasia()->create();
-        $telegramDoc = Document::factory()->telegram()->create();
+        $biasaDoc = Dokumen::factory()->biasa()->create();
+        $rahasiaDoc = Dokumen::factory()->rahasia()->create();
+        $telegramDoc = Dokumen::factory()->telegram()->create();
 
         $this->assertFalse($biasaDoc->isClassified());
         $this->assertFalse($biasaDoc->isTelegram());
@@ -482,7 +482,7 @@ class DocumentManagementTest extends TestCase
     #[Test]
     public function document_displays_correct_labels()
     {
-        $document = Document::factory()->incoming()->biasa()->draft()->create();
+        $document = Dokumen::factory()->incoming()->biasa()->draft()->create();
 
         $this->assertEquals('Surat Masuk', $document->getTypeLabel());
         $this->assertEquals('Biasa', $document->getClassificationLabel());
@@ -497,7 +497,7 @@ class DocumentManagementTest extends TestCase
         $role = Role::where('name', 'kasi_kaur')->first();
         $user->roles()->attach($role);
 
-        $rahasiaDoc = Document::factory()->rahasia()->create();
+        $rahasiaDoc = Dokumen::factory()->rahasia()->create();
 
         $response = $this->actingAs($user)->get(route('documents.show', $rahasiaDoc));
 
@@ -524,7 +524,7 @@ class DocumentManagementTest extends TestCase
         $this->actingAs($user)->post(route('documents.store'), $documentData);
 
         $this->assertDatabaseHas('audit_logs', [
-            'auditable_type' => Document::class,
+            'auditable_type' => Dokumen::class,
             'event' => 'created',
             'user_id' => $user->id,
         ]);

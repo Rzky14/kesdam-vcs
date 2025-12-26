@@ -11,7 +11,7 @@ $app = require_once __DIR__.'/bootstrap/app.php';
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
 use App\Models\Report;
-use App\Models\Archive;
+use App\Models\Arsip;
 use App\Services\ReportService;
 use App\Services\ArchiveService;
 use Illuminate\Support\Facades\DB;
@@ -57,7 +57,7 @@ try {
     $reportModel = new Report();
     echo "  ✓ Report model exists\n";
     
-    $archiveModel = new Archive();
+    $archiveModel = new Arsip();
     echo "  ✓ Archive model exists\n";
     
     // Check fillable
@@ -222,7 +222,7 @@ try {
     }
     
     if (class_exists('Database\Factories\ArchiveFactory')) {
-        $testArchive = \App\Models\Archive::factory()->make();
+        $testArchive = \App\Models\Arsip::factory()->make();
         echo "  ✓ ArchiveFactory works\n";
     } else {
         echo "  ⚠️  ArchiveFactory not found (optional)\n";

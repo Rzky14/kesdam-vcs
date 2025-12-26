@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Archive;
-use App\Models\Document;
+use App\Models\Arsip;
+use App\Models\Dokumen;
 use App\Models\Schedule;
 use App\Models\Report;
 use App\Models\User;
@@ -32,7 +32,7 @@ class ArchiveTest extends TestCase
      */
     public function test_can_view_archives_index(): void
     {
-        Archive::factory()->count(5)->forDocument()->create();
+        Arsip::factory()->count(5)->forDocument()->create();
 
         $response = $this->get(route('archives.index'));
 
@@ -46,7 +46,7 @@ class ArchiveTest extends TestCase
      */
     public function test_can_view_single_archive(): void
     {
-        $archive = Archive::factory()->forDocument()->create();
+        $archive = Arsip::factory()->forDocument()->create();
 
         $response = $this->get(route('archives.show', $archive));
 
@@ -71,7 +71,7 @@ class ArchiveTest extends TestCase
      */
     public function test_can_view_archive_statistics(): void
     {
-        Archive::factory()->count(10)->forDocument()->create();
+        Arsip::factory()->count(10)->forDocument()->create();
 
         $response = $this->get(route('archives.statistics'));
 
@@ -85,7 +85,7 @@ class ArchiveTest extends TestCase
      */
     public function test_can_archive_document(): void
     {
-        $document = Document::factory()->create();
+        $document = Dokumen::factory()->create();
 
         $archive = $this->archiveService->archiveModel(
             $document,
@@ -95,7 +95,7 @@ class ArchiveTest extends TestCase
         );
 
         $this->assertNotNull($archive);
-        $this->assertEquals('Document', $archive->archiveable_type);
+        $this->assertEquals('App\\Models\\Dokumen', $archive->archiveable_type);
         $this->assertEquals($document->id, $archive->archiveable_id);
         $this->assertEquals('dokumen', $archive->category);
     }
@@ -105,10 +105,10 @@ class ArchiveTest extends TestCase
      */
     public function test_can_search_archives(): void
     {
-        Archive::factory()->forDocument()->create([
+        Arsip::factory()->forDocument()->create([
             'category' => 'dokumen',
         ]);
-        Archive::factory()->forSchedule()->create([
+        Arsip::factory()->forSchedule()->create([
             'category' => 'jadwal',
         ]);
 
@@ -122,8 +122,8 @@ class ArchiveTest extends TestCase
      */
     public function test_can_filter_archives_by_category(): void
     {
-        Archive::factory()->count(3)->category('dokumen')->create();
-        Archive::factory()->count(2)->category('jadwal')->create();
+        Arsip::factory()->count(3)->category('dokumen')->create();
+        Arsip::factory()->count(2)->category('jadwal')->create();
 
         $response = $this->get(route('archives.index', ['category' => 'dokumen']));
 
@@ -136,9 +136,9 @@ class ArchiveTest extends TestCase
      */
     public function test_archive_service_gets_statistics(): void
     {
-        Archive::factory()->count(5)->indexed()->create();
-        Archive::factory()->count(3)->notIndexed()->create();
-        Archive::factory()->count(2)->expiringSoon()->create();
+        Arsip::factory()->count(5)->indexed()->create();
+        Arsip::factory()->count(3)->notIndexed()->create();
+        Arsip::factory()->count(2)->expiringSoon()->create();
 
         $stats = $this->archiveService->getStatistics();
 
@@ -153,7 +153,7 @@ class ArchiveTest extends TestCase
      */
     public function test_can_add_tags_to_archive(): void
     {
-        $archive = Archive::factory()->create([
+        $archive = Arsip::factory()->create([
             'tags' => json_encode(['tag1']),
         ]);
 
@@ -174,7 +174,7 @@ class ArchiveTest extends TestCase
      */
     public function test_can_delete_archive(): void
     {
-        $archive = Archive::factory()->create();
+        $archive = Arsip::factory()->create();
 
         $response = $this->delete(route('archives.destroy', $archive));
 
@@ -187,7 +187,7 @@ class ArchiveTest extends TestCase
      */
     public function test_can_restore_archive(): void
     {
-        $archive = Archive::factory()->forDocument()->create();
+        $archive = Arsip::factory()->forDocument()->create();
 
         $response = $this->post(route('archives.restore', $archive));
 
@@ -200,10 +200,10 @@ class ArchiveTest extends TestCase
      */
     public function test_archive_retention_expiring_scope(): void
     {
-        Archive::factory()->count(3)->expiringSoon()->create();
-        Archive::factory()->count(2)->longRetention()->create();
+        Arsip::factory()->count(3)->expiringSoon()->create();
+        Arsip::factory()->count(2)->longRetention()->create();
 
-        $expiring = Archive::retentionExpiring(30)->get();
+        $expiring = Arsip::retentionExpiring(30)->get();
 
         $this->assertEquals(3, $expiring->count());
     }
@@ -213,10 +213,10 @@ class ArchiveTest extends TestCase
      */
     public function test_archive_indexed_scope(): void
     {
-        Archive::factory()->count(4)->indexed()->create();
-        Archive::factory()->count(2)->notIndexed()->create();
+        Arsip::factory()->count(4)->indexed()->create();
+        Arsip::factory()->count(2)->notIndexed()->create();
 
-        $indexed = Archive::indexed()->get();
+        $indexed = Arsip::indexed()->get();
 
         $this->assertEquals(4, $indexed->count());
     }
@@ -226,13 +226,13 @@ class ArchiveTest extends TestCase
      */
     public function test_polymorphic_relationship_for_document(): void
     {
-        $document = Document::factory()->create();
-        $archive = Archive::factory()->create([
-            'archiveable_type' => 'App\\Models\\Document',
+        $document = Dokumen::factory()->create();
+        $archive = Arsip::factory()->create([
+            'archiveable_type' => 'App\\Models\\Dokumen',
             'archiveable_id' => $document->id,
         ]);
 
-        $this->assertInstanceOf(Document::class, $archive->archiveable);
+        $this->assertInstanceOf(Dokumen::class, $archive->archiveable);
         $this->assertEquals($document->id, $archive->archiveable->id);
     }
 
@@ -242,7 +242,7 @@ class ArchiveTest extends TestCase
     public function test_polymorphic_relationship_for_schedule(): void
     {
         $schedule = Schedule::factory()->create();
-        $archive = Archive::factory()->create([
+        $archive = Arsip::factory()->create([
             'archiveable_type' => 'App\\Models\\Schedule',
             'archiveable_id' => $schedule->id,
         ]);
@@ -256,9 +256,9 @@ class ArchiveTest extends TestCase
      */
     public function test_archive_categorization_by_type(): void
     {
-        Archive::factory()->count(3)->category('dokumen')->create();
-        Archive::factory()->count(2)->category('jadwal')->create();
-        Archive::factory()->count(1)->category('laporan')->create();
+        Arsip::factory()->count(3)->category('dokumen')->create();
+        Arsip::factory()->count(2)->category('jadwal')->create();
+        Arsip::factory()->count(1)->category('laporan')->create();
 
         $byCategory = $this->archiveService->getByCategory('dokumen');
 

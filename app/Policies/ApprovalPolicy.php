@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Services\ApprovalWorkflowService;
 
 class ApprovalPolicy
@@ -16,9 +16,9 @@ class ApprovalPolicy
     }
 
     /**
-     * Check if user can view document approval history
+     * Cek apakah pengguna dapat melihat riwayat persetujuan dokumen
      */
-    public function view(User $user, Document $document): bool
+    public function view(User $user, Dokumen $document): bool
     {
         return $user->id === $document->created_by ||
                $user->hasPermission('view_approvals') ||
@@ -26,9 +26,9 @@ class ApprovalPolicy
     }
 
     /**
-     * Check if user can approve document
+     * Cek apakah pengguna dapat menyetujui dokumen
      */
-    public function approve(User $user, Document $document): bool
+    public function approve(User $user, Dokumen $document): bool
     {
         if (!$user->hasPermission('approve_documents')) {
             return false;
@@ -38,17 +38,17 @@ class ApprovalPolicy
     }
 
     /**
-     * Check if user can reject document
+     * Cek apakah pengguna dapat menolak dokumen
      */
-    public function reject(User $user, Document $document): bool
+    public function reject(User $user, Dokumen $document): bool
     {
         return $this->approve($user, $document);
     }
 
     /**
-     * Check if user can request correction
+     * Cek apakah pengguna dapat meminta koreksi
      */
-    public function requestCorrection(User $user, Document $document): bool
+    public function requestCorrection(User $user, Dokumen $document): bool
     {
         if (!$user->hasPermission('request_correction')) {
             return false;
@@ -58,9 +58,9 @@ class ApprovalPolicy
     }
 
     /**
-     * Check if user is in approval chain
+     * Cek apakah pengguna berada di rantai persetujuan
      */
-    private function isApproverInChain(User $user, Document $document): bool
+    private function isApproverInChain(User $user, Dokumen $document): bool
     {
         $workflow = $this->approvalService->getWorkflow($document);
         

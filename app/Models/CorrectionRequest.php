@@ -5,10 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Model PermintaanKoreksi (CorrectionRequest)
+ * 
+ * Merepresentasikan permintaan koreksi dokumen yang diminta oleh penyetuju.
+ * Mencakup catatan koreksi, status, dan tenggat waktu.
+ */
 class CorrectionRequest extends Model
 {
     use HasFactory;
 
+    /**
+     * Atribut yang dapat diisi massal.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'document_id',
         'approval_history_id',
@@ -22,6 +33,11 @@ class CorrectionRequest extends Model
         'due_date',
     ];
 
+    /**
+     * Cast atribut ke tipe yang sesuai.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'requested_at' => 'datetime',
         'corrected_at' => 'datetime',
@@ -30,40 +46,99 @@ class CorrectionRequest extends Model
         'updated_at' => 'datetime',
     ];
 
+    // ==========================================
+    // RELASI
+    // ==========================================
+
     /**
-     * Get the document that needs correction
+     * Mendapatkan dokumen yang terkait dengan permintaan koreksi ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function dokumen()
+    {
+        return $this->belongsTo(Dokumen::class, 'document_id');
+    }
+
+    /**
+     * Alias: document() untuk kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function document()
     {
-        return $this->belongsTo(Document::class);
+        return $this->dokumen();
     }
 
     /**
-     * Get the approval history that triggered this correction request
+     * Mendapatkan riwayat persetujuan yang memicu permintaan koreksi ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function riwayatPersetujuan()
+    {
+        return $this->belongsTo(ApprovalHistory::class, 'approval_history_id');
+    }
+
+    /**
+     * Alias: approvalHistory() untuk kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function approvalHistory()
     {
-        return $this->belongsTo(ApprovalHistory::class);
+        return $this->riwayatPersetujuan();
     }
 
     /**
-     * Get the user who requested the correction (approver)
+     * Mendapatkan pengguna yang meminta koreksi (penyetuju).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function requestedBy()
+    public function dimintaOleh()
     {
         return $this->belongsTo(User::class, 'requested_by_user_id');
     }
 
     /**
-     * Get the user assigned to handle the correction (document creator)
+     * Alias: requestedBy() untuk kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function assignedTo()
+    public function requestedBy()
+    {
+        return $this->dimintaOleh();
+    }
+
+    /**
+     * Mendapatkan pengguna yang ditugaskan menangani koreksi (pembuat dokumen).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function ditugaskanKepada()
     {
         return $this->belongsTo(User::class, 'assigned_to_user_id');
     }
 
     /**
-     * Scope to get pending corrections
+     * Alias: assignedTo() untuk kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function assignedTo()
+    {
+        return $this->ditugaskanKepada();
+    }
+
+    // ==========================================
+    // SCOPE QUERIES
+    // ==========================================
+
+    /**
+     * Scope untuk koreksi yang menunggu.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopePending($query)
     {
@@ -71,7 +146,10 @@ class CorrectionRequest extends Model
     }
 
     /**
-     * Scope to get in-progress corrections
+     * Scope untuk koreksi yang sedang diproses.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeInProgress($query)
     {
@@ -79,7 +157,10 @@ class CorrectionRequest extends Model
     }
 
     /**
-     * Scope to get completed corrections
+     * Scope untuk koreksi yang sudah selesai.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeCompleted($query)
     {
@@ -87,7 +168,10 @@ class CorrectionRequest extends Model
     }
 
     /**
-     * Scope to get rejected corrections
+     * Scope untuk koreksi yang ditolak.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeRejected($query)
     {
@@ -95,7 +179,10 @@ class CorrectionRequest extends Model
     }
 
     /**
-     * Scope to get overdue corrections
+     * Scope untuk koreksi yang sudah lewat tenggat.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeOverdue($query)
     {
@@ -104,25 +191,39 @@ class CorrectionRequest extends Model
     }
 
     /**
-     * Scope to get corrections for specific user
+     * Scope untuk koreksi yang ditugaskan ke pengguna tertentu.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $idPengguna ID pengguna
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeAssignedTo($query, $userId)
+    public function scopeAssignedTo($query, $idPengguna)
     {
-        return $query->where('assigned_to_user_id', $userId);
+        return $query->where('assigned_to_user_id', $idPengguna);
     }
 
     /**
-     * Scope to get corrections requested by specific user
+     * Scope untuk koreksi yang diminta oleh pengguna tertentu.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $idPengguna ID pengguna
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeRequestedBy($query, $userId)
+    public function scopeRequestedBy($query, $idPengguna)
     {
-        return $query->where('requested_by_user_id', $userId);
+        return $query->where('requested_by_user_id', $idPengguna);
     }
 
+    // ==========================================
+    // METHODS
+    // ==========================================
+
     /**
-     * Check if correction is overdue
+     * Memeriksa apakah koreksi sudah melewati tenggat.
+     *
+     * @return bool True jika sudah melewati tenggat
      */
-    public function isOverdue()
+    public function apakahTerlewat()
     {
         if ($this->due_date && $this->status !== 'completed' && $this->status !== 'rejected') {
             return $this->due_date->isPast();
@@ -131,20 +232,46 @@ class CorrectionRequest extends Model
     }
 
     /**
-     * Check if correction is upcoming due
+     * Alias: isOverdue() untuk kompatibilitas.
+     *
+     * @return bool
      */
-    public function isDueSoon($days = 2)
+    public function isOverdue()
+    {
+        return $this->apakahTerlewat();
+    }
+
+    /**
+     * Memeriksa apakah koreksi akan segera jatuh tempo.
+     *
+     * @param int $hari Jumlah hari toleransi
+     * @return bool True jika akan segera jatuh tempo
+     */
+    public function apakahAkanSegeraJatuhTempo($hari = 2)
     {
         if ($this->due_date && $this->status !== 'completed' && $this->status !== 'rejected') {
-            return $this->due_date->diffInDays(now()) <= $days && !$this->isOverdue();
+            return $this->due_date->diffInDays(now()) <= $hari && !$this->apakahTerlewat();
         }
         return false;
     }
 
     /**
-     * Mark correction as completed
+     * Alias: isDueSoon() untuk kompatibilitas.
+     *
+     * @param int $days Jumlah hari
+     * @return bool
      */
-    public function markAsCompleted()
+    public function isDueSoon($days = 2)
+    {
+        return $this->apakahAkanSegeraJatuhTempo($days);
+    }
+
+    /**
+     * Tandai koreksi sebagai selesai.
+     *
+     * @return $this
+     */
+    public function tandaiSelesai()
     {
         $this->update([
             'status' => 'completed',
@@ -154,18 +281,42 @@ class CorrectionRequest extends Model
     }
 
     /**
-     * Mark correction as in progress
+     * Alias: markAsCompleted() untuk kompatibilitas.
+     *
+     * @return $this
      */
-    public function markAsInProgress()
+    public function markAsCompleted()
+    {
+        return $this->tandaiSelesai();
+    }
+
+    /**
+     * Tandai koreksi sebagai sedang diproses.
+     *
+     * @return $this
+     */
+    public function tandaiSedangDiproses()
     {
         $this->update(['status' => 'in_progress']);
         return $this;
     }
 
     /**
-     * Get status label
+     * Alias: markAsInProgress() untuk kompatibilitas.
+     *
+     * @return $this
      */
-    public function getStatusLabel()
+    public function markAsInProgress()
+    {
+        return $this->tandaiSedangDiproses();
+    }
+
+    /**
+     * Mendapatkan label status.
+     *
+     * @return string Label status
+     */
+    public function ambilLabelStatus()
     {
         $labels = [
             'pending' => 'Menunggu',
@@ -177,27 +328,61 @@ class CorrectionRequest extends Model
     }
 
     /**
-     * Get status badge color
+     * Alias: getStatusLabel() untuk kompatibilitas.
+     *
+     * @return string
      */
-    public function getStatusBadgeColor()
+    public function getStatusLabel()
     {
-        $colors = [
+        return $this->ambilLabelStatus();
+    }
+
+    /**
+     * Mendapatkan warna badge status.
+     *
+     * @return string Warna badge
+     */
+    public function ambilWarnaBadgeStatus()
+    {
+        $warna = [
             'pending' => 'warning',
             'in_progress' => 'info',
             'completed' => 'success',
             'rejected' => 'danger',
         ];
-        return $colors[$this->status] ?? 'secondary';
+        return $warna[$this->status] ?? 'secondary';
     }
 
     /**
-     * Get days remaining until due date
+     * Alias: getStatusBadgeColor() untuk kompatibilitas.
+     *
+     * @return string
      */
-    public function getDaysRemaining()
+    public function getStatusBadgeColor()
+    {
+        return $this->ambilWarnaBadgeStatus();
+    }
+
+    /**
+     * Mendapatkan jumlah hari tersisa sampai tenggat.
+     *
+     * @return int|null Jumlah hari tersisa
+     */
+    public function ambilHariTersisa()
     {
         if ($this->due_date) {
             return $this->due_date->diffInDays(now());
         }
         return null;
+    }
+
+    /**
+     * Alias: getDaysRemaining() untuk kompatibilitas.
+     *
+     * @return int|null
+     */
+    public function getDaysRemaining()
+    {
+        return $this->ambilHariTersisa();
     }
 }

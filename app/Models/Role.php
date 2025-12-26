@@ -7,19 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
- * Role Model
- * 
- * Represents user roles in the system:
- * - admin_sistem: Full system access
- * - pimpinan: Leadership/approval authority
- * - kasi_kaur: Mid-level management
- * - batih_staf: Staff/operational level
+ * Model Role
+ *
+ * Representasi peran pengguna dalam sistem:
+ * - admin_sistem: Akses penuh sistem
+ * - pimpinan: Otoritas kepemimpinan/persetujuan
+ * - kasi_kaur: Manajemen tingkat menengah
+ * - batih_staf: Tingkat staf/operasional
  */
 class Role extends Model
 {
     use HasFactory;
     /**
-     * The attributes that are mass assignable.
+     * Atribut yang dapat diisi secara massal.
      *
      * @var array<int, string>
      */
@@ -30,7 +30,7 @@ class Role extends Model
     ];
 
     /**
-     * Get the users that have this role.
+     * Mendapatkan pengguna yang memiliki peran ini.
      *
      * @return BelongsToMany
      */
@@ -41,7 +41,7 @@ class Role extends Model
     }
 
     /**
-     * Get the permissions assigned to this role.
+     * Mendapatkan izin yang diberikan ke peran ini.
      *
      * @return BelongsToMany
      */
@@ -52,7 +52,7 @@ class Role extends Model
     }
 
     /**
-     * Check if role has a specific permission.
+     * Cek apakah peran memiliki izin tertentu.
      *
      * @param string $permissionName
      * @return bool
@@ -65,7 +65,7 @@ class Role extends Model
     }
 
     /**
-     * Give permission to this role.
+     * Berikan izin ke peran ini.
      *
      * @param Permission|string $permission
      * @return void
@@ -80,7 +80,7 @@ class Role extends Model
     }
 
     /**
-     * Revoke permission from this role.
+     * Cabut izin dari peran ini.
      *
      * @param Permission|string $permission
      * @return void

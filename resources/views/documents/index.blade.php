@@ -374,7 +374,7 @@
         </div>
         
         <div class="btn-group">
-            @can('create', App\Models\Document::class)
+            @can('create', App\Models\Dokumen::class)
                 <a href="{{ route('documents.create', ['type' => 'masuk']) }}" class="btn btn-outline">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>

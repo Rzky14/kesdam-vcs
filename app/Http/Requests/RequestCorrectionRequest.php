@@ -22,9 +22,9 @@ class RequestCorrectionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'notes.required' => 'Correction notes are required.',
-            'notes.min' => 'Correction notes must be at least 10 characters.',
-            'due_date.after' => 'Due date must be in the future.',
+            'notes.required' => 'Catatan koreksi wajib diisi.',
+            'notes.min' => 'Catatan koreksi harus terdiri dari minimal 10 karakter.',
+            'due_date.after' => 'Batas waktu harus di masa depan.',
         ];
     }
 }

@@ -22,7 +22,7 @@ class ApprovalRolePermission extends Model
     ];
 
     /**
-     * Get the role this permission belongs to
+     * Mendapatkan peran yang dimiliki izin ini.
      */
     public function role()
     {
@@ -30,7 +30,7 @@ class ApprovalRolePermission extends Model
     }
 
     /**
-     * Scope to get active permissions only
+     * Scope untuk mendapatkan izin yang aktif saja.
      */
     public function scopeActive($query)
     {
@@ -38,7 +38,7 @@ class ApprovalRolePermission extends Model
     }
 
     /**
-     * Scope to filter by role
+     * Scope untuk filter berdasarkan peran.
      */
     public function scopeByRole($query, $roleId)
     {
@@ -46,7 +46,7 @@ class ApprovalRolePermission extends Model
     }
 
     /**
-     * Scope to filter by action
+     * Scope untuk filter berdasarkan aksi.
      */
     public function scopeByAction($query, $action)
     {
@@ -54,7 +54,7 @@ class ApprovalRolePermission extends Model
     }
 
     /**
-     * Scope to filter by document type
+     * Scope untuk filter berdasarkan tipe dokumen.
      */
     public function scopeByDocumentType($query, $documentType)
     {
@@ -63,7 +63,7 @@ class ApprovalRolePermission extends Model
     }
 
     /**
-     * Scope to filter by classification
+     * Scope untuk filter berdasarkan klasifikasi.
      */
     public function scopeByClassification($query, $classification)
     {
@@ -72,7 +72,7 @@ class ApprovalRolePermission extends Model
     }
 
     /**
-     * Check if role can perform action on document type and classification
+     * Cek apakah peran dapat melakukan aksi pada tipe dokumen dan klasifikasi.
      */
     public static function canPerform($roleId, $action, $documentType = null, $classification = null)
     {
@@ -85,7 +85,7 @@ class ApprovalRolePermission extends Model
     }
 
     /**
-     * Get all permissions for a role
+     * Mendapatkan semua izin untuk sebuah peran.
      */
     public static function getPermissionsForRole($roleId)
     {
@@ -96,7 +96,7 @@ class ApprovalRolePermission extends Model
     }
 
     /**
-     * Get roles that can perform specific action
+     * Mendapatkan peran yang dapat melakukan aksi tertentu.
      */
     public static function getRolesForAction($action, $documentType = null, $classification = null)
     {
@@ -110,7 +110,7 @@ class ApprovalRolePermission extends Model
     }
 
     /**
-     * Get action label
+     * Mendapatkan label aksi.
      */
     public function getActionLabel()
     {

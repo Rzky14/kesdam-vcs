@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreEffectivenessReportRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Tentukan apakah pengguna diizinkan membuat permintaan ini.
      */
     public function authorize(): bool
     {
@@ -15,7 +15,7 @@ class StoreEffectivenessReportRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Dapatkan aturan validasi yang berlaku untuk permintaan ini.
      */
     public function rules(): array
     {
@@ -27,7 +27,7 @@ class StoreEffectivenessReportRequest extends FormRequest
     }
 
     /**
-     * Get the error messages for the defined validation rules.
+     * Dapatkan pesan kesalahan untuk aturan validasi yang didefinisikan.
      */
     public function messages(): array
     {
@@ -43,11 +43,11 @@ class StoreEffectivenessReportRequest extends FormRequest
     }
 
     /**
-     * Prepare the data for validation.
+     * Siapkan data untuk validasi.
      */
     protected function prepareForValidation(): void
     {
-        // Ensure period_start is before period_end
+        // Pastikan period_start sebelum period_end
         if ($this->has('period_start') && $this->has('period_end')) {
             try {
                 $start = \Carbon\Carbon::createFromFormat('Y-m-d', $this->period_start);
@@ -60,7 +60,7 @@ class StoreEffectivenessReportRequest extends FormRequest
                     ]);
                 }
             } catch (\Exception $e) {
-                // Date format is invalid, let the validator handle it
+                // Format tanggal tidak valid, biarkan validator menanganinya
             }
         }
     }

@@ -8,14 +8,14 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * AuditLog Model
+ * Model LogAudit (AuditLog)
  * 
- * Tracks all changes and important events in the system for audit trail purposes.
+ * Melacak semua perubahan dan peristiwa penting dalam sistem untuk keperluan jejak audit.
  */
 class AuditLog extends Model
 {
     /**
-     * The attributes that are mass assignable.
+     * Atribut yang dapat diisi massal.
      *
      * @var array<int, string>
      */
@@ -32,7 +32,7 @@ class AuditLog extends Model
     ];
 
     /**
-     * The attributes that should be cast.
+     * Cast atribut ke tipe yang sesuai.
      *
      * @var array<string, string>
      */
@@ -43,28 +43,86 @@ class AuditLog extends Model
         'updated_at' => 'datetime',
     ];
 
+    // ==========================================
+    // RELASI
+    // ==========================================
+
     /**
-     * Get the user who performed the action.
+     * Mendapatkan pengguna yang melakukan aksi.
+     *
+     * @return BelongsTo
+     */
+    public function pengguna(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Alias: user() untuk kompatibilitas.
      *
      * @return BelongsTo
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->pengguna();
     }
 
     /**
-     * Get the auditable model.
+     * Mendapatkan model yang diaudit (relasi polimorfik).
+     *
+     * @return MorphTo
+     */
+    public function yangDiaudit(): MorphTo
+    {
+        return $this->morphTo('auditable');
+    }
+
+    /**
+     * Alias: auditable() untuk kompatibilitas.
      *
      * @return MorphTo
      */
     public function auditable(): MorphTo
     {
-        return $this->morphTo();
+        return $this->yangDiaudit();
+    }
+
+    // ==========================================
+    // METHODS
+    // ==========================================
+
+    /**
+     * Membuat entri log audit baru.
+     *
+     * @param string $peristiwa Nama peristiwa yang dicatat
+     * @param Model|null $model Model yang diaudit
+     * @param array $nilaiLama Nilai sebelum perubahan
+     * @param array $nilaiBaru Nilai setelah perubahan
+     * @param string|null $deskripsi Deskripsi tambahan
+     * @return static
+     */
+    public static function catat(
+        string $peristiwa,
+        ?Model $model = null,
+        array $nilaiLama = [],
+        array $nilaiBaru = [],
+        ?string $deskripsi = null
+    ): static {
+        return static::create([
+            'user_id' => Auth::id(),
+            'event' => $peristiwa,
+            'auditable_type' => $model ? get_class($model) : null,
+            'auditable_id' => $model?->id,
+            'old_values' => $nilaiLama,
+            'new_values' => $nilaiBaru,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'description' => $deskripsi,
+        ]);
     }
 
     /**
-     * Create a new audit log entry.
+     * Alias: log() untuk kompatibilitas.
      *
      * @param string $event
      * @param Model|null $model
@@ -80,16 +138,6 @@ class AuditLog extends Model
         array $newValues = [],
         ?string $description = null
     ): static {
-        return static::create([
-            'user_id' => Auth::id(),
-            'event' => $event,
-            'auditable_type' => $model ? get_class($model) : null,
-            'auditable_id' => $model?->id,
-            'old_values' => $oldValues,
-            'new_values' => $newValues,
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'description' => $description,
-        ]);
+        return static::catat($event, $model, $oldValues, $newValues, $description);
     }
 }

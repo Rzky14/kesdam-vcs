@@ -44,15 +44,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('schedules', \App\Http\Controllers\ScheduleController::class);
     
     // Document Management Routes (requires documents.* permissions)
-    Route::resource('documents', \App\Http\Controllers\DocumentController::class);
-    Route::post('/documents/{document}/submit', [\App\Http\Controllers\DocumentController::class, 'submit'])->name('documents.submit');
-    Route::post('/documents/{document}/archive', [\App\Http\Controllers\DocumentController::class, 'archive'])->name('documents.archive');
-    Route::get('/documents/{document}/download/{attachmentIndex}', [\App\Http\Controllers\DocumentController::class, 'download'])->name('documents.download');
+    Route::resource('documents', \App\Http\Controllers\DokumenController::class);
+    Route::post('/documents/{document}/submit', [\App\Http\Controllers\DokumenController::class, 'submit'])->name('documents.submit');
+    Route::post('/documents/{document}/archive', [\App\Http\Controllers\DokumenController::class, 'archive'])->name('documents.archive');
+    Route::get('/documents/{document}/download/{attachmentIndex}', [\App\Http\Controllers\DokumenController::class, 'download'])->name('documents.download');
     
     // Document Approval Actions (directly from document detail page)
-    Route::post('/documents/{document}/approve', [\App\Http\Controllers\DocumentController::class, 'approve'])->name('documents.approve');
-    Route::post('/documents/{document}/reject', [\App\Http\Controllers\DocumentController::class, 'reject'])->name('documents.reject');
-    Route::post('/documents/{document}/request-correction', [\App\Http\Controllers\DocumentController::class, 'requestCorrection'])->name('documents.request-correction');
+    Route::post('/documents/{document}/approve', [\App\Http\Controllers\DokumenController::class, 'approve'])->name('documents.approve');
+    Route::post('/documents/{document}/reject', [\App\Http\Controllers\DokumenController::class, 'reject'])->name('documents.reject');
+    Route::post('/documents/{document}/request-correction', [\App\Http\Controllers\DokumenController::class, 'requestCorrection'])->name('documents.request-correction');
     
     // Approval Workflow Routes (requires approval permissions)
     Route::prefix('approvals')->name('approvals.')->group(function () {

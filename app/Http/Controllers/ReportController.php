@@ -7,10 +7,12 @@ use App\Services\ReportService;
 use App\Http\Requests\StoreScheduleReportRequest;
 use App\Http\Requests\StoreDocumentReportRequest;
 use App\Http\Requests\StoreEffectivenessReportRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
 {
@@ -19,16 +21,16 @@ class ReportController extends Controller
     }
 
     /**
-     * Display reports dashboard with statistics
+     * Tampilkan dasbor laporan beserta statistik.
      */
     public function index(Request $request): View
     {
-        // Get latest reports
+        // Ambil laporan terbaru
         $latestReports = Report::latest()
             ->take(10)
             ->get();
         
-        // Statistics
+        // Statistik
         $totalReports = Report::count();
         $monthlyReports = Report::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
@@ -37,7 +39,7 @@ class ReportController extends Controller
         $completedReports = Report::where('status', 'completed')->count();
         $inProgressReports = Report::where('status', 'in_progress')->count();
         
-        // Recent reports by type
+        // Laporan terbaru per tipe
         $scheduleReports = Report::where('type', 'schedule')
             ->latest()
             ->take(5)
@@ -60,7 +62,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Show report details
+     * Tampilkan detail laporan.
      */
     public function show(Report $report): View
     {
@@ -68,7 +70,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Show form to generate schedule report
+     * Tampilkan formulir pembuatan laporan jadwal.
      */
     public function createScheduleReport(): View
     {
@@ -76,7 +78,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Generate schedule report
+     * Proses pembuatan laporan jadwal.
      */
     public function storeScheduleReport(StoreScheduleReportRequest $request): RedirectResponse
     {
@@ -99,7 +101,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Show form to generate document report
+     * Tampilkan formulir pembuatan laporan dokumen.
      */
     public function createDocumentReport(): View
     {
@@ -107,7 +109,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Generate document report
+     * Proses pembuatan laporan dokumen.
      */
     public function storeDocumentReport(StoreDocumentReportRequest $request): RedirectResponse
     {
@@ -131,7 +133,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Show form to generate effectiveness report
+     * Tampilkan formulir pembuatan laporan efektivitas.
      */
     public function createEffectivenessReport(): View
     {
@@ -139,7 +141,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Generate schedule effectiveness report
+     * Proses pembuatan laporan efektivitas jadwal.
      */
     public function storeEffectivenessReport(StoreEffectivenessReportRequest $request): RedirectResponse
     {
@@ -162,50 +164,77 @@ class ReportController extends Controller
     }
 
     /**
-     * Export report to PDF
+     * Ekspor laporan ke PDF.
      */
     public function exportPdf(Report $report): \Symfony\Component\HttpFoundation\Response
     {
         try {
-            // Prepare PDF content
-            $content = $this->generatePdfContent($report);
+            // Load relasi yang dibutuhkan
+            $report->load('generatedBy');
             
-            // Return as downloadable file
-            return response($content, 200)
-                ->header('Content-Type', 'application/pdf')
-                ->header('Content-Disposition', 'attachment; filename="' . $this->sanitizeFileName($report->name) . '.pdf"');
+            // Generate HTML content
+            $html = $this->generatePdfContent($report);
+            
+            // Generate PDF using DomPDF
+            $pdf = Pdf::loadHTML($html);
+            
+            // Konfigurasi PDF
+            $pdf->setPaper('A4', 'portrait');
+            
+            // Return as download
+            $filename = $this->sanitizeFileName($report->name) . '_' . date('YmdHis') . '.pdf';
+            return $pdf->download($filename);
         } catch (\Exception $e) {
-            return back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
+            Log::error('Error exporting PDF: ' . $e->getMessage(), [
+                'report_id' => $report->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
         }
     }
 
     /**
-     * Export report to Excel
+     * Ekspor laporan ke Excel (CSV).
      */
     public function exportExcel(Report $report): \Symfony\Component\HttpFoundation\StreamedResponse|\Illuminate\Http\RedirectResponse
     {
         try {
-            // Generate Excel content
+            // Load relasi yang dibutuhkan
+            $report->load('generatedBy');
+            
+            // Buat konten CSV kompatibel Excel
             $csv = $this->generateExcelContent($report);
             
-            // Return as CSV (Excel compatible)
+            // Kembalikan sebagai CSV (kompatibel Excel)
+            $filename = $this->sanitizeFileName($report->name) . '_' . date('YmdHis') . '.csv';
+            
             return response()->streamDownload(function () use ($csv) {
+                echo "\xEF\xBB\xBF"; // UTF-8 BOM untuk Excel
                 echo $csv;
-            }, $this->sanitizeFileName($report->name) . '.csv', [
+            }, $filename, [
                 'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="' . $this->sanitizeFileName($report->name) . '.csv"',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             ]);
         } catch (\Exception $e) {
-            return back()->with('error', 'Gagal export Excel: ' . $e->getMessage());
+            Log::error('Error exporting Excel: ' . $e->getMessage(), [
+                'report_id' => $report->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()->with('error', 'Gagal export Excel: ' . $e->getMessage());
         }
     }
 
     /**
-     * Generate PDF content from report
+     * Bangun konten PDF dari laporan.
      */
     private function generatePdfContent(Report $report): string
     {
-        $creatorName = $report->generatedBy?->name ?? 'System';
+        $creatorName = $report->generatedBy?->name ?? 'Sistem';
+        $periodStart = $report->period_start ? $report->period_start->format('d-m-Y') : '-';
+        $periodEnd = $report->period_end ? $report->period_end->format('d-m-Y') : '-';
+        $createdAt = $report->created_at ? $report->created_at->format('d-m-Y H:i') : '-';
         
         $html = <<<HTML
 <!DOCTYPE html>
@@ -228,8 +257,8 @@ class ReportController extends Controller
         <h1>{$report->name}</h1>
         <div class="info">
             <p><strong>Tipe:</strong> {$report->type}</p>
-            <p><strong>Periode:</strong> {$report->period_start->format('d-m-Y')} s/d {$report->period_end->format('d-m-Y')}</p>
-            <p><strong>Dibuat:</strong> {$report->created_at->format('d-m-Y H:i')}</p>
+            <p><strong>Periode:</strong> {$periodStart} s/d {$periodEnd}</p>
+            <p><strong>Dibuat:</strong> {$createdAt}</p>
             <p><strong>Dibuat oleh:</strong> {$creatorName}</p>
         </div>
     </div>
@@ -242,11 +271,17 @@ class ReportController extends Controller
         </tr>
 HTML;
 
-        // Add data rows
-        foreach ($report->data as $key => $value) {
-            if (!is_array($value)) {
-                $html .= "<tr><td>{$key}</td><td>{$value}</td></tr>";
+        // Tambahkan baris data ringkas
+        if (!empty($report->data) && is_array($report->data)) {
+            foreach ($report->data as $key => $value) {
+                if (!is_array($value) && !is_object($value)) {
+                    $displayValue = htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+                    $displayKey = htmlspecialchars((string)$key, ENT_QUOTES, 'UTF-8');
+                    $html .= "<tr><td>{$displayKey}</td><td>{$displayValue}</td></tr>";
+                }
             }
+        } else {
+            $html .= "<tr><td colspan='2'>Tidak ada data tersedia</td></tr>";
         }
 
         $html .= <<<HTML
@@ -259,33 +294,40 @@ HTML;
     }
 
     /**
-     * Generate Excel (CSV) content from report
+     * Bangun konten Excel (CSV) dari laporan.
      */
     private function generateExcelContent(Report $report): string
     {
-        $creatorName = $report->creator?->name ?? 'System';
+        $creatorName = $report->generatedBy?->name ?? 'Sistem';
+        $periodStart = $report->period_start ? $report->period_start->format('d-m-Y') : '-';
+        $periodEnd = $report->period_end ? $report->period_end->format('d-m-Y') : '-';
+        $createdAt = $report->created_at ? $report->created_at->format('d-m-Y H:i') : '-';
         
         $csv = "LAPORAN,{$report->name}\n";
-        $csv .= "Periode,{$report->period_start->format('d-m-Y')} s/d {$report->period_end->format('d-m-Y')}\n";
+        $csv .= "Periode,{$periodStart} s/d {$periodEnd}\n";
         $csv .= "Tipe,{$report->type}\n";
-        $csv .= "Dibuat,{$report->created_at->format('d-m-Y H:i')}\n";
+        $csv .= "Dibuat,{$createdAt}\n";
         $csv .= "Dibuat oleh,{$creatorName}\n\n";
         
         $csv .= "Data:\n";
         $csv .= "Keterangan,Nilai\n";
 
-        // Add data
-        foreach ($report->data as $key => $value) {
-            if (!is_array($value)) {
-                $csv .= "\"{$key}\",\"{$value}\"\n";
+        // Tambahkan data ringkas
+        if (!empty($report->data) && is_array($report->data)) {
+            foreach ($report->data as $key => $value) {
+                if (!is_array($value) && !is_object($value)) {
+                    $csv .= "\"{$key}\",\"{$value}\"\n";
+                }
             }
+        } else {
+            $csv .= "\"Tidak ada data\",\"-\"\n";
         }
 
         return $csv;
     }
 
     /**
-     * Sanitize filename for download
+     * Sanitasi nama berkas untuk unduhan.
      */
     private function sanitizeFileName(string $name): string
     {
@@ -293,7 +335,7 @@ HTML;
     }
 
     /**
-     * Delete report
+     * Hapus laporan.
      */
     public function destroy(Report $report): RedirectResponse
     {

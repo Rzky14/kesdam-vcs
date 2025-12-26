@@ -22,8 +22,8 @@ class ApproveDocumentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'signature.mimes' => 'Signature file must be a PDF, JPG, JPEG, or PNG file.',
-            'signature.max' => 'Signature file must not exceed 5MB.',
+            'signature.mimes' => 'Berkas tanda tangan harus berformat PDF, JPG, JPEG, atau PNG.',
+            'signature.max' => 'Berkas tanda tangan tidak boleh lebih dari 5MB.',
         ];
     }
 }

@@ -13,28 +13,28 @@ use Illuminate\Validation\Rules\Password;
 
 /**
  * UserController
- * 
- * Handle CRUD operations for user management.
- * Only accessible by users with 'users.view', 'users.create', 'users.edit', 'users.delete' permissions.
+ *
+ * Mengelola operasi CRUD manajemen pengguna.
+ * Hanya dapat diakses oleh pengguna dengan izin 'view_users', 'create_users', 'edit_users', 'delete_users'.
  */
 class UserController extends Controller
 {
     /**
-     * Display a listing of users.
+     * Tampilkan daftar pengguna.
      */
     public function index(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$user->hasPermission('view_users')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $query = User::with('roles');
 
-        // Search functionality
+        // Fitur pencarian
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -46,14 +46,14 @@ class UserController extends Controller
             });
         }
 
-        // Filter by role
+        // Filter berdasarkan peran
         if ($request->has('role')) {
             $query->whereHas('roles', function ($q) use ($request) {
                 $q->where('name', $request->role);
             });
         }
 
-        // Filter by status
+        // Filter berdasarkan status
         if ($request->has('status')) {
             $query->where('is_active', $request->status === 'active');
         }
@@ -64,16 +64,16 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for creating a new user.
+     * Tampilkan formulir pembuatan pengguna baru.
      */
     public function create()
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$user->hasPermission('create_users')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $roles = Role::all();
@@ -81,16 +81,16 @@ class UserController extends Controller
     }
 
     /**
-     * Store a newly created user in storage.
+     * Simpan pengguna baru.
      */
     public function store(Request $request)
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$authUser->hasPermission('create_users')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $validated = $request->validate([
@@ -107,7 +107,7 @@ class UserController extends Controller
             'roles.*' => ['exists:roles,name'],
         ]);
 
-        // Create user
+        // Buat pengguna
         $user = User::create([
             'name' => $validated['name'],
             'nrp' => $validated['nrp'],
@@ -120,39 +120,39 @@ class UserController extends Controller
             'is_active' => $request->boolean('is_active', true),
         ]);
 
-        // Assign roles
+        // Tetapkan peran
         foreach ($validated['roles'] as $roleName) {
-            $user->assignRole($roleName);
+            $user->berikanPeran($roleName);
         }
 
-        // Log creation
+        // Catat pembuatan
         AuditLog::log(
             event: 'user_created',
             model: $user,
             newValues: $user->toArray(),
-            description: 'User created by ' . $authUser->name
+            description: 'Pengguna dibuat oleh ' . $authUser->name
         );
 
         return redirect()->route('users.index')
-            ->with('success', 'User berhasil dibuat.');
+            ->with('success', 'Pengguna berhasil dibuat.');
     }
 
     /**
-     * Display the specified user.
+     * Tampilkan detail pengguna.
      */
     public function show(User $user)
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$authUser->hasPermission('view_users')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $user->load('roles.permissions');
         
-        // Get audit logs for this user
+        // Ambil log audit untuk pengguna ini
         $auditLogs = AuditLog::where('auditable_type', User::class)
             ->where('auditable_id', $user->id)
             ->orderBy('created_at', 'desc')
@@ -163,16 +163,16 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for editing the specified user.
+     * Tampilkan formulir untuk mengedit pengguna.
      */
     public function edit(User $user)
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$authUser->hasPermission('edit_users')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $roles = Role::all();
@@ -180,16 +180,16 @@ class UserController extends Controller
     }
 
     /**
-     * Update the specified user in storage.
+     * Perbarui pengguna yang dipilih.
      */
     public function update(Request $request, User $user)
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$authUser->hasPermission('edit_users')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $validated = $request->validate([
@@ -208,7 +208,7 @@ class UserController extends Controller
 
         $oldValues = $user->toArray();
 
-        // Update user
+        // Perbarui pengguna
         $user->update([
             'name' => $validated['name'],
             'nrp' => $validated['nrp'],
@@ -220,46 +220,46 @@ class UserController extends Controller
             'is_active' => $request->boolean('is_active', true),
         ]);
 
-        // Update password if provided
+        // Perbarui password jika disediakan
         if (!empty($validated['password'])) {
             $user->update([
                 'password' => Hash::make($validated['password']),
             ]);
         }
 
-        // Sync roles
+        // Sinkronisasi peran
         $user->roles()->detach();
         foreach ($validated['roles'] as $roleName) {
-            $user->assignRole($roleName);
+            $user->berikanPeran($roleName);
         }
 
-        // Log update
+        // Catat pembaruan
         AuditLog::log(
             event: 'user_updated',
             model: $user,
             oldValues: $oldValues,
             newValues: $user->fresh()->toArray(),
-            description: 'User updated by ' . $authUser->name
+            description: 'Pengguna diperbarui oleh ' . $authUser->name
         );
 
         return redirect()->route('users.index')
-            ->with('success', 'User berhasil diupdate.');
+            ->with('success', 'Pengguna berhasil diperbarui.');
     }
 
     /**
-     * Remove the specified user from storage.
+     * Hapus pengguna.
      */
     public function destroy(User $user)
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$authUser->hasPermission('delete_users')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
-        // Prevent self-deletion
+        // Cegah penghapusan diri sendiri
         if ($user->id === Auth::id()) {
             return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
         }
@@ -267,7 +267,7 @@ class UserController extends Controller
         $userName = $user->name;
         $userEmail = $user->email;
 
-        // Log deletion before actually deleting
+        // Catat penghapusan sebelum eksekusi delete
         AuditLog::create([
             'user_id' => Auth::id(),
             'event' => 'user_deleted',
@@ -277,12 +277,12 @@ class UserController extends Controller
             'new_values' => [],
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
-            'description' => "User {$userName} ({$userEmail}) deleted by " . $authUser->name,
+            'description' => "Pengguna {$userName} ({$userEmail}) dihapus oleh " . $authUser->name,
         ]);
 
         $user->delete();
 
         return redirect()->route('users.index')
-            ->with('success', 'User berhasil dihapus.');
+            ->with('success', 'Pengguna berhasil dihapus.');
     }
 }

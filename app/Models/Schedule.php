@@ -9,19 +9,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Schedule Model
- * 
- * Represents schedules for:
- * - Jadwal Dukkes (Health Support Schedule)
- * - Jadwal Jaga (Guard Duty Schedule)
- * - Jadwal Kegiatan Satuan (Unit Activity Schedule)
+ * Model Schedule
+ *
+ * Representasi jadwal untuk:
+ * - Jadwal Dukkes (Jadwal Dukungan Kesehatan)
+ * - Jadwal Jaga (Jadwal Tugas Jaga)
+ * - Jadwal Kegiatan Satuan (Jadwal Kegiatan Unit)
  */
 class Schedule extends Model
 {
     use HasFactory, SoftDeletes, Auditable;
 
     /**
-     * The attributes that are mass assignable.
+     * Atribut yang dapat diisi secara massal.
      *
      * @var array<int, string>
      */
@@ -42,7 +42,7 @@ class Schedule extends Model
     ];
 
     /**
-     * The attributes that should be cast.
+     * Atribut yang harus di-cast ke tipe tertentu.
      *
      * @var array<string, string>
      */
@@ -53,14 +53,14 @@ class Schedule extends Model
     ];
 
     /**
-     * Schedule types
+     * Jenis-jenis jadwal
      */
     const TYPE_DUKKES = 'dukkes';
     const TYPE_JAGA = 'jaga';
     const TYPE_KEGIATAN_SATUAN = 'kegiatan_satuan';
 
     /**
-     * Schedule statuses
+     * Status-status jadwal
      */
     const STATUS_DRAFT = 'draft';
     const STATUS_ACTIVE = 'active';
@@ -68,7 +68,7 @@ class Schedule extends Model
     const STATUS_CANCELLED = 'cancelled';
 
     /**
-     * Get the user who created this schedule.
+     * Mendapatkan pengguna yang membuat jadwal ini.
      */
     public function creator(): BelongsTo
     {
@@ -76,7 +76,7 @@ class Schedule extends Model
     }
 
     /**
-     * Get the user who last updated this schedule.
+     * Mendapatkan pengguna yang terakhir memperbarui jadwal ini.
      */
     public function updater(): BelongsTo
     {
@@ -84,8 +84,8 @@ class Schedule extends Model
     }
 
     /**
-     * Get personnel assigned to this schedule.
-     * 
+     * Mendapatkan personel yang ditugaskan ke jadwal ini.
+     *
      * @return \Illuminate\Support\Collection
      */
     public function getPersonnelUsers()
@@ -98,7 +98,7 @@ class Schedule extends Model
     }
 
     /**
-     * Check if schedule is active.
+     * Cek apakah jadwal aktif.
      */
     public function isActive(): bool
     {
@@ -106,7 +106,7 @@ class Schedule extends Model
     }
 
     /**
-     * Check if schedule is draft.
+     * Cek apakah jadwal masih draft.
      */
     public function isDraft(): bool
     {
@@ -114,7 +114,7 @@ class Schedule extends Model
     }
 
     /**
-     * Check if schedule is completed.
+     * Cek apakah jadwal sudah selesai.
      */
     public function isCompleted(): bool
     {
@@ -122,7 +122,7 @@ class Schedule extends Model
     }
 
     /**
-     * Check if schedule is cancelled.
+     * Cek apakah jadwal dibatalkan.
      */
     public function isCancelled(): bool
     {
@@ -130,7 +130,7 @@ class Schedule extends Model
     }
 
     /**
-     * Scope to filter by type.
+     * Scope untuk filter berdasarkan tipe.
      */
     public function scopeOfType($query, string $type)
     {
@@ -138,7 +138,7 @@ class Schedule extends Model
     }
 
     /**
-     * Scope to filter by status.
+     * Scope untuk filter berdasarkan status.
      */
     public function scopeWithStatus($query, string $status)
     {
@@ -146,7 +146,7 @@ class Schedule extends Model
     }
 
     /**
-     * Scope to get active schedules.
+     * Scope untuk mendapatkan jadwal yang aktif.
      */
     public function scopeActive($query)
     {
@@ -154,7 +154,7 @@ class Schedule extends Model
     }
 
     /**
-     * Scope to filter schedules within date range.
+     * Scope untuk filter jadwal dalam rentang tanggal.
      */
     public function scopeBetweenDates($query, $startDate, $endDate)
     {
@@ -169,7 +169,7 @@ class Schedule extends Model
     }
 
     /**
-     * Scope to search schedules.
+     * Scope untuk pencarian jadwal.
      */
     public function scopeSearch($query, string $search)
     {
@@ -181,7 +181,7 @@ class Schedule extends Model
     }
 
     /**
-     * Get formatted type label.
+     * Mendapatkan label tipe yang terformat.
      */
     public function getTypeLabel(): string
     {
@@ -194,7 +194,7 @@ class Schedule extends Model
     }
 
     /**
-     * Get formatted status label.
+     * Mendapatkan label status yang terformat.
      */
     public function getStatusLabel(): string
     {
@@ -208,7 +208,7 @@ class Schedule extends Model
     }
 
     /**
-     * Get status badge color.
+     * Mendapatkan warna badge status.
      */
     public function getStatusColor(): string
     {

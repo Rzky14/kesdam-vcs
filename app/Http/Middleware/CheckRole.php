@@ -8,14 +8,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * CheckRole Middleware
- * 
- * Checks if the authenticated user has any of the required roles.
- * Usage: Route::middleware('role:admin_sistem,pimpinan')
+ *
+ * Memeriksa apakah pengguna yang terautentikasi memiliki salah satu peran yang diperlukan.
+ * Penggunaan: Route::middleware('role:admin_sistem,pimpinan')
  */
 class CheckRole
 {
     /**
-     * Handle an incoming request.
+     * Menangani permintaan masuk.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      * @param  string  ...$roles
@@ -24,11 +24,11 @@ class CheckRole
     {
         if (!$request->user()) {
             return redirect()->route('login')
-                ->with('error', 'You must be logged in to access this page.');
+                ->with('error', 'Anda harus login untuk mengakses halaman ini.');
         }
 
         if (!$request->user()->hasAnyRole($roles)) {
-            abort(403, 'You do not have the required role to access this page.');
+            abort(403, 'Anda tidak memiliki peran yang diperlukan untuk mengakses halaman ini.');
         }
 
         return $next($request);

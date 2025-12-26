@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Archive;
+use App\Models\Arsip;
 use App\Services\ArchiveService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,7 +15,7 @@ class ArchiveController extends Controller
     }
 
     /**
-     * Display archives listing
+     * Menampilkan daftar arsip.
      */
     public function index(Request $request): View
     {
@@ -27,7 +27,7 @@ class ArchiveController extends Controller
         } else {
             $archives = $category 
                 ? $this->archiveService->getByCategory($category, 100)
-                : Archive::orderBy('archive_date', 'desc')->limit(100)->get();
+                : Arsip::orderBy('archive_date', 'desc')->limit(100)->get();
         }
 
         $stats = $this->archiveService->getStatistics();
@@ -42,35 +42,35 @@ class ArchiveController extends Controller
     }
 
     /**
-     * Show archive details
+     * Menampilkan detail arsip.
      */
-    public function show(Archive $archive): View
+    public function show(Arsip $arsip): View
     {
-        $archiveModel = $archive->archiveable;
+        $archiveModel = $arsip->arsipkan;
 
         return view('archives.show', [
-            'archive' => $archive,
+            'archive' => $arsip,
             'model' => $archiveModel,
         ]);
     }
 
     /**
-     * Add tags to archive
+     * Menambahkan tag ke arsip.
      */
-    public function addTags(Request $request, Archive $archive): RedirectResponse
+    public function addTags(Request $request, Arsip $arsip): RedirectResponse
     {
         $validated = $request->validate([
             'tags' => 'required|array',
             'tags.*' => 'string|max:50',
         ]);
 
-        $this->archiveService->addTags($archive, $validated['tags']);
+        $this->archiveService->addTags($arsip, $validated['tags']);
 
         return back()->with('success', 'Tag berhasil ditambahkan!');
     }
 
     /**
-     * Search archives
+     * Pencarian arsip.
      */
     public function search(Request $request): View
     {
@@ -90,7 +90,7 @@ class ArchiveController extends Controller
     }
 
     /**
-     * Get archive statistics
+     * Statistik arsip.
      */
     public function statistics(): View
     {
@@ -104,11 +104,11 @@ class ArchiveController extends Controller
     }
 
     /**
-     * Delete archive (soft delete)
+     * Menghapus arsip (soft delete).
      */
-    public function destroy(Archive $archive): RedirectResponse
+    public function destroy(Arsip $arsip): RedirectResponse
     {
-        $archive->delete();
+        $arsip->delete();
 
         return redirect()->route('archives.index')
             ->with('success', 'Arsip berhasil dihapus!');
@@ -119,7 +119,7 @@ class ArchiveController extends Controller
      */
     public function restore(int $id): RedirectResponse
     {
-        Archive::withTrashed()->findOrFail($id)->restore();
+        Arsip::withTrashed()->findOrFail($id)->restore();
 
         return back()->with('success', 'Arsip berhasil dipulihkan!');
     }

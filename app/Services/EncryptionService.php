@@ -142,4 +142,28 @@ class EncryptionService
         $encrypted = file_get_contents($fullPath);
         return $this->decrypt($encrypted);
     }
+
+    /**
+     * Alias untuk encryptAndStore - kompatibilitas bahasa Indonesia.
+     *
+     * @param \Illuminate\Http\UploadedFile $file
+     * @param string $directory
+     * @param string|null $filename
+     * @return array
+     */
+    public function enkripsiDanSimpan($file, string $directory, ?string $filename = null): array
+    {
+        return $this->encryptAndStore($file, $directory, $filename);
+    }
+
+    /**
+     * Alias untuk retrieveAndDecrypt - kompatibilitas bahasa Indonesia.
+     *
+     * @param string $path
+     * @return string
+     */
+    public function ambilDanDekripsi(string $path): string
+    {
+        return $this->retrieveAndDecrypt($path);
+    }
 }

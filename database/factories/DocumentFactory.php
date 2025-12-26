@@ -2,14 +2,22 @@
 
 namespace Database\Factories;
 
+use App\Models\Dokumen;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Document>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Dokumen>
  */
 class DocumentFactory extends Factory
 {
+     /**
+      * Model terkait factory.
+      *
+      * @var string
+      */
+     protected $model = Dokumen::class;
+
     /**
      * Define the model's default state.
      *

@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\Schedule;
 use App\Models\User;
 use App\Models\CorrectionRequest;
@@ -38,15 +38,15 @@ class NotificationService
     }
 
     /**
-     * Send approval request notification
+     * Kirim notifikasi permintaan persetujuan
      *
-     * @param Document $document
+     * @param Dokumen $document
      * @param User $approver
      * @param User $submitter
      * @param int $currentLevel
      * @return void
      */
-    public function sendApprovalRequest(Document $document, User $approver, User $submitter, int $currentLevel): void
+    public function sendApprovalRequest(Dokumen $document, User $approver, User $submitter, int $currentLevel): void
     {
         if ($approver->hasInAppNotificationEnabled('approval_request') || 
             $approver->hasEmailNotificationEnabled('approval_request')) {
@@ -55,15 +55,15 @@ class NotificationService
     }
 
     /**
-     * Send document approved notification
+     * Kirim notifikasi dokumen disetujui
      *
-     * @param Document $document
+     * @param Dokumen $document
      * @param User $recipient
      * @param User $approver
      * @param string|null $notes
      * @return void
      */
-    public function sendDocumentApproved(Document $document, User $recipient, User $approver, ?string $notes = null): void
+    public function sendDocumentApproved(Dokumen $document, User $recipient, User $approver, ?string $notes = null): void
     {
         if ($recipient->hasInAppNotificationEnabled('document_approved') || 
             $recipient->hasEmailNotificationEnabled('document_approved')) {
@@ -72,15 +72,15 @@ class NotificationService
     }
 
     /**
-     * Send document rejected notification
+     * Kirim notifikasi dokumen ditolak
      *
-     * @param Document $document
+     * @param Dokumen $document
      * @param User $recipient
      * @param User $rejector
      * @param string $reason
      * @return void
      */
-    public function sendDocumentRejected(Document $document, User $recipient, User $rejector, string $reason): void
+    public function sendDocumentRejected(Dokumen $document, User $recipient, User $rejector, string $reason): void
     {
         if ($recipient->hasInAppNotificationEnabled('document_rejected') || 
             $recipient->hasEmailNotificationEnabled('document_rejected')) {
@@ -89,15 +89,15 @@ class NotificationService
     }
 
     /**
-     * Send correction requested notification
+     * Kirim notifikasi permintaan koreksi
      *
-     * @param Document $document
+     * @param Dokumen $document
      * @param CorrectionRequest $correctionRequest
      * @param User $recipient
      * @param User $requester
      * @return void
      */
-    public function sendCorrectionRequested(Document $document, CorrectionRequest $correctionRequest, User $recipient, User $requester): void
+    public function sendCorrectionRequested(Dokumen $document, CorrectionRequest $correctionRequest, User $recipient, User $requester): void
     {
         if ($recipient->hasInAppNotificationEnabled('correction_requested') || 
             $recipient->hasEmailNotificationEnabled('correction_requested')) {
@@ -106,15 +106,15 @@ class NotificationService
     }
 
     /**
-     * Send document status changed notification
+     * Kirim notifikasi perubahan status dokumen
      *
-     * @param Document $document
+     * @param Dokumen $document
      * @param User $recipient
      * @param string $oldStatus
      * @param string $newStatus
      * @return void
      */
-    public function sendDocumentStatusChanged(Document $document, User $recipient, string $oldStatus, string $newStatus): void
+    public function sendDocumentStatusChanged(Dokumen $document, User $recipient, string $oldStatus, string $newStatus): void
     {
         if ($recipient->hasInAppNotificationEnabled('document_status_changed') || 
             $recipient->hasEmailNotificationEnabled('document_status_changed')) {

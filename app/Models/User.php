@@ -7,33 +7,74 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * Model User
+ * 
+ * Merepresentasikan pengguna dalam sistem.
+ * Kelas dasar untuk semua tipe pengguna (STI Pattern).
+ * Sesuai dengan UML Class Diagram.
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * Tabel yang terkait dengan model.
+     *
+     * @var string
+     */
+    protected $table = 'users';
+
+    /**
+     * Primary key untuk model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Menunjukkan apakah ID auto-increment.
+     *
+     * @var bool
+     */
+    public $incrementing = true;
+
+    /**
+     * Tipe dari ID auto-increment.
+     *
+     * @var string
+     */
+    protected $keyType = 'int';
+
+    /**
+     * Aktifkan timestamp default Laravel.
+     *
+     * @var bool
+     */
+    public $timestamps = true;
+
+    /**
+     * Atribut yang dapat diisi secara massal (sesuai UML).
      *
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
         'nrp',
         'rank',
         'position',
         'unit',
+        'name',
+        'email',
         'phone',
         'address',
         'profile_photo',
         'is_active',
-        'last_login_at',
+        'password',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Atribut yang harus disembunyikan untuk serialisasi.
      *
      * @var list<string>
      */
@@ -43,22 +84,40 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Dapatkan atribut yang harus di-cast.
      *
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
         ];
     }
 
     /**
-     * Get the roles assigned to the user.
+     * Method boot untuk setup model events.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Tidak perlu auto-generate ID karena menggunakan auto_increment
+    }
+
+    /**
+     * Override route key name untuk route model binding.
+     */
+    public function getRouteKeyName()
+    {
+        return 'id';
+    }
+
+    /**
+     * Dapatkan peran yang dimiliki pengguna.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
@@ -69,7 +128,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get all permissions through roles.
+     * Dapatkan semua izin melalui peran.
      *
      * @return \Illuminate\Support\Collection
      */
@@ -81,125 +140,168 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has a specific role.
+     * Cek apakah pengguna memiliki peran tertentu.
+     *
+     * @param string $namaPeran
+     * @return bool
+     */
+    public function punyaPeran(string $namaPeran): bool
+    {
+        return $this->roles()->where('name', $namaPeran)->exists();
+    }
+
+    /**
+     * Alias for punyaPeran() - Check if user has a specific role.
      *
      * @param string $roleName
      * @return bool
      */
     public function hasRole(string $roleName): bool
     {
-        return $this->roles()->where('name', $roleName)->exists();
+        return $this->punyaPeran($roleName);
     }
 
     /**
-     * Check if user has any of the given roles.
+     * Cek apakah pengguna memiliki salah satu peran yang diberikan.
+     *
+     * @param array $peranArray
+     * @return bool
+     */
+    public function punyaSalahSatuPeran(array $peranArray): bool
+    {
+        return $this->roles()->whereIn('name', $peranArray)->exists();
+    }
+
+    /**
+     * Alias for punyaSalahSatuPeran() - Check if user has any of the given roles.
      *
      * @param array $roles
      * @return bool
      */
     public function hasAnyRole(array $roles): bool
     {
-        return $this->roles()->whereIn('name', $roles)->exists();
+        return $this->punyaSalahSatuPeran($roles);
     }
 
     /**
-     * Check if user has a specific permission.
+     * Cek apakah pengguna memiliki izin tertentu.
      *
-     * @param string $permissionName
+     * @param string $namaIzin
      * @return bool
      */
-    public function hasPermission(string $permissionName): bool
+    public function punyaIzin(string $namaIzin): bool
     {
-        return $this->permissions()->contains('name', $permissionName);
+        return $this->permissions()->contains('name', $namaIzin);
     }
 
     /**
-     * Get all permissions for the user (through roles).
+     * Alias for punyaIzin() - Check if user has a specific permission.
+     *
+     * @param string $permission
+     * @return bool
+     */
+    public function hasPermission(string $permission): bool
+    {
+        return $this->punyaIzin($permission);
+    }
+
+    /**
+     * Dapatkan semua izin untuk pengguna (melalui peran).
      *
      * @return \Illuminate\Support\Collection
      */
-    public function getAllPermissions()
+    public function ambilSemuaIzin()
     {
         return $this->permissions();
     }
 
     /**
-     * Assign a role to the user.
+     * Alias for ambilSemuaIzin() - Get all permissions for the user.
      *
-     * @param Role|string $role
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
-    public function assignRole($role): void
+    public function getAllPermissions()
     {
-        if (is_string($role)) {
-            $role = Role::where('name', $role)->firstOrFail();
-        }
-
-        $this->roles()->syncWithoutDetaching([$role->id]);
+        return $this->ambilSemuaIzin();
     }
 
     /**
-     * Remove a role from the user.
+     * Berikan peran kepada pengguna.
      *
-     * @param Role|string $role
+     * @param Role|string $peran
      * @return void
      */
-    public function removeRole($role): void
+    public function berikanPeran($peran): void
     {
-        if (is_string($role)) {
-            $role = Role::where('name', $role)->firstOrFail();
+        if (is_string($peran)) {
+            $peran = Role::where('name', $peran)->firstOrFail();
         }
 
-        $this->roles()->detach($role->id);
+        $this->roles()->syncWithoutDetaching([$peran->id]);
     }
 
     /**
-     * Get audit logs for this user.
+     * Hapus peran dari pengguna.
+     *
+     * @param Role|string $peran
+     * @return void
+     */
+    public function hapusPeran($peran): void
+    {
+        if (is_string($peran)) {
+            $peran = Role::where('name', $peran)->firstOrFail();
+        }
+
+        $this->roles()->detach($peran->id);
+    }
+
+    /**
+     * Dapatkan log audit untuk pengguna ini.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function auditLogs()
+    public function logAudit()
     {
         return $this->hasMany(AuditLog::class);
     }
 
     /**
-     * Get notification preferences for this user.
+     * Dapatkan preferensi notifikasi untuk pengguna ini.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function notificationPreferences()
+    public function preferensiNotifikasi()
     {
         return $this->hasMany(NotificationPreference::class);
     }
 
     /**
-     * Check if user has enabled notification type for in-app
+     * Cek apakah pengguna mengaktifkan tipe notifikasi in-app.
      *
-     * @param string $type
+     * @param string $tipe
      * @return bool
      */
-    public function hasInAppNotificationEnabled(string $type): bool
+    public function notifikasiInAppAktif(string $tipe): bool
     {
-        $preference = $this->notificationPreferences()
-            ->where('notification_type', $type)
+        $preferensi = $this->preferensiNotifikasi()
+            ->where('notification_type', $tipe)
             ->first();
 
-        return $preference ? $preference->in_app_enabled : true; // Default: enabled
+        return $preferensi ? $preferensi->in_app_enabled : true; // Default: aktif
     }
 
     /**
-     * Check if user has enabled notification type for email
+     * Cek apakah pengguna mengaktifkan tipe notifikasi email.
      *
-     * @param string $type
+     * @param string $tipe
      * @return bool
      */
-    public function hasEmailNotificationEnabled(string $type): bool
+    public function notifikasiEmailAktif(string $tipe): bool
     {
-        $preference = $this->notificationPreferences()
-            ->where('notification_type', $type)
+        $preferensi = $this->preferensiNotifikasi()
+            ->where('notification_type', $tipe)
             ->first();
 
-        return $preference ? $preference->email_enabled : false; // Default: disabled
+        return $preferensi ? $preferensi->email_enabled : false; // Default: nonaktif
     }
 }

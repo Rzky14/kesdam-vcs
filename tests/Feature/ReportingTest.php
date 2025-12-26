@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Report;
 use App\Models\User;
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\Schedule;
 use App\Services\ReportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -107,7 +107,7 @@ class ReportingTest extends TestCase
     public function test_can_generate_document_report(): void
     {
         // Create some documents
-        Document::factory()->count(10)->create([
+        Dokumen::factory()->count(10)->create([
             'created_at' => now()->subDays(10),
         ]);
 
@@ -174,7 +174,7 @@ class ReportingTest extends TestCase
      */
     public function test_report_service_generates_document_report(): void
     {
-        Document::factory()->count(10)->create([
+        Dokumen::factory()->count(10)->create([
             'type' => 'masuk',
             'classification' => 'biasa',
             'created_at' => now()->subDays(10),
@@ -250,7 +250,7 @@ class ReportingTest extends TestCase
      */
     public function test_document_report_data_structure(): void
     {
-        Document::factory()->count(5)->create([
+        Dokumen::factory()->count(5)->create([
             'type' => 'masuk',
             'classification' => 'biasa',
             'status' => 'approved',

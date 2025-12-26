@@ -11,43 +11,43 @@ use Illuminate\Validation\Rule;
 
 /**
  * ScheduleController
- * 
- * Handle CRUD operations for schedule management (Dukkes, Jaga, Kegiatan Satuan).
- * Includes conflict detection for personnel scheduling.
+ *
+ * Mengelola operasi CRUD penjadwalan (Dukkes, Jaga, Kegiatan Satuan) termasuk
+ * deteksi konflik jadwal personel.
  */
 class ScheduleController extends Controller
 {
     /**
-     * Display a listing of schedules.
+     * Tampilkan daftar jadwal.
      */
     public function index(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$user->hasPermission('view_schedules')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $query = Schedule::with(['creator', 'updater']);
 
-        // Search functionality
+        // Fitur pencarian
         if ($request->has('search')) {
             $query->search($request->search);
         }
 
-        // Filter by type
+        // Filter berdasarkan tipe
         if ($request->has('type') && $request->type !== '') {
             $query->ofType($request->type);
         }
 
-        // Filter by status
+        // Filter berdasarkan status
         if ($request->has('status') && $request->status !== '') {
             $query->withStatus($request->status);
         }
 
-        // Filter by date range
+        // Filter berdasarkan rentang tanggal
         if ($request->has('start_date') && $request->has('end_date')) {
             $query->betweenDates($request->start_date, $request->end_date);
         }
@@ -60,19 +60,19 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Show the form for creating a new schedule.
+     * Tampilkan formulir pembuatan jadwal baru.
      */
     public function create()
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$user->hasPermission('create_schedules')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
-        // Get all active users for personnel selection
+        // Ambil semua pengguna aktif untuk pemilihan personel
         $users = User::where('is_active', true)
                     ->orderBy('name')
                     ->get();
@@ -81,16 +81,16 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Store a newly created schedule in storage.
+     * Simpan jadwal baru.
      */
     public function store(Request $request)
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$authUser->hasPermission('create_schedules')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $validated = $request->validate([
@@ -108,7 +108,7 @@ class ScheduleController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        // Check for scheduling conflicts if personnel are assigned
+        // Cek konflik jadwal jika personel ditugaskan
         if (!empty($validated['personnel']) && $validated['status'] === 'active') {
             $conflicts = $this->checkConflicts(
                 $validated['personnel'],
@@ -126,7 +126,7 @@ class ScheduleController extends Controller
             }
         }
 
-        // Create schedule
+        // Buat jadwal
         $schedule = Schedule::create([
             'type' => $validated['type'],
             'title' => $validated['title'],
@@ -143,12 +143,12 @@ class ScheduleController extends Controller
             'updated_by' => Auth::id(),
         ]);
 
-        // Log creation
+        // Catat pembuatan
         AuditLog::log(
             event: 'schedule_created',
             model: $schedule,
             newValues: $schedule->toArray(),
-            description: "Schedule '{$schedule->title}' created by " . $authUser->name
+            description: "Jadwal '{$schedule->title}' dibuat oleh " . $authUser->name
         );
 
         return redirect()->route('schedules.index')
@@ -156,24 +156,24 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Display the specified schedule.
+     * Tampilkan detail jadwal.
      */
     public function show(Schedule $schedule)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$user->hasPermission('view_schedules')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $schedule->load(['creator', 'updater']);
         
-        // Get personnel details
+        // Ambil detail personel
         $personnel = $schedule->getPersonnelUsers();
         
-        // Get audit logs for this schedule
+        // Ambil log audit untuk jadwal ini
         $auditLogs = AuditLog::where('auditable_type', Schedule::class)
             ->where('auditable_id', $schedule->id)
             ->orderBy('created_at', 'desc')
@@ -184,19 +184,19 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Show the form for editing the specified schedule.
+     * Tampilkan formulir untuk mengedit jadwal.
      */
     public function edit(Schedule $schedule)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$user->hasPermission('edit_schedules')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
-        // Get all active users for personnel selection
+        // Ambil semua pengguna aktif untuk pemilihan personel
         $users = User::where('is_active', true)
                     ->orderBy('name')
                     ->get();
@@ -205,16 +205,16 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Update the specified schedule in storage.
+     * Perbarui jadwal yang dipilih.
      */
     public function update(Request $request, Schedule $schedule)
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$authUser->hasPermission('edit_schedules')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $validated = $request->validate([
@@ -232,7 +232,7 @@ class ScheduleController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        // Check for scheduling conflicts if personnel are assigned and status is active
+        // Cek konflik jadwal jika personel ditugaskan dan status aktif
         if (!empty($validated['personnel']) && $validated['status'] === 'active') {
             $conflicts = $this->checkConflicts(
                 $validated['personnel'],
@@ -253,7 +253,7 @@ class ScheduleController extends Controller
 
         $oldValues = $schedule->toArray();
 
-        // Update schedule
+        // Perbarui jadwal
         $schedule->update([
             'type' => $validated['type'],
             'title' => $validated['title'],
@@ -269,35 +269,35 @@ class ScheduleController extends Controller
             'updated_by' => Auth::id(),
         ]);
 
-        // Log update
+        // Catat pembaruan
         AuditLog::log(
             event: 'schedule_updated',
             model: $schedule,
             oldValues: $oldValues,
             newValues: $schedule->fresh()->toArray(),
-            description: "Schedule '{$schedule->title}' updated by " . $authUser->name
+            description: "Jadwal '{$schedule->title}' diperbarui oleh " . $authUser->name
         );
 
         return redirect()->route('schedules.show', $schedule)
-            ->with('success', 'Jadwal berhasil diupdate.');
+            ->with('success', 'Jadwal berhasil diperbarui.');
     }
 
     /**
-     * Remove the specified schedule from storage.
+     * Hapus jadwal.
      */
     public function destroy(Schedule $schedule)
     {
         /** @var \App\Models\User $authUser */
         $authUser = Auth::user();
         
-        // Authorization check
+        // Pemeriksaan otorisasi
         if (!$authUser->hasPermission('delete_schedules')) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         $scheduleTitle = $schedule->title;
 
-        // Log deletion before actually deleting
+        // Catat penghapusan sebelum eksekusi delete
         AuditLog::create([
             'user_id' => Auth::id(),
             'event' => 'schedule_deleted',
@@ -307,7 +307,7 @@ class ScheduleController extends Controller
             'new_values' => [],
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
-            'description' => "Schedule '{$scheduleTitle}' deleted by " . $authUser->name,
+            'description' => "Jadwal '{$scheduleTitle}' dihapus oleh " . $authUser->name,
         ]);
 
         $schedule->delete();
@@ -317,8 +317,8 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Check for scheduling conflicts.
-     * 
+     * Periksa konflik penjadwalan.
+     *
      * @param array $personnelIds
      * @param string $startDate
      * @param string $endDate
@@ -353,7 +353,7 @@ class ScheduleController extends Controller
                 $query->where('id', '!=', $excludeScheduleId);
             }
 
-            // If time is specified, check time conflicts too
+            // Jika waktu diisi, cek konflik waktu juga
             if ($startTime && $endTime) {
                 $query->where(function ($q) use ($startTime, $endTime) {
                     $q->where(function ($q2) use ($startTime, $endTime) {

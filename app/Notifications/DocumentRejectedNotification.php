@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,14 +13,14 @@ class DocumentRejectedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected Document $document;
+    protected Dokumen $document;
     protected User $rejector;
     protected string $reason;
 
     /**
-     * Create a new notification instance.
+    * Buat instance notifikasi baru.
      */
-    public function __construct(Document $document, User $rejector, string $reason)
+    public function __construct(Dokumen $document, User $rejector, string $reason)
     {
         $this->document = $document;
         $this->rejector = $rejector;
@@ -28,7 +28,7 @@ class DocumentRejectedNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the notification's delivery channels.
+    * Tentukan kanal pengiriman notifikasi.
      *
      * @return array<int, string>
      */
@@ -48,25 +48,25 @@ class DocumentRejectedNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Representasi email dari notifikasi.
      */
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
             ->error()
-            ->subject('Document Rejected: ' . $this->document->subject)
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('Unfortunately, your document has been rejected.')
-            ->line('**Document Number:** ' . $this->document->number)
-            ->line('**Subject:** ' . $this->document->subject)
-            ->line('**Rejected by:** ' . $this->rejector->name . ' (' . $this->rejector->rank . ')')
-            ->line('**Reason:** ' . $this->reason)
-            ->action('View Document', route('documents.show', $this->document->id))
-            ->line('Please review the rejection reason and take appropriate action.');
+            ->subject('Dokumen Ditolak: ' . $this->document->subject)
+            ->greeting('Halo ' . $notifiable->name . ',')
+            ->line('Mohon maaf, dokumen Anda ditolak.')
+            ->line('**Nomor Dokumen:** ' . $this->document->number)
+            ->line('**Perihal:** ' . $this->document->subject)
+            ->line('**Ditolak oleh:** ' . $this->rejector->name . ' (' . $this->rejector->rank . ')')
+            ->line('**Alasan:** ' . $this->reason)
+            ->action('Lihat Dokumen', route('documents.show', $this->document->id))
+            ->line('Silakan tinjau alasan penolakan dan lakukan tindak lanjut yang diperlukan.');
     }
 
     /**
-     * Get the array representation of the notification.
+    * Representasi array dari notifikasi.
      *
      * @return array<string, mixed>
      */
@@ -82,7 +82,7 @@ class DocumentRejectedNotification extends Notification implements ShouldQueue
             'rejector_name' => $this->rejector->name,
             'rejector_rank' => $this->rejector->rank,
             'reason' => $this->reason,
-            'message' => "Document '{$this->document->subject}' has been rejected by {$this->rejector->name}",
+            'message' => "Dokumen '{$this->document->subject}' ditolak oleh {$this->rejector->name}",
             'url' => route('documents.show', $this->document->id),
         ];
     }

@@ -15,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
     protected $policies = [
         \App\Models\User::class => \App\Policies\UserPolicy::class,
         \App\Models\Schedule::class => \App\Policies\SchedulePolicy::class,
-        \App\Models\Document::class => \App\Policies\DocumentPolicy::class,
+        \App\Models\Dokumen::class => \App\Policies\DokumenPolicy::class,
     ];
 
     /**

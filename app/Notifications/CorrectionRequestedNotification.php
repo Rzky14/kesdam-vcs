@@ -3,7 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\CorrectionRequest;
-use App\Models\Document;
+use App\Models\Dokumen;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -14,14 +14,14 @@ class CorrectionRequestedNotification extends Notification implements ShouldQueu
 {
     use Queueable;
 
-    protected Document $document;
+    protected Dokumen $document;
     protected CorrectionRequest $correctionRequest;
     protected User $requester;
 
     /**
-     * Create a new notification instance.
+     * Buat instance notifikasi baru.
      */
-    public function __construct(Document $document, CorrectionRequest $correctionRequest, User $requester)
+    public function __construct(Dokumen $document, CorrectionRequest $correctionRequest, User $requester)
     {
         $this->document = $document;
         $this->correctionRequest = $correctionRequest;
@@ -29,7 +29,7 @@ class CorrectionRequestedNotification extends Notification implements ShouldQueu
     }
 
     /**
-     * Get the notification's delivery channels.
+    * Tentukan kanal pengiriman notifikasi.
      *
      * @return array<int, string>
      */
@@ -49,26 +49,26 @@ class CorrectionRequestedNotification extends Notification implements ShouldQueu
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Representasi email dari notifikasi.
      */
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Correction Requested: ' . $this->document->subject)
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('A correction has been requested for your document.')
-            ->line('**Document Number:** ' . $this->document->number)
-            ->line('**Subject:** ' . $this->document->subject)
-            ->line('**Requested by:** ' . $this->requester->name . ' (' . $this->requester->rank . ')')
-            ->line('**Correction Notes:**')
-            ->line($this->correctionRequest->notes)
-            ->line('**Deadline:** ' . $this->correctionRequest->deadline->format('d M Y H:i'))
-            ->action('View Document', route('documents.show', $this->document->id))
-            ->line('Please make the necessary corrections and resubmit.');
+            ->subject('Permintaan Koreksi: ' . $this->document->subject)
+            ->greeting('Halo ' . $notifiable->name . ',')
+            ->line('Ada permintaan koreksi untuk dokumen Anda.')
+            ->line('**Nomor Dokumen:** ' . $this->document->number)
+            ->line('**Perihal:** ' . $this->document->subject)
+            ->line('**Diminta oleh:** ' . $this->requester->name . ' (' . $this->requester->rank . ')')
+            ->line('**Catatan Koreksi:**')
+            ->line($this->correctionRequest->correction_notes)
+            ->line('**Batas Waktu:** ' . ($this->correctionRequest->due_date?->format('d M Y H:i') ?? '-'))
+            ->action('Lihat Dokumen', route('documents.show', $this->document->id))
+            ->line('Silakan lakukan perbaikan yang diperlukan dan kirim ulang.');
     }
 
     /**
-     * Get the array representation of the notification.
+     * Representasi array dari notifikasi.
      *
      * @return array<string, mixed>
      */
@@ -80,12 +80,12 @@ class CorrectionRequestedNotification extends Notification implements ShouldQueu
             'document_number' => $this->document->number,
             'document_subject' => $this->document->subject,
             'correction_request_id' => $this->correctionRequest->id,
-            'notes' => $this->correctionRequest->notes,
-            'deadline' => $this->correctionRequest->deadline->toISOString(),
+            'notes' => $this->correctionRequest->correction_notes,
+            'deadline' => $this->correctionRequest->due_date?->toISOString(),
             'requester_id' => $this->requester->id,
             'requester_name' => $this->requester->name,
             'requester_rank' => $this->requester->rank,
-            'message' => "Correction requested for '{$this->document->subject}' by {$this->requester->name}",
+            'message' => "Koreksi diminta untuk '{$this->document->subject}' oleh {$this->requester->name}",
             'url' => route('documents.show', $this->document->id),
         ];
     }

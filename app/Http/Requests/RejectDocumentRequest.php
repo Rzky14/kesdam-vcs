@@ -22,8 +22,8 @@ class RejectDocumentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'reason.required' => 'Rejection reason is required.',
-            'reason.min' => 'Rejection reason must be at least 10 characters.',
+            'reason.required' => 'Alasan penolakan wajib diisi.',
+            'reason.min' => 'Alasan penolakan harus terdiri dari minimal 10 karakter.',
         ];
     }
 }

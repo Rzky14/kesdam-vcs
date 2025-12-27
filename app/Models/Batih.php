@@ -102,3 +102,6 @@ class Batih extends User
         // Implementasi untuk mengatur laporan
     }
 }
+
+
+

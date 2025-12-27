@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Schedule;
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -72,21 +72,21 @@ class DashboardController extends Controller
             // Admin sees all data
             return [
                 'total_users' => User::where('is_active', true)->count(),
-                'total_documents' => Dokumen::count(),
+                'total_documents' => Surat::count(),
                 'active_schedules' => Schedule::where('status', 'active')
                     ->where('end_date', '>=', $today)
                     ->count(),
-                'incoming_documents' => Dokumen::where('type', 'masuk')
+                'incoming_documents' => Surat::where('type', 'masuk')
                     ->whereDate('date', $today)
                     ->count(),
-                'outgoing_documents' => Dokumen::where('type', 'keluar')
+                'outgoing_documents' => Surat::where('type', 'keluar')
                     ->whereDate('date', $today)
                     ->count(),
-                'pending_approvals' => Dokumen::where('status', 'pending_approval')->count(),
-                'approved_today' => Dokumen::where('status', 'approved')
+                'pending_approvals' => Surat::where('status', 'pending_approval')->count(),
+                'approved_today' => Surat::where('status', 'approved')
                     ->whereDate('updated_at', $today)
                     ->count(),
-                'completed_this_month' => Dokumen::where('status', 'approved')
+                'completed_this_month' => Surat::where('status', 'approved')
                     ->whereMonth('updated_at', $thisMonth)
                     ->whereYear('updated_at', $thisYear)
                     ->count(),
@@ -97,21 +97,21 @@ class DashboardController extends Controller
                 'active_schedules' => Schedule::where('status', 'active')
                     ->where('end_date', '>=', $today)
                     ->count(),
-                'incoming_documents' => Dokumen::where('type', 'masuk')
+                'incoming_documents' => Surat::where('type', 'masuk')
                     ->whereDate('date', $today)
                     ->count(),
-                'outgoing_documents' => Dokumen::where('type', 'keluar')
+                'outgoing_documents' => Surat::where('type', 'keluar')
                     ->whereDate('date', $today)
                     ->count(),
-                'pending_approvals' => Dokumen::where('status', 'pending_approval')->count(),
-                'approved_today' => Dokumen::where('status', 'approved')
+                'pending_approvals' => Surat::where('status', 'pending_approval')->count(),
+                'approved_today' => Surat::where('status', 'approved')
                     ->whereDate('updated_at', $today)
                     ->count(),
-                'completed_this_month' => Dokumen::where('status', 'approved')
+                'completed_this_month' => Surat::where('status', 'approved')
                     ->whereMonth('updated_at', $thisMonth)
                     ->whereYear('updated_at', $thisYear)
                     ->count(),
-                'urgent_documents' => Dokumen::where('priority', 'urgent')
+                'urgent_documents' => Surat::where('priority', 'urgent')
                     ->where('status', 'pending_approval')
                     ->count(),
             ];
@@ -129,19 +129,19 @@ class DashboardController extends Controller
                     ->whereIn('created_by', $teamUserIds)
                     ->count(),
                 'team_members' => count($teamUserIds) - 1, // exclude self
-                'pending_my_approval' => Dokumen::where('status', 'pending_approval')
+                'pending_my_approval' => Surat::where('status', 'pending_approval')
                     ->whereIn('created_by', $teamUserIds)
                     ->count(),
-                'draft_documents' => Dokumen::where('status', 'draft')
+                'draft_documents' => Surat::where('status', 'draft')
                     ->whereIn('created_by', $teamUserIds)
                     ->count(),
-                'approved_documents' => Dokumen::where('status', 'approved')
+                'approved_documents' => Surat::where('status', 'approved')
                     ->whereIn('created_by', $teamUserIds)
                     ->count(),
-                'rejected_documents' => Dokumen::where('status', 'rejected')
+                'rejected_documents' => Surat::where('status', 'rejected')
                     ->whereIn('created_by', $teamUserIds)
                     ->count(),
-                'completed_this_month' => Dokumen::where('status', 'approved')
+                'completed_this_month' => Surat::where('status', 'approved')
                     ->whereIn('created_by', $teamUserIds)
                     ->whereMonth('updated_at', $thisMonth)
                     ->whereYear('updated_at', $thisYear)
@@ -157,16 +157,16 @@ class DashboardController extends Controller
                               ->orWhereJsonContains('personnel', (string)$user->id);
                     })
                     ->count(),
-                'draft_documents' => Dokumen::where('status', 'draft')
+                'draft_documents' => Surat::where('status', 'draft')
                     ->where('created_by', $user->id)
                     ->count(),
-                'pending_approval' => Dokumen::where('status', 'pending_approval')
+                'pending_approval' => Surat::where('status', 'pending_approval')
                     ->where('created_by', $user->id)
                     ->count(),
-                'approved_documents' => Dokumen::where('status', 'approved')
+                'approved_documents' => Surat::where('status', 'approved')
                     ->where('created_by', $user->id)
                     ->count(),
-                'rejected_documents' => Dokumen::where('status', 'rejected')
+                'rejected_documents' => Surat::where('status', 'rejected')
                     ->where('created_by', $user->id)
                     ->count(),
                 'tasks_today' => Schedule::whereDate('start_date', $today)
@@ -175,7 +175,7 @@ class DashboardController extends Controller
                               ->orWhereJsonContains('personnel', (string)$user->id);
                     })
                     ->count(),
-                'completed_this_month' => Dokumen::where('status', 'approved')
+                'completed_this_month' => Surat::where('status', 'approved')
                     ->where('created_by', $user->id)
                     ->whereMonth('updated_at', $thisMonth)
                     ->whereYear('updated_at', $thisYear)
@@ -215,7 +215,7 @@ class DashboardController extends Controller
      */
     protected function getRecentDocuments($user)
     {
-        $query = Dokumen::with(['pembuat', 'riwayatPersetujuan'])
+        $query = Surat::with(['pembuat', 'riwayatPersetujuan'])
             ->orderBy('date', 'desc');
         
         if ($user->hasRole('admin_sistem') || $user->hasRole('pimpinan')) {
@@ -245,7 +245,7 @@ class DashboardController extends Controller
     {
         if ($user->hasRole('pimpinan')) {
             // Pimpinan melihat semua pending approval
-            return Dokumen::with(['pembuat', 'riwayatPersetujuan'])
+            return Surat::with(['pembuat', 'riwayatPersetujuan'])
                 ->where('status', 'pending_approval')
                 ->orderBy('priority', 'desc')
                 ->orderBy('date', 'desc')
@@ -256,7 +256,7 @@ class DashboardController extends Controller
             $teamUserIds = User::where('unit', $user->unit)
                 ->pluck('id')
                 ->toArray();
-            return Dokumen::with(['pembuat', 'riwayatPersetujuan'])
+            return Surat::with(['pembuat', 'riwayatPersetujuan'])
                 ->where('status', 'pending_approval')
                 ->whereIn('created_by', $teamUserIds)
                 ->orderBy('priority', 'desc')
@@ -313,7 +313,7 @@ class DashboardController extends Controller
     {
         $startDate = Carbon::now()->subDays(30);
         
-        $chartData = Dokumen::selectRaw('DATE(date) as date, type, COUNT(*) as count')
+        $chartData = Surat::selectRaw('DATE(date) as date, type, COUNT(*) as count')
             ->where('date', '>=', $startDate)
             ->groupBy('date', 'type')
             ->orderBy('date')
@@ -346,8 +346,8 @@ class DashboardController extends Controller
         $today = Carbon::today();
         
         $stats = [
-            'documents_today' => Dokumen::whereDate('created_at', $today)->count(),
-            'approvals_pending' => Dokumen::where('status', 'pending_approval')->count(),
+            'documents_today' => Surat::whereDate('created_at', $today)->count(),
+            'approvals_pending' => Surat::where('status', 'pending_approval')->count(),
             'schedules_today' => Schedule::whereDate('start_date', '<=', $today)
                 ->whereDate('end_date', '>=', $today)
                 ->where('status', 'active')
@@ -358,3 +358,6 @@ class DashboardController extends Controller
         return response()->json($stats);
     }
 }
+
+
+

@@ -487,3 +487,6 @@ HTML;
             ->with('success', 'Laporan berhasil dihapus!');
     }
 }
+
+
+

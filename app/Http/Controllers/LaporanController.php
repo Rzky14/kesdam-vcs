@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Laporan;
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Models\Schedule;
 use App\Models\AuditLog;
 use App\Models\ApprovalHistory;
@@ -221,16 +221,16 @@ class LaporanController extends Controller
     {
         switch ($type) {
             case 'document':
-                $masuk = Dokumen::where('type', 'masuk')
+                $masuk = Surat::where('type', 'masuk')
                     ->whereBetween('date', [$periodStart, $periodEnd])
                     ->count();
-                $keluar = Dokumen::where('type', 'keluar')
+                $keluar = Surat::where('type', 'keluar')
                     ->whereBetween('date', [$periodStart, $periodEnd])
                     ->count();
-                $pending = Dokumen::where('status', 'pending_approval')
+                $pending = Surat::where('status', 'pending_approval')
                     ->whereBetween('date', [$periodStart, $periodEnd])
                     ->count();
-                $approved = Dokumen::where('status', 'approved')
+                $approved = Surat::where('status', 'approved')
                     ->whereBetween('date', [$periodStart, $periodEnd])
                     ->count();
                     
@@ -239,7 +239,7 @@ class LaporanController extends Controller
                     'total_keluar' => $keluar,
                     'total_pending' => $pending,
                     'total_approved' => $approved,
-                    'documents' => Dokumen::whereBetween('date', [$periodStart, $periodEnd])
+                    'documents' => Surat::whereBetween('date', [$periodStart, $periodEnd])
                         ->with('pembuat')
                         ->get()
                         ->toArray(),
@@ -260,8 +260,8 @@ class LaporanController extends Controller
                 ];
 
             case 'effectiveness':
-                $totalDocs = Dokumen::whereBetween('date', [$periodStart, $periodEnd])->count();
-                $approvedDocs = Dokumen::where('status', 'approved')
+                $totalDocs = Surat::whereBetween('date', [$periodStart, $periodEnd])->count();
+                $approvedDocs = Surat::where('status', 'approved')
                     ->whereBetween('date', [$periodStart, $periodEnd])
                     ->count();
                 $avgApprovalTime = ApprovalHistory::whereBetween('action_date', [$periodStart, $periodEnd])
@@ -280,3 +280,6 @@ class LaporanController extends Controller
         }
     }
 }
+
+
+

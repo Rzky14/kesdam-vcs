@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,14 +13,14 @@ class DocumentRejectedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected Dokumen $document;
+    protected Surat $document;
     protected User $rejector;
     protected string $reason;
 
     /**
     * Buat instance notifikasi baru.
      */
-    public function __construct(Dokumen $document, User $rejector, string $reason)
+    public function __construct(Surat $document, User $rejector, string $reason)
     {
         $this->document = $document;
         $this->rejector = $rejector;
@@ -87,3 +87,6 @@ class DocumentRejectedNotification extends Notification implements ShouldQueue
         ];
     }
 }
+
+
+

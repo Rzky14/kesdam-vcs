@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Services\EncryptionService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -39,12 +39,12 @@ class LampiranController extends Controller
     /**
      * Menampilkan daftar lampiran untuk dokumen tertentu.
      *
-     * @param  \App\Models\Dokumen  $dokumen
+     * @param \App\Models\Surat  $surat
      * @return \Illuminate\Http\Response
      */
-    public function index(Dokumen $dokumen)
+    public function index(Surat $surat)
     {
-        $lampiran = collect($dokumen->attachments ?? []);
+        $lampiran = collect($surat->attachments ?? []);
         return view('lampiran.index', compact('dokumen', 'lampiran'));
     }
 
@@ -52,10 +52,10 @@ class LampiranController extends Controller
      * Menyimpan lampiran baru ke database.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Dokumen  $dokumen
+     * @param \App\Models\Surat  $surat
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request, Dokumen $dokumen)
+    public function store(Request $request, Surat $surat)
     {
         $request->validate([
             'file' => 'required|file|max:10240', // Maks 10MB
@@ -66,7 +66,7 @@ class LampiranController extends Controller
             $file = $request->file('file');
 
             // Cek apakah dokumen bersifat rahasia
-            if ($dokumen->classification === 'rahasia') {
+            if ($surat->classification === 'rahasia') {
                 $hasil = $this->layananEnkripsi->enkripsiDanSimpan(
                     $file,
                     'lampiran-rahasia'
@@ -88,10 +88,10 @@ class LampiranController extends Controller
             ];
 
             // Tambahkan ke array attachments yang ada
-            $attachments = $dokumen->attachments ?? [];
+            $attachments = $surat->attachments ?? [];
             $attachments[] = $lampiranBaru;
             
-            $dokumen->update([
+            $surat->update([
                 'attachments' => $attachments,
                 'updated_by' => Auth::id(),
             ]);
@@ -109,17 +109,17 @@ class LampiranController extends Controller
     /**
      * Mengunduh lampiran yang ditentukan.
      *
-     * @param  \App\Models\Dokumen  $dokumen
+     * @param \App\Models\Surat  $surat
      * @param  string  $attachmentId
      * @return \Illuminate\Http\Response
      */
-    public function download(Dokumen $dokumen, string $attachmentId)
+    public function download(Surat $surat, string $attachmentId)
     {
-        $this->authorize('view', $dokumen);
+        $this->authorize('view', $surat);
 
         try {
             // Cari lampiran berdasarkan ID
-            $attachments = collect($dokumen->attachments ?? []);
+            $attachments = collect($surat->attachments ?? []);
             $lampiran = $attachments->firstWhere('id', $attachmentId);
 
             if (!$lampiran) {
@@ -146,15 +146,15 @@ class LampiranController extends Controller
     /**
      * Menampilkan detail lampiran.
      *
-     * @param  \App\Models\Dokumen  $dokumen
+     * @param \App\Models\Surat  $surat
      * @param  string  $attachmentId
      * @return \Illuminate\Http\Response
      */
-    public function show(Dokumen $dokumen, string $attachmentId)
+    public function show(Surat $surat, string $attachmentId)
     {
-        $this->authorize('view', $dokumen);
+        $this->authorize('view', $surat);
         
-        $attachments = collect($dokumen->attachments ?? []);
+        $attachments = collect($surat->attachments ?? []);
         $lampiran = $attachments->firstWhere('id', $attachmentId);
 
         if (!$lampiran) {
@@ -167,17 +167,17 @@ class LampiranController extends Controller
     /**
      * Menghapus lampiran dari dokumen.
      *
-     * @param  \App\Models\Dokumen  $dokumen
+     * @param \App\Models\Surat  $surat
      * @param  string  $attachmentId
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Dokumen $dokumen, string $attachmentId)
+    public function destroy(Surat $surat, string $attachmentId)
     {
-        $this->authorize('update', $dokumen);
+        $this->authorize('update', $surat);
 
         DB::beginTransaction();
         try {
-            $attachments = collect($dokumen->attachments ?? []);
+            $attachments = collect($surat->attachments ?? []);
             $lampiran = $attachments->firstWhere('id', $attachmentId);
 
             if (!$lampiran) {
@@ -194,7 +194,7 @@ class LampiranController extends Controller
                 return $item['id'] === $attachmentId;
             })->values()->toArray();
 
-            $dokumen->update([
+            $surat->update([
                 'attachments' => $attachmentsBaru,
                 'updated_by' => Auth::id(),
             ]);
@@ -209,3 +209,6 @@ class LampiranController extends Controller
         }
     }
 }
+
+
+

@@ -189,7 +189,7 @@
                     
                     @if($recentDocuments->count() > 0)
                         <div class="text-center mt-3">
-                            <a href="{{ route('documents.index') }}" class="btn btn-sm btn-outline-primary">
+                            <a href="{{ route('surat.index') }}" class="btn btn-sm btn-outline-primary">
                                 Lihat Semua Surat <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         </div>
@@ -217,7 +217,7 @@
                                 </a>
                             @endif
                             @if(Auth::user()->hasPermission('document.create'))
-                                <a href="{{ route('documents.create') }}" class="btn btn-warning">
+                                <a href="{{ route('surat.create') }}" class="btn btn-warning">
                                     <i class="bi bi-file-earmark-plus me-1"></i> Buat Surat
                                 </a>
                             @endif
@@ -252,3 +252,4 @@
 </style>
 @endpush
 @endsection
+

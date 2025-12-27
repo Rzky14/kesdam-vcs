@@ -34,3 +34,6 @@ class LogoutController extends Controller
             ->with('success', 'Anda telah berhasil logout.');
     }
 }
+
+
+

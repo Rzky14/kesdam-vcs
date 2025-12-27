@@ -226,3 +226,6 @@ class Laporan extends Model
         return '';
     }
 }
+
+
+

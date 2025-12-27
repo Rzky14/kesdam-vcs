@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Models\Report;
 use App\Models\Schedule;
 use Illuminate\Support\Collection;
@@ -92,7 +92,7 @@ class ReportService
         $classifications = null,
         ?string $documentStatus = null
     ): Report {
-        $query = Dokumen::whereBetween('created_at', [$startDate, $endDate]);
+        $query = Surat::whereBetween('created_at', [$startDate, $endDate]);
 
         if ($classifications) {
             if (is_array($classifications)) {
@@ -364,3 +364,6 @@ class ReportService
         return round(($approved / $documents->count()) * 100, 2);
     }
 }
+
+
+

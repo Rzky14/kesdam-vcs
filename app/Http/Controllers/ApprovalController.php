@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Models\ApprovalHistory;
 use App\Models\CorrectionRequest;
 use App\Models\ApprovalDeadline;
@@ -81,7 +81,7 @@ class ApprovalController extends Controller
     /**
      * Tampilkan detail persetujuan untuk dokumen
      */
-    public function show(Dokumen $document)
+    public function show(Surat $document)
     {
         $this->authorize('view', $document);
 
@@ -107,7 +107,7 @@ class ApprovalController extends Controller
     /**
      * Form persetujuan dokumen
      */
-    public function approveForm(Dokumen $document)
+    public function approveForm(Surat $document)
     {
         $this->authorize('update', $document);
 
@@ -124,7 +124,7 @@ class ApprovalController extends Controller
     /**
      * Simpan persetujuan
      */
-    public function approve(ApproveDocumentRequest $request, Dokumen $document)
+    public function approve(ApproveDocumentRequest $request, Surat $document)
     {
         $this->authorize('approve', $document);
 
@@ -151,7 +151,7 @@ class ApprovalController extends Controller
     /**
      * Form penolakan dokumen
      */
-    public function rejectForm(Dokumen $document)
+    public function rejectForm(Surat $document)
     {
         $this->authorize('reject', $document);
 
@@ -165,7 +165,7 @@ class ApprovalController extends Controller
     /**
      * Simpan penolakan
      */
-    public function reject(RejectDocumentRequest $request, Dokumen $document)
+    public function reject(RejectDocumentRequest $request, Surat $document)
     {
         $this->authorize('reject', $document);
 
@@ -192,7 +192,7 @@ class ApprovalController extends Controller
     /**
      * Form permintaan koreksi
      */
-    public function correctionForm(Dokumen $document)
+    public function correctionForm(Surat $document)
     {
         $this->authorize('requestCorrection', $document);
 
@@ -206,7 +206,7 @@ class ApprovalController extends Controller
     /**
      * Simpan permintaan koreksi
      */
-    public function requestCorrection(RequestCorrectionRequest $request, Dokumen $document)
+    public function requestCorrection(RequestCorrectionRequest $request, Surat $document)
     {
         $this->authorize('requestCorrection', $document);
 
@@ -234,7 +234,7 @@ class ApprovalController extends Controller
     /**
      * Form unggah ulang dokumen setelah koreksi
      */
-    public function resubmitForm(Dokumen $document)
+    public function resubmitForm(Surat $document)
     {
         $this->authorize('update', $document);
 
@@ -254,7 +254,7 @@ class ApprovalController extends Controller
      */
     public function resubmit(Request $request)
     {
-        $doc = Dokumen::findOrFail($request->document_id);
+        $doc = Surat::findOrFail($request->document_id);
         $this->authorize('update', $doc);
 
         $correctionRequest = $doc->correctionRequests()
@@ -282,7 +282,7 @@ class ApprovalController extends Controller
     /**
      * Tampilkan riwayat persetujuan untuk dokumen
      */
-    public function history(Dokumen $document)
+    public function history(Surat $document)
     {
         $this->authorize('view', $document);
 
@@ -320,7 +320,7 @@ class ApprovalController extends Controller
     /**
      * Unduh laporan persetujuan
      */
-    public function downloadReport(Dokumen $document)
+    public function downloadReport(Surat $document)
     {
         $this->authorize('view', $document);
 
@@ -331,3 +331,6 @@ class ApprovalController extends Controller
         return view('approvals.report', compact('document', 'approvalHistory', 'statistics'));
     }
 }
+
+
+

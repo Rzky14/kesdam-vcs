@@ -7,7 +7,7 @@ use App\Models\ApprovalHistory;
 use App\Models\ApprovalRolePermission;
 use App\Models\CorrectionRequest;
 use App\Models\ApprovalDeadline;
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +17,7 @@ class ApprovalWorkflowService
     /**
      * Ambil alur persetujuan yang sesuai untuk dokumen
      */
-    public function getWorkflow(Dokumen $document): ?ApprovalWorkflow
+    public function getWorkflow(Surat $document): ?ApprovalWorkflow
     {
         return ApprovalWorkflow::active()
             ->byDocumentType($document->type)
@@ -29,7 +29,7 @@ class ApprovalWorkflowService
     /**
      * Ajukan dokumen untuk proses persetujuan
      */
-    public function submitForApproval(Dokumen $document, User $submittedBy): ApprovalHistory
+    public function submitForApproval(Surat $document, User $submittedBy): ApprovalHistory
     {
         $workflow = $this->getWorkflow($document);
 
@@ -69,7 +69,7 @@ class ApprovalWorkflowService
     /**
      * Setujui dokumen pada level saat ini
      */
-    public function approveDocument(Dokumen $document, User $approver, ?string $comment = null): ApprovalHistory
+    public function approveDocument(Surat $document, User $approver, ?string $comment = null): ApprovalHistory
     {
         $workflow = $this->getWorkflow($document);
         $lastApproval = $document->approvalHistories()->orderBy('approval_level', 'desc')->first();
@@ -146,7 +146,7 @@ class ApprovalWorkflowService
     /**
      * Tolak dokumen pada level saat ini
      */
-    public function rejectDocument(Dokumen $document, User $rejector, string $reason): ApprovalHistory
+    public function rejectDocument(Surat $document, User $rejector, string $reason): ApprovalHistory
     {
         $lastApproval = $document->approvalHistories()->orderBy('approval_level', 'desc')->first();
 
@@ -192,7 +192,7 @@ class ApprovalWorkflowService
     /**
      * Ajukan permintaan koreksi pada dokumen
      */
-    public function requestCorrection(Dokumen $document, User $requestor, string $notes, ?string $dueDateDays = null): CorrectionRequest
+    public function requestCorrection(Surat $document, User $requestor, string $notes, ?string $dueDateDays = null): CorrectionRequest
     {
         $lastApproval = $document->approvalHistories()->orderBy('approval_level', 'desc')->first();
 
@@ -242,7 +242,7 @@ class ApprovalWorkflowService
     /**
      * Kirim ulang dokumen yang telah dikoreksi
      */
-    public function resubmitDocument(Dokumen $document, User $submittedBy): ApprovalHistory
+    public function resubmitDocument(Surat $document, User $submittedBy): ApprovalHistory
     {
         $workflow = $this->getWorkflow($document);
         $lastApproval = $document->approvalHistories()->orderBy('approval_level', 'desc')->first();
@@ -291,7 +291,7 @@ class ApprovalWorkflowService
     {
         $userRoles = $user->roles->pluck('id')->toArray();
 
-        return Dokumen::where('status', 'pending_approval')
+        return Surat::where('status', 'pending_approval')
             ->with(['approvalHistories' => function ($query) {
                 $query->orderBy('approval_level', 'desc')->limit(1);
             }])
@@ -305,7 +305,7 @@ class ApprovalWorkflowService
     /**
      * Ambil riwayat persetujuan untuk dokumen
      */
-    public function getApprovalHistory(Dokumen $document)
+    public function getApprovalHistory(Surat $document)
     {
         return $document->approvalHistories()
             ->orderBy('approval_level', 'asc')
@@ -316,7 +316,7 @@ class ApprovalWorkflowService
     /**
      * Buat batas waktu persetujuan untuk dokumen
      */
-    private function createApprovalDeadlines(Dokumen $document, ApprovalWorkflow $workflow): void
+    private function createApprovalDeadlines(Surat $document, ApprovalWorkflow $workflow): void
     {
         // Ambil konfigurasi SLA (dapat disesuaikan per tipe/klasifikasi dokumen)
         $slaDays = $this->getApprovalSLA($document->type, $document->classification);
@@ -352,7 +352,7 @@ class ApprovalWorkflowService
     /**
      * Ambil nomor revisi berikutnya untuk dokumen
      */
-    private function getNextRevisionNumber(Dokumen $document): int
+    private function getNextRevisionNumber(Surat $document): int
     {
         return CorrectionRequest::where('document_id', $document->id)->count() + 1;
     }
@@ -360,7 +360,7 @@ class ApprovalWorkflowService
     /**
      * Periksa apakah pengguna dapat menyetujui dokumen
      */
-    public function canUserApproveDocument(User $user, Dokumen $document): bool
+    public function canUserApproveDocument(User $user, Surat $document): bool
     {
         $userRoles = $user->roles->pluck('id')->toArray();
         $lastApproval = $document->approvalHistories()->orderBy('approval_level', 'desc')->first();
@@ -375,7 +375,7 @@ class ApprovalWorkflowService
     /**
      * Periksa apakah pengguna dapat meminta koreksi
      */
-    public function canUserRequestCorrection(User $user, Dokumen $document): bool
+    public function canUserRequestCorrection(User $user, Surat $document): bool
     {
         return $this->canUserApproveDocument($user, $document);
     }
@@ -383,7 +383,7 @@ class ApprovalWorkflowService
     /**
      * Ambil statistik alur persetujuan untuk dokumen
      */
-    public function getWorkflowStatistics(Dokumen $document): array
+    public function getWorkflowStatistics(Surat $document): array
     {
         $approvalHistories = $document->approvalHistories()->get();
         $workflow = $this->getWorkflow($document);
@@ -398,3 +398,6 @@ class ApprovalWorkflowService
         ];
     }
 }
+
+
+

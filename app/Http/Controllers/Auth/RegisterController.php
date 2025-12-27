@@ -70,3 +70,6 @@ class RegisterController extends Controller
             ->with('success', 'Registrasi berhasil! Selamat datang, ' . $user->name);
     }
 }
+
+
+

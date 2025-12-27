@@ -164,3 +164,4 @@
     <p>Sudah punya akun? <a href="{{ route('login') }}">Login Sekarang</a></p>
 </div>
 @endsection
+

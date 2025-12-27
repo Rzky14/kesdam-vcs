@@ -70,3 +70,6 @@ interface SistemKepegawaian
      */
     public function getStrukturOrganisasi(): array;
 }
+
+
+

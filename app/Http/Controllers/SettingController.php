@@ -134,3 +134,6 @@ class SettingController extends Controller
         return view('settings.integration-config', compact('settings'));
     }
 }
+
+
+

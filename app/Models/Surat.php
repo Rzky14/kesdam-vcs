@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Model Dokumen
+ * Model Surat
  * 
- * Representasi dokumen dalam sistem KESDAM VCS.
- * Mendukung berbagai jenis dokumen: surat masuk, surat keluar, rahasia, telegram.
+ * Representasi surat dalam sistem KESDAM VCS.
+ * Mendukung berbagai jenis surat: surat masuk, surat keluar, rahasia, telegram.
  * 
  * @property int $id
- * @property string $type Jenis dokumen (masuk/keluar)
+ * @property string $type Jenis surat (masuk/keluar)
  * @property string $classification Klasifikasi (biasa/rahasia/telegram)
  * @property string $number Nomor dokumen
  * @property \Carbon\Carbon $date Tanggal dokumen
@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\DB;
  * @property int $created_by Dibuat oleh
  * @property int $updated_by Diperbarui oleh
  */
-class Dokumen extends Model
+class Surat extends Model
 {
     use HasFactory, SoftDeletes, Auditable;
 
@@ -1158,4 +1158,8 @@ class Dokumen extends Model
         return $this->mintaKoreksi($user, $reason);
     }
 }
+
+
+
+
 

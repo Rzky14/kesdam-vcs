@@ -146,3 +146,6 @@ class NotificationPreference extends Model
         return $this->getNamaTipeAttribute();
     }
 }
+
+
+

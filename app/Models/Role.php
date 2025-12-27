@@ -94,3 +94,6 @@ class Role extends Model
         $this->permissions()->detach($permission->id);
     }
 }
+
+
+

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
-use App\Models\Dokumen;
+use App\Models\Surat;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
@@ -29,13 +29,13 @@ class RiwayatPerubahanController extends Controller
     /**
      * Menampilkan daftar riwayat perubahan untuk dokumen tertentu.
      *
-     * @param  \App\Models\Dokumen  $dokumen
+     * @param \App\Models\Surat  $surat
      * @return \Illuminate\Http\Response
      */
-    public function index(Dokumen $dokumen)
+    public function index(Surat $surat)
     {
-        $riwayatPerubahan = AuditLog::where('auditable_type', Dokumen::class)
-            ->where('auditable_id', $dokumen->id)
+        $riwayatPerubahan = AuditLog::where('auditable_type', Surat::class)
+            ->where('auditable_id', $surat->id)
             ->with('user')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
@@ -77,15 +77,15 @@ class RiwayatPerubahanController extends Controller
      * Filter riwayat perubahan berdasarkan event type.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Dokumen  $dokumen
+     * @param \App\Models\Surat  $surat
      * @return \Illuminate\Http\Response
      */
-    public function filterBerdasarkanTipe(Request $request, Dokumen $dokumen)
+    public function filterBerdasarkanTipe(Request $request, Surat $surat)
     {
         $tipe = $request->input('type');
         
-        $riwayatPerubahan = AuditLog::where('auditable_type', Dokumen::class)
-            ->where('auditable_id', $dokumen->id)
+        $riwayatPerubahan = AuditLog::where('auditable_type', Surat::class)
+            ->where('auditable_id', $surat->id)
             ->where('event', $tipe)
             ->with('user')
             ->orderBy('created_at', 'desc')
@@ -97,16 +97,16 @@ class RiwayatPerubahanController extends Controller
     /**
      * Ekspor riwayat perubahan ke PDF atau Excel.
      *
-     * @param  \App\Models\Dokumen  $dokumen
+     * @param \App\Models\Surat  $surat
      * @param  string  $format
      * @return \Illuminate\Http\Response
      */
-    public function ekspor(Dokumen $dokumen, $format = 'pdf')
+    public function ekspor(Surat $surat, $format = 'pdf')
     {
-        $this->authorize('view', $dokumen);
+        $this->authorize('view', $surat);
 
-        $riwayatPerubahan = AuditLog::where('auditable_type', Dokumen::class)
-            ->where('auditable_id', $dokumen->id)
+        $riwayatPerubahan = AuditLog::where('auditable_type', Surat::class)
+            ->where('auditable_id', $surat->id)
             ->with('user')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -122,3 +122,6 @@ class RiwayatPerubahanController extends Controller
         return back()->withErrors(['error' => 'Format tidak didukung']);
     }
 }
+
+
+

@@ -152,3 +152,6 @@ class Setting extends Model
         return (bool) $setting->value;
     }
 }
+
+
+

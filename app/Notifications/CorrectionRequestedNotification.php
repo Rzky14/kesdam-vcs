@@ -3,7 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\CorrectionRequest;
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -14,14 +14,14 @@ class CorrectionRequestedNotification extends Notification implements ShouldQueu
 {
     use Queueable;
 
-    protected Dokumen $document;
+    protected Surat $document;
     protected CorrectionRequest $correctionRequest;
     protected User $requester;
 
     /**
      * Buat instance notifikasi baru.
      */
-    public function __construct(Dokumen $document, CorrectionRequest $correctionRequest, User $requester)
+    public function __construct(Surat $document, CorrectionRequest $correctionRequest, User $requester)
     {
         $this->document = $document;
         $this->correctionRequest = $correctionRequest;
@@ -90,3 +90,6 @@ class CorrectionRequestedNotification extends Notification implements ShouldQueu
         ];
     }
 }
+
+
+

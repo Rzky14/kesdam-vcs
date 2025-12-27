@@ -65,3 +65,6 @@ class StoreDocumentReportRequest extends FormRequest
         }
     }
 }
+
+
+

@@ -182,3 +182,6 @@ class Report extends Model
         return $this->ambilLabelTipe();
     }
 }
+
+
+

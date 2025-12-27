@@ -15,23 +15,27 @@ return new class extends Migration
         // Disable foreign key checks temporarily
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         
+        // Drop related tables first
+        Schema::dropIfExists('notification_logs');
+        
         // Drop old notifications table
         Schema::dropIfExists('notifications');
-        
-        // Re-enable foreign key checks
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         
         // Create new notifications table with Laravel standard structure
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('type');
-            $table->morphs('notifiable');
+            $table->string('notifiable_type');
+            $table->unsignedBigInteger('notifiable_id');
             $table->text('data');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
             
             $table->index(['notifiable_type', 'notifiable_id', 'read_at']);
         });
+        
+        // Re-enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 
     /**

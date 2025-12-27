@@ -65,3 +65,6 @@ class StoreEffectivenessReportRequest extends FormRequest
         }
     }
 }
+
+
+

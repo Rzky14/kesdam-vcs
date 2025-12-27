@@ -57,7 +57,7 @@ class CorrectionRequest extends Model
      */
     public function dokumen()
     {
-        return $this->belongsTo(Dokumen::class, 'document_id');
+        return $this->belongsTo(Surat::class, 'document_id');
     }
 
     /**
@@ -386,3 +386,6 @@ class CorrectionRequest extends Model
         return $this->ambilHariTersisa();
     }
 }
+
+
+

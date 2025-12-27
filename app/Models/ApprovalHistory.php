@@ -35,7 +35,7 @@ class ApprovalHistory extends Model
      */
     public function dokumen()
     {
-        return $this->belongsTo(Dokumen::class, 'document_id');
+        return $this->belongsTo(Surat::class, 'document_id');
     }
 
     /**
@@ -165,3 +165,6 @@ class ApprovalHistory extends Model
         return $colors[$this->status] ?? 'secondary';
     }
 }
+
+
+

@@ -94,7 +94,7 @@ class ApprovalSignature extends Model
     public function dokumen()
     {
         return $this->hasOneThrough(
-            Dokumen::class,
+            Surat::class,
             ApprovalHistory::class,
             'id',
             'id',
@@ -233,3 +233,6 @@ class ApprovalSignature extends Model
         return $this->apakahValid();
     }
 }
+
+
+

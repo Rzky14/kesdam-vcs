@@ -69,3 +69,4 @@
     <p>Belum punya akun? <a href="{{ route('register') }}">Daftar Sekarang</a></p>
 </div>
 @endsection
+

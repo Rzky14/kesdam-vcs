@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Document;
+use App\Models\Surat;
+use App\Models\SuratMasuk;
+use App\Models\SuratKeluar;
 use App\Services\EncryptionService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -11,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
 
-class DocumentController extends Controller
+class SuratController extends Controller
 {
     use AuthorizesRequests;
     
@@ -27,9 +29,9 @@ class DocumentController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Document::class);
+        $this->authorize('viewAny', Surat::class);
 
-        $query = Document::with(['creator', 'updater']);
+        $query = Surat::with(['creator', 'updater']);
 
         // Search by subject or number
         if ($request->filled('search')) {
@@ -72,7 +74,7 @@ class DocumentController extends Controller
 
         $documents = $query->paginate(15)->withQueryString();
 
-        return view('documents.index', compact('documents'));
+        return view('surat.index', compact('documents'));
     }
 
     /**
@@ -80,11 +82,11 @@ class DocumentController extends Controller
      */
     public function create(Request $request)
     {
-        $this->authorize('create', Document::class);
+        $this->authorize('create', Surat::class);
 
         $type = $request->query('type', 'masuk');
 
-        return view('documents.create', compact('type'));
+        return view('surat.create', compact('type'));
     }
 
     /**
@@ -92,7 +94,7 @@ class DocumentController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize('create', Document::class);
+        $this->authorize('create', Surat::class);
 
         $validated = $request->validate([
             'type' => ['required', Rule::in(['masuk', 'keluar'])],
@@ -140,17 +142,17 @@ class DocumentController extends Controller
         $validated['created_by'] = Auth::id();
         $validated['status'] = 'draft';
 
-        $document = Document::create($validated);
+        $document = Surat::create($validated);
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('surat.show', $document)
             ->with('success', 'Dokumen berhasil dibuat.');
     }
 
     /**
      * Display the specified document.
      */
-    public function show(Document $document)
+    public function show(Surat $document)
     {
         $this->authorize('view', $document);
 
@@ -169,20 +171,20 @@ class DocumentController extends Controller
             }
         }
 
-        return view('documents.show', compact('document'));
+        return view('surat.show', compact('document'));
     }
 
     /**
      * Show the form for editing the specified document.
      */
-    public function edit(Document $document)
+    public function edit(Surat $document)
     {
         $this->authorize('update', $document);
 
         // Only allow editing draft or rejected documents
         if (!in_array($document->status, ['draft', 'rejected'])) {
             return redirect()
-                ->route('documents.show', $document)
+                ->route('surat.show', $document)
                 ->with('error', 'Hanya dokumen dengan status Draft atau Ditolak yang dapat diedit.');
         }
 
@@ -198,20 +200,20 @@ class DocumentController extends Controller
             }
         }
 
-        return view('documents.edit', compact('document'));
+        return view('surat.edit', compact('document'));
     }
 
     /**
      * Update the specified document in storage.
      */
-    public function update(Request $request, Document $document)
+    public function update(Request $request, Surat $document)
     {
         $this->authorize('update', $document);
 
         // Only allow editing draft or rejected documents
         if (!in_array($document->status, ['draft', 'rejected'])) {
             return redirect()
-                ->route('documents.show', $document)
+                ->route('surat.show', $document)
                 ->with('error', 'Hanya dokumen dengan status Draft atau Ditolak yang dapat diedit.');
         }
 
@@ -270,21 +272,21 @@ class DocumentController extends Controller
         $document->update($validated);
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('surat.show', $document)
             ->with('success', 'Dokumen berhasil diperbarui.');
     }
 
     /**
      * Remove the specified document from storage.
      */
-    public function destroy(Document $document)
+    public function destroy(Surat $document)
     {
         $this->authorize('delete', $document);
 
         // Only allow deleting draft documents
         if ($document->status !== 'draft') {
             return redirect()
-                ->route('documents.index')
+                ->route('surat.index')
                 ->with('error', 'Hanya dokumen dengan status Draft yang dapat dihapus.');
         }
 
@@ -298,20 +300,20 @@ class DocumentController extends Controller
         $document->delete();
 
         return redirect()
-            ->route('documents.index')
+            ->route('surat.index')
             ->with('success', 'Dokumen berhasil dihapus.');
     }
 
     /**
      * Submit document for approval.
      */
-    public function submit(Document $document)
+    public function submit(Surat $document)
     {
         $this->authorize('update', $document);
 
         if ($document->status !== 'draft') {
             return redirect()
-                ->route('documents.show', $document)
+                ->route('surat.show', $document)
                 ->with('error', 'Hanya dokumen dengan status Draft yang dapat diajukan.');
         }
 
@@ -321,20 +323,20 @@ class DocumentController extends Controller
         ]);
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('surat.show', $document)
             ->with('success', 'Dokumen berhasil diajukan untuk persetujuan.');
     }
 
     /**
      * Archive the document.
      */
-    public function archive(Document $document)
+    public function archive(Surat $document)
     {
         $this->authorize('update', $document);
 
         if ($document->status !== 'approved') {
             return redirect()
-                ->route('documents.show', $document)
+                ->route('surat.show', $document)
                 ->with('error', 'Hanya dokumen yang sudah disetujui yang dapat diarsipkan.');
         }
 
@@ -345,14 +347,14 @@ class DocumentController extends Controller
         ]);
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('surat.show', $document)
             ->with('success', 'Dokumen berhasil diarsipkan.');
     }
 
     /**
      * Download document attachment.
      */
-    public function download(Document $document, $attachmentIndex)
+    public function download(Surat $document, $attachmentIndex)
     {
         $this->authorize('view', $document);
 
@@ -390,7 +392,7 @@ class DocumentController extends Controller
         $month = date('m');
 
         // Get the last document number for this type, classification, and month
-        $lastDocument = Document::where('type', $type)
+        $lastDocument = Surat::where('type', $type)
             ->where('classification', $classification)
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
@@ -407,10 +409,32 @@ class DocumentController extends Controller
             }
         }
 
-        $number = str_pad($sequenceNumber, 4, '0', STR_PAD_LEFT);
-
+        // Loop untuk menghindari duplicate number
+        $maxAttempts = 100;
+        $attempt = 0;
+        
+        do {
+            $number = str_pad($sequenceNumber + $attempt, 4, '0', STR_PAD_LEFT);
+            $generatedNumber = $classPrefix 
+                ? "{$prefix}-{$classPrefix}/{$number}/{$month}/{$year}" 
+                : "{$prefix}/{$number}/{$month}/{$year}";
+            
+            // Cek apakah nomor sudah ada
+            $exists = Surat::where('number', $generatedNumber)->exists();
+            
+            if (!$exists) {
+                return $generatedNumber;
+            }
+            
+            $attempt++;
+        } while ($attempt < $maxAttempts);
+        
+        // Fallback jika sudah mencoba 100 kali
         return $classPrefix 
-            ? "{$prefix}-{$classPrefix}/{$number}/{$month}/{$year}" 
+            ? "{$prefix}-{$classPrefix}/" . uniqid() . "/{$month}/{$year}" 
             : "{$prefix}/{$number}/{$month}/{$year}";
     }
 }
+
+
+

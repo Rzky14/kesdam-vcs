@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
  * Sesuai dengan UML Class Diagram.
  * 
  * @property int $id ID Lampiran
- * @property int $dokumen_id ID Dokumen terkait
+ * @property int $surat_id ID Dokumen terkait
  * @property string $nama_file Nama file asli
  * @property string $tipe_file Tipe/ekstensi file
  * @property int $ukuran_file Ukuran file dalam bytes
@@ -87,7 +87,7 @@ class Lampiran extends Model
      */
     public function dokumen()
     {
-        return $this->belongsTo(Dokumen::class, 'dokumen_id');
+        return $this->belongsTo(Surat::class, 'dokumen_id');
     }
 
     /**
@@ -109,16 +109,16 @@ class Lampiran extends Model
      * Sesuai UML: +unggah(): void
      *
      * @param \Illuminate\Http\UploadedFile $file
-     * @param int $dokumenId ID dokumen yang dilampiri
+     * @param int $suratId ID dokumen yang dilampiri
      * @param string $direktori Direktori penyimpanan
      * @return static
      */
-    public static function unggah($file, int $dokumenId, string $direktori = 'lampiran'): self
+    public static function unggah($file, int $suratId, string $direktori = 'lampiran'): self
     {
         $path = $file->store($direktori);
         
         return static::create([
-            'dokumen_id' => $dokumenId,
+            'dokumen_id' => $suratId,
             'nama_file' => $file->getClientOriginalName(),
             'tipe_file' => $file->getClientOriginalExtension(),
             'ukuran_file' => $file->getSize(),
@@ -192,12 +192,12 @@ class Lampiran extends Model
      * Scope untuk mendapatkan lampiran milik dokumen tertentu.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param int $dokumenId
+     * @param int $suratId
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeUntukDokumen($query, int $dokumenId)
+    public function scopeUntukDokumen($query, int $suratId)
     {
-        return $query->where('dokumen_id', $dokumenId);
+        return $query->where('dokumen_id', $suratId);
     }
 
     // ==========================================
@@ -246,3 +246,6 @@ class Lampiran extends Model
         return null;
     }
 }
+
+
+

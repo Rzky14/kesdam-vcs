@@ -123,3 +123,6 @@ class ApprovalRolePermission extends Model
         return $labels[$this->action] ?? $this->action;
     }
 }
+
+
+

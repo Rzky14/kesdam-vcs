@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,14 +13,14 @@ class ApprovalRequestNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected Dokumen $document;
+    protected Surat $document;
     protected User $submitter;
     protected int $currentLevel;
 
     /**
     * Buat instance notifikasi baru.
      */
-    public function __construct(Dokumen $document, User $submitter, int $currentLevel)
+    public function __construct(Surat $document, User $submitter, int $currentLevel)
     {
         $this->document = $document;
         $this->submitter = $submitter;
@@ -91,3 +91,6 @@ class ApprovalRequestNotification extends Notification implements ShouldQueue
         ];
     }
 }
+
+
+

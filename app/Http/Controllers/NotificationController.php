@@ -210,3 +210,6 @@ class NotificationController extends Controller
             ->with('success', 'Semua notifikasi berhasil dihapus');
     }
 }
+
+
+

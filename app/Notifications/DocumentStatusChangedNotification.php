@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Dokumen;
+use App\Models\Surat;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -12,14 +12,14 @@ class DocumentStatusChangedNotification extends Notification implements ShouldQu
 {
     use Queueable;
 
-    protected Dokumen $document;
+    protected Surat $document;
     protected string $oldStatus;
     protected string $newStatus;
 
     /**
     * Buat instance notifikasi baru.
      */
-    public function __construct(Dokumen $document, string $oldStatus, string $newStatus)
+    public function __construct(Surat $document, string $oldStatus, string $newStatus)
     {
         $this->document = $document;
         $this->oldStatus = $oldStatus;
@@ -95,3 +95,6 @@ class DocumentStatusChangedNotification extends Notification implements ShouldQu
         ];
     }
 }
+
+
+

@@ -110,3 +110,6 @@ class ProfileController extends Controller
             ->with('success', 'Password berhasil diubah.');
     }
 }
+
+
+

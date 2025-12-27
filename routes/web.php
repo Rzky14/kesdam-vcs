@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SuratController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReportController;
@@ -46,15 +47,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('schedules', \App\Http\Controllers\ScheduleController::class);
     
     // Document Management Routes (requires documents.* permissions)
-    Route::resource('documents', \App\Http\Controllers\DokumenController::class);
-    Route::post('/documents/{document}/submit', [\App\Http\Controllers\DokumenController::class, 'submit'])->name('documents.submit');
-    Route::post('/documents/{document}/archive', [\App\Http\Controllers\DokumenController::class, 'archive'])->name('documents.archive');
-    Route::get('/documents/{document}/download/{attachmentIndex}', [\App\Http\Controllers\DokumenController::class, 'download'])->name('documents.download');
+    Route::resource('surat', SuratController::class);
+    Route::post('/surat/{surat}/submit', [SuratController::class, 'submit'])->name('surat.submit');
+    Route::post('/surat/{surat}/archive', [SuratController::class, 'archive'])->name('surat.archive');
+    Route::get('/surat/{surat}/download/{attachmentIndex}', [SuratController::class, 'download'])->name('surat.download');
     
     // Document Approval Actions (directly from document detail page)
-    Route::post('/documents/{document}/approve', [\App\Http\Controllers\DokumenController::class, 'approve'])->name('documents.approve');
-    Route::post('/documents/{document}/reject', [\App\Http\Controllers\DokumenController::class, 'reject'])->name('documents.reject');
-    Route::post('/documents/{document}/request-correction', [\App\Http\Controllers\DokumenController::class, 'requestCorrection'])->name('documents.request-correction');
+    Route::post('/surat/{surat}/approve', [SuratController::class, 'approve'])->name('surat.approve');
+    Route::post('/surat/{surat}/reject', [SuratController::class, 'reject'])->name('surat.reject');
+    Route::post('/surat/{surat}/request-correction', [SuratController::class, 'requestCorrection'])->name('surat.request-correction');
     
     // Approval Workflow Routes (requires approval permissions)
     Route::prefix('approvals')->name('approvals.')->group(function () {

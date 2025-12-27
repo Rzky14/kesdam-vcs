@@ -426,27 +426,27 @@
     
     <div class="header-actions">
         <div class="tabs">
-            <a href="{{ route('documents.index') }}" class="tab-item {{ !request('type') ? 'active' : '' }}">
+            <a href="{{ route('surat.index') }}" class="tab-item {{ !request('type') ? 'active' : '' }}">
                 Surat Masuk
             </a>
-            <a href="{{ route('documents.index', ['type' => 'keluar']) }}" class="tab-item {{ request('type') == 'keluar' ? 'active' : '' }}">
+            <a href="{{ route('surat.index', ['type' => 'keluar']) }}" class="tab-item {{ request('type') == 'keluar' ? 'active' : '' }}">
                 Surat Keluar
             </a>
-            <a href="{{ route('documents.index', ['status' => 'archived']) }}" class="tab-item {{ request('status') == 'archived' ? 'active' : '' }}">
+            <a href="{{ route('surat.index', ['status' => 'archived']) }}" class="tab-item {{ request('status') == 'archived' ? 'active' : '' }}">
                 Arsip
             </a>
         </div>
         
         <div class="btn-group">
-            @can('create', App\Models\Dokumen::class)
-                <a href="{{ route('documents.create', ['type' => 'masuk']) }}" class="btn btn-outline">
+            @can('create', App\Models\Surat::class)
+                <a href="{{ route('surat.create', ['type' => 'masuk']) }}" class="btn btn-outline">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
                         <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
                     </svg>
                     Upload Surat Masuk
                 </a>
-                <a href="{{ route('documents.create', ['type' => 'keluar']) }}" class="btn btn-primary">
+                <a href="{{ route('surat.create', ['type' => 'keluar']) }}" class="btn btn-primary">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
                     </svg>
@@ -471,7 +471,7 @@
     <div class="filter-bar">
         <div class="search-box">
             <span class="search-icon">🔍</span>
-            <form method="GET" action="{{ route('documents.index') }}" style="margin: 0;">
+            <form method="GET" action="{{ route('surat.index') }}" style="margin: 0;">
                 <input type="hidden" name="type" value="{{ request('type') }}">
                 <input type="hidden" name="classification" value="{{ request('classification') }}">
                 <input type="hidden" name="status" value="{{ request('status') }}">
@@ -547,7 +547,7 @@
             </div>
             
             <div class="document-actions">
-                <a href="{{ route('documents.show', $document) }}" class="btn-icon" title="Lihat Detail">
+                <a href="{{ route('surat.show', $document) }}" class="btn-icon" title="Lihat Detail">
                     <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
                         <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
@@ -555,7 +555,7 @@
                 </a>
                 
                 @if($document->attachments && count($document->attachments) > 0)
-                <a href="{{ route('documents.download', [$document, 0]) }}" class="btn-icon" title="Download">
+                <a href="{{ route('surat.download', [$document, 0]) }}" class="btn-icon" title="Download">
                     <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
                         <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
@@ -564,7 +564,7 @@
                 @endif
                 
                 @can('update', $document)
-                <a href="{{ route('documents.edit', $document) }}" class="btn-icon" title="Edit">
+                <a href="{{ route('surat.edit', $document) }}" class="btn-icon" title="Edit">
                     <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
                         <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
@@ -573,7 +573,7 @@
                 @endcan
                 
                 @can('delete', $document)
-                <form method="POST" action="{{ route('documents.destroy', $document) }}" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus dokumen ini?')">
+                <form method="POST" action="{{ route('surat.destroy', $document) }}" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus dokumen ini?')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn-icon" title="Hapus" style="color: #d32f2f;">
@@ -608,7 +608,7 @@
 <div id="filterModal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
     <div style="background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px;">
         <h3 style="margin-top: 0;">Filter Dokumen</h3>
-        <form method="GET" action="{{ route('documents.index') }}">
+        <form method="GET" action="{{ route('surat.index') }}">
             <input type="hidden" name="type" value="{{ request('type') }}">
             <input type="hidden" name="search" value="{{ request('search') }}">
             
@@ -670,3 +670,4 @@ document.getElementById('filterModal').addEventListener('click', function(e) {
 });
 </script>
 @endsection
+

@@ -141,3 +141,6 @@ class AuditLog extends Model
         return static::catat($event, $model, $oldValues, $newValues, $description);
     }
 }
+
+
+

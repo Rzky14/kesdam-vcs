@@ -86,3 +86,6 @@ class Kasi extends User
         // Implementasi untuk membuat laporan bulanan
     }
 }
+
+
+

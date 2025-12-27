@@ -13,7 +13,7 @@ namespace App\Models;
  * @property \Carbon\Carbon $tanggal_diterima Tanggal surat diterima
  * @property string $no_surat_pengirim Nomor surat dari pengirim
  */
-class SuratMasuk extends Dokumen
+class SuratMasuk extends Surat
 {
     /**
      * Tipe dokumen untuk model ini.
@@ -168,3 +168,6 @@ class SuratMasuk extends Dokumen
         return $this->status !== 'draft';
     }
 }
+
+
+

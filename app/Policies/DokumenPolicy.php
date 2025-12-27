@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
@@ -26,11 +26,11 @@ class DokumenPolicy
     /**
      * Menentukan apakah pengguna dapat melihat dokumen.
      */
-    public function view(User $user, Dokumen $dokumen): bool
+    public function view(User $user, Surat $surat): bool
     {
         // Pengguna dapat melihat dokumen jika memiliki izin
         // Dokumen rahasia memerlukan izin khusus
-        if ($dokumen->adalahRahasia()) {
+        if ($surat->adalahRahasia()) {
             return $user->hasPermission('view_classified_documents');
         }
 
@@ -49,20 +49,20 @@ class DokumenPolicy
     /**
      * Menentukan apakah pengguna dapat memperbarui dokumen.
      */
-    public function update(User $user, Dokumen $dokumen): bool
+    public function update(User $user, Surat $surat): bool
     {
         // Admin dapat memperbarui dokumen draft atau ditolak apapun
         if ($user->hasRole('Admin Sistem')) {
-            return in_array($dokumen->status, ['draft', 'rejected']);
+            return in_array($surat->status, ['draft', 'rejected']);
         }
 
         // Pengguna hanya dapat memperbarui dokumen draft atau ditolak miliknya sendiri
-        if ($dokumen->created_by === $user->id && in_array($dokumen->status, ['draft', 'rejected'])) {
+        if ($surat->created_by === $user->id && in_array($surat->status, ['draft', 'rejected'])) {
             return $user->hasPermission('edit_documents');
         }
 
         // Pimpinan dan Kasi/Kaur dapat memperbarui dokumen draft atau ditolak untuk keperluan alur kerja
-        if ($user->hasAnyRole(['Pimpinan/Pejabat Tinggi', 'Kasi/Kaur']) && in_array($dokumen->status, ['draft', 'rejected'])) {
+        if ($user->hasAnyRole(['Pimpinan/Pejabat Tinggi', 'Kasi/Kaur']) && in_array($surat->status, ['draft', 'rejected'])) {
             return $user->hasPermission('approve_documents');
         }
 
@@ -72,23 +72,23 @@ class DokumenPolicy
     /**
      * Menentukan apakah pengguna dapat menghapus dokumen.
      */
-    public function delete(User $user, Dokumen $dokumen): bool
+    public function delete(User $user, Surat $surat): bool
     {
         // Admin dapat menghapus dokumen draft apapun
         if ($user->hasRole('Admin Sistem')) {
-            return $dokumen->adalahDraf();
+            return $surat->adalahDraf();
         }
 
         // Pengguna hanya dapat menghapus dokumen draft miliknya sendiri
-        return $dokumen->created_by === $user->id 
-            && $dokumen->adalahDraf() 
+        return $surat->created_by === $user->id 
+            && $surat->adalahDraf() 
             && $user->hasPermission('delete_documents');
     }
 
     /**
      * Menentukan apakah pengguna dapat memulihkan dokumen.
      */
-    public function restore(User $user, Dokumen $dokumen): bool
+    public function restore(User $user, Surat $surat): bool
     {
         // Hanya admin yang dapat memulihkan dokumen yang dihapus
         return $user->hasRole('Admin Sistem');
@@ -97,7 +97,7 @@ class DokumenPolicy
     /**
      * Menentukan apakah pengguna dapat menghapus permanen dokumen.
      */
-    public function forceDelete(User $user, Dokumen $dokumen): bool
+    public function forceDelete(User $user, Surat $surat): bool
     {
         // Hanya admin yang dapat menghapus permanen dokumen
         return $user->hasRole('Admin Sistem');
@@ -107,10 +107,10 @@ class DokumenPolicy
      * Menentukan apakah pengguna dapat menyetujui dokumen.
      * Pengguna harus memiliki role yang sesuai untuk level persetujuan saat ini.
      */
-    public function approve(User $user, Dokumen $dokumen): bool
+    public function approve(User $user, Surat $surat): bool
     {
         // Dokumen harus dalam status menunggu persetujuan
-        if (!$dokumen->adalahMenungguPersetujuan()) {
+        if (!$surat->adalahMenungguPersetujuan()) {
             return false;
         }
 
@@ -120,7 +120,7 @@ class DokumenPolicy
         }
 
         // Periksa apakah pengguna memiliki peran yang sesuai untuk level persetujuan saat ini
-        $currentLevel = $dokumen->ambilLevelPersetujuanSaatIni();
+        $currentLevel = $surat->ambilLevelPersetujuanSaatIni();
         
         return match($currentLevel) {
             0 => $user->hasRole('kaur'),        // Level 1: KAUR
@@ -133,27 +133,30 @@ class DokumenPolicy
     /**
      * Menentukan apakah pengguna dapat menolak dokumen.
      */
-    public function reject(User $user, Dokumen $dokumen): bool
+    public function reject(User $user, Surat $surat): bool
     {
         // Otorisasi sama dengan menyetujui
-        return $this->approve($user, $dokumen);
+        return $this->approve($user, $surat);
     }
 
     /**
      * Menentukan apakah pengguna dapat meminta koreksi.
      */
-    public function requestCorrection(User $user, Dokumen $dokumen): bool
+    public function requestCorrection(User $user, Surat $surat): bool
     {
         // Otorisasi sama dengan menyetujui
-        return $this->approve($user, $dokumen);
+        return $this->approve($user, $surat);
     }
 
     /**
      * Menentukan apakah pengguna dapat mengarsipkan dokumen.
      */
-    public function archive(User $user, Dokumen $dokumen): bool
+    public function archive(User $user, Surat $surat): bool
     {
         // Pengguna dengan izin arsip dapat mengarsipkan dokumen yang sudah disetujui
-        return $user->hasPermission('archive_documents') && $dokumen->adalahDisetujui();
+        return $user->hasPermission('archive_documents') && $surat->adalahDisetujui();
     }
 }
+
+
+

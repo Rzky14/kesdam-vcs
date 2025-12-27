@@ -81,7 +81,7 @@
                                     @forelse($pendingApprovals as $doc)
                                         <tr>
                                             <td>
-                                                <a href="{{ route('documents.show', $doc) }}">
+                                                <a href="{{ route('surat.show', $doc) }}">
                                                     {{ $doc->subject }}
                                                 </a>
                                             </td>
@@ -150,7 +150,7 @@
                                 @forelse($recentApprovals as $approval)
                                     <tr>
                                         <td>
-                                            <a href="{{ route('documents.show', $approval->document) }}">
+                                            <a href="{{ route('surat.show', $approval->document) }}">
                                                 {{ $approval->document->subject }}
                                             </a>
                                         </td>
@@ -200,3 +200,4 @@
 </style>
 @endpush
 @endsection
+

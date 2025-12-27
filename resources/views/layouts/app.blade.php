@@ -517,7 +517,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('documents.index') }}" class="{{ request()->routeIs('documents.*') ? 'active' : '' }}">
+                    <a href="{{ route('surat.index') }}" class="{{ request()->routeIs('surat.*') ? 'active' : '' }}">
                         <i class="fas fa-envelope"></i> Surat Menyurat
                     </a>
                 </li>
@@ -757,3 +757,4 @@
     </script>
 </body>
 </html>
+

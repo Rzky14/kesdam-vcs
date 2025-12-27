@@ -14,7 +14,7 @@ namespace App\Models;
  * @property \Carbon\Carbon $tanggal_dikirim Tanggal surat dikirim
  * @property string $no_surat_internal Nomor surat internal
  */
-class SuratKeluar extends Dokumen
+class SuratKeluar extends Surat
 {
     /**
      * Tipe dokumen untuk model ini.
@@ -245,3 +245,6 @@ class SuratKeluar extends Dokumen
         $this->save();
     }
 }
+
+
+

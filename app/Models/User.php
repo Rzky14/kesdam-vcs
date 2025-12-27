@@ -351,3 +351,6 @@ class User extends Authenticatable
         return $preferensi ? $preferensi->email_enabled : false; // Default: nonaktif
     }
 }
+
+
+

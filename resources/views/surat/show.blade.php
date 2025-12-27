@@ -4,11 +4,11 @@
 <div class="container">
     <div class="row mb-4">
         <div class="col-md-8">
-            <h2>Detail Dokumen</h2>
+            <h2>Detail Surat</h2>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('documents.index') }}">Dokumen</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('surat.index') }}">Surat</a></li>
                     <li class="breadcrumb-item active">{{ $document->number }}</li>
                 </ol>
             </nav>
@@ -16,7 +16,7 @@
         <div class="col-md-4 text-end">
             @can('update', $document)
                 @if(in_array($document->status, ['draft', 'rejected']))
-                    <a href="{{ route('documents.edit', $document) }}" class="btn btn-warning">
+                    <a href="{{ route('surat.edit', $document) }}" class="btn btn-warning">
                         <i class="bi bi-pencil"></i> Edit
                     </a>
                 @else
@@ -24,18 +24,18 @@
                 @endif
                 
                 @if($document->isDraft())
-                    <form action="{{ route('documents.submit', $document) }}" method="POST" class="d-inline">
+                    <form action="{{ route('surat.submit', $document) }}" method="POST" class="d-inline">
                         @csrf
-                        <button type="submit" class="btn btn-success" onclick="return confirm('Ajukan dokumen ini untuk persetujuan?')">
+                        <button type="submit" class="btn btn-success" onclick="return confirm('Ajukan surat ini untuk persetujuan?')">
                             <i class="bi bi-send"></i> Ajukan
                         </button>
                     </form>
                 @endif
 
                 @if($document->isApproved())
-                    <form action="{{ route('documents.archive', $document) }}" method="POST" class="d-inline">
+                    <form action="{{ route('surat.archive', $document) }}" method="POST" class="d-inline">
                         @csrf
-                        <button type="submit" class="btn btn-info" onclick="return confirm('Arsipkan dokumen ini?')">
+                        <button type="submit" class="btn btn-info" onclick="return confirm('Arsipkan surat ini?')">
                             <i class="bi bi-archive"></i> Arsipkan
                         </button>
                     </form>
@@ -44,10 +44,10 @@
 
             @can('delete', $document)
                 @if($document->isDraft())
-                    <form action="{{ route('documents.destroy', $document) }}" method="POST" class="d-inline">
+                    <form action="{{ route('surat.destroy', $document) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Hapus dokumen ini?')">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Hapus surat ini?')">
                             <i class="bi bi-trash"></i> Hapus
                         </button>
                     </form>
@@ -174,7 +174,7 @@
                                                 <i class="bi bi-paperclip"></i>
                                                 {{ basename($attachment) }}
                                             </span>
-                                            <a href="{{ route('documents.download', [$document, $index]) }}" 
+                                            <a href="{{ route('surat.download', [$document, $index]) }}" 
                                                class="btn btn-sm" style="color: #1a472a; border-color: #1a472a;">
                                                 <i class="bi bi-download"></i> Download
                                             </a>
@@ -344,7 +344,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ route('documents.index') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('surat.index') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Kembali ke Daftar
                         </a>
 
@@ -377,7 +377,7 @@
                                 <i class="bi bi-file-earmark"></i>
                                 <strong>{{ basename($attachment) }}</strong>
                             </div>
-                            <a href="{{ route('documents.download', [$document, $index]) }}" 
+                            <a href="{{ route('surat.download', [$document, $index]) }}" 
                                class="btn btn-sm" style="background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%); color: #d4af37; border: 1px solid #d4af37;">
                                 <i class="bi bi-download"></i> Download
                             </a>
@@ -394,7 +394,7 @@
 <div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ route('documents.approve', $document) }}">
+            <form method="POST" action="{{ route('surat.approve', $document) }}">
                 @csrf
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title" id="approveModalLabel">
@@ -442,7 +442,7 @@
 <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ route('documents.reject', $document) }}">
+            <form method="POST" action="{{ route('surat.reject', $document) }}">
                 @csrf
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="rejectModalLabel">
@@ -494,7 +494,7 @@
 <div class="modal fade" id="correctionModal" tabindex="-1" aria-labelledby="correctionModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ route('documents.request-correction', $document) }}">
+            <form method="POST" action="{{ route('surat.request-correction', $document) }}">
                 @csrf
                 <div class="modal-header bg-warning text-dark">
                     <h5 class="modal-title" id="correctionModalLabel">
@@ -543,5 +543,6 @@
 </div>
 
 @endsection
+
 
 

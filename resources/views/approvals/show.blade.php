@@ -11,7 +11,7 @@
             <p class="text-muted">{{ $document->subject }}</p>
         </div>
         <div class="col-md-4 text-end">
-            <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">
+            <a href="{{ route('surat.show', $document) }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Document
             </a>
         </div>
@@ -240,3 +240,4 @@
 </style>
 @endpush
 @endsection
+

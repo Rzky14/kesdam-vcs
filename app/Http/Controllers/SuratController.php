@@ -9,6 +9,7 @@ use App\Services\EncryptionService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
@@ -109,14 +110,6 @@ class SuratController extends Controller
             'attachments.*' => ['nullable', 'file', 'max:10240'], // 10MB max per file
         ]);
 
-        // Generate document number if not provided
-        if (empty($validated['number'])) {
-            $validated['number'] = $this->generateDocumentNumber(
-                $validated['type'],
-                $validated['classification']
-            );
-        }
-
         // Handle file uploads
         $attachmentPaths = [];
         if ($request->hasFile('attachments')) {
@@ -142,7 +135,35 @@ class SuratController extends Controller
         $validated['created_by'] = Auth::id();
         $validated['status'] = 'draft';
 
-        $document = Surat::create($validated);
+        // Gunakan transaction dengan retry untuk handle race condition
+        $maxRetries = 3;
+        $document = null;
+        
+        for ($i = 0; $i < $maxRetries; $i++) {
+            try {
+                // Generate document number sebelum transaction
+                if (empty($validated['number'])) {
+                    $validated['number'] = $this->generateDocumentNumber(
+                        $validated['type'],
+                        $validated['classification']
+                    );
+                }
+                
+                // Create dalam transaction
+                $document = DB::transaction(function () use ($validated) {
+                    return Surat::create($validated);
+                });
+                
+                break; // Success, keluar dari loop
+            } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                if ($i === $maxRetries - 1) {
+                    throw $e; // Retry terakhir gagal, throw error
+                }
+                // Retry dengan generate nomor baru
+                $validated['number'] = null; // Reset nomor untuk regenerate
+                usleep(100000); // Sleep 100ms sebelum retry
+            }
+        }
 
         return redirect()
             ->route('surat.show', $document)
@@ -391,48 +412,58 @@ class SuratController extends Controller
         $year = date('Y');
         $month = date('m');
 
-        // Get the last document number for this type, classification, and month
-        $lastDocument = Surat::where('type', $type)
+        // Cari semua nomor untuk type dan classification yang sama di bulan/tahun ini
+        // INCLUDE soft deleted karena unique constraint tetap berlaku
+        $existingNumbers = Surat::withTrashed()
+            ->where('type', $type)
             ->where('classification', $classification)
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
-            ->orderBy('number', 'desc')
-            ->first();
+            ->pluck('number');
 
-        $sequenceNumber = 1;
-        
-        if ($lastDocument) {
-            // Extract sequence number from last document number
-            preg_match('/(\d+)\//', $lastDocument->number, $matches);
-            if (!empty($matches[1])) {
-                $sequenceNumber = intval($matches[1]) + 1;
+        // Extract semua nomor urut yang ada
+        $sequenceNumbers = [];
+        foreach ($existingNumbers as $num) {
+            // Pattern: SM/0001/12/2025 atau SM-R/0001/12/2025 atau SM-T/0001/12/2025
+            if (preg_match('/[A-Z-]+\/(\d+)\/\d{2}\/\d{4}$/', $num, $matches)) {
+                $sequenceNumbers[] = intval($matches[1]);
             }
         }
 
-        // Loop untuk menghindari duplicate number
-        $maxAttempts = 100;
+        // Cari nomor urut berikutnya yang available
+        $sequenceNumber = 1;
+        while (in_array($sequenceNumber, $sequenceNumbers)) {
+            $sequenceNumber++;
+        }
+
+        // Generate nomor final
+        $number = str_pad($sequenceNumber, 4, '0', STR_PAD_LEFT);
+        $generatedNumber = $classPrefix 
+            ? "{$prefix}-{$classPrefix}/{$number}/{$month}/{$year}" 
+            : "{$prefix}/{$number}/{$month}/{$year}";
+        
+        // Double check tidak ada duplicate
+        $maxAttempts = 50;
         $attempt = 0;
         
-        do {
-            $number = str_pad($sequenceNumber + $attempt, 4, '0', STR_PAD_LEFT);
+        while (Surat::where('number', $generatedNumber)->exists() && $attempt < $maxAttempts) {
+            $sequenceNumber++;
+            $number = str_pad($sequenceNumber, 4, '0', STR_PAD_LEFT);
             $generatedNumber = $classPrefix 
                 ? "{$prefix}-{$classPrefix}/{$number}/{$month}/{$year}" 
                 : "{$prefix}/{$number}/{$month}/{$year}";
-            
-            // Cek apakah nomor sudah ada
-            $exists = Surat::where('number', $generatedNumber)->exists();
-            
-            if (!$exists) {
-                return $generatedNumber;
-            }
-            
             $attempt++;
-        } while ($attempt < $maxAttempts);
+        }
         
-        // Fallback jika sudah mencoba 100 kali
-        return $classPrefix 
-            ? "{$prefix}-{$classPrefix}/" . uniqid() . "/{$month}/{$year}" 
-            : "{$prefix}/{$number}/{$month}/{$year}";
+        if ($attempt >= $maxAttempts) {
+            // Fallback dengan uniqid jika masih bentrok
+            $uniqueId = uniqid();
+            return $classPrefix 
+                ? "{$prefix}-{$classPrefix}/{$uniqueId}/{$month}/{$year}" 
+                : "{$prefix}/{$uniqueId}/{$month}/{$year}";
+        }
+        
+        return $generatedNumber;
     }
 }
 

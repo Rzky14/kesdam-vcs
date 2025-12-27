@@ -74,6 +74,8 @@ class Dokumen extends Model
     protected $casts = [
         'date' => 'date',
         'archived_at' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
         'attachments' => 'array',
         'is_encrypted' => 'boolean',
     ];
@@ -191,9 +193,43 @@ class Dokumen extends Model
         return $this->batasWaktuPersetujuan();
     }
 
+    /**
+     * Mendapatkan semua lampiran file untuk dokumen ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function lampiran()
+    {
+        return $this->hasMany(Lampiran::class, 'dokumen_id');
+    }
+
+    /**
+     * Alias untuk lampiran() - kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function attachmentFiles()
+    {
+        return $this->lampiran();
+    }
+
     // ==========================================
     // HELPER METHODS - STATUS PERSETUJUAN
     // ==========================================
+
+    /**
+     * Mengubah status persetujuan dokumen.
+     * Sesuai UML: +ubahStatusPersetujuan(): void
+     * Method sederhana untuk mengubah status tanpa workflow approval.
+     *
+     * @param string $status Status baru (draft, pending_approval, approved, rejected, archived)
+     * @return void
+     */
+    public function ubahStatusPersetujuan(string $status): void
+    {
+        $this->status = $status;
+        $this->save();
+    }
 
     /**
      * Mendapatkan level persetujuan saat ini.

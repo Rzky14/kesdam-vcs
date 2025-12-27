@@ -206,6 +206,52 @@ class User extends Authenticatable
     }
 
     /**
+     * Cek apakah pengguna adalah admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin_sistem') 
+            || $this->hasRole('admin') 
+            || $this->hasRole('Admin Sistem')
+            || $this->hasRole('Admin');
+    }
+
+    /**
+     * Cek apakah pengguna adalah pimpinan.
+     *
+     * @return bool
+     */
+    public function isPimpinan(): bool
+    {
+        return $this->hasRole('Pimpinan/Pejabat Tinggi')
+            || $this->hasRole('pimpinan');
+    }
+
+    /**
+     * Cek apakah pengguna adalah kasi/kaur.
+     *
+     * @return bool
+     */
+    public function isKasi(): bool
+    {
+        return $this->hasRole('Kasi/Kaur')
+            || $this->hasRole('kasi');
+    }
+
+    /**
+     * Cek apakah pengguna adalah batih/staf.
+     *
+     * @return bool
+     */
+    public function isStaf(): bool
+    {
+        return $this->hasRole('Batih/Staf')
+            || $this->hasRole('staf');
+    }
+
+    /**
      * Dapatkan semua izin untuk pengguna (melalui peran).
      *
      * @return \Illuminate\Support\Collection

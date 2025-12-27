@@ -29,6 +29,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/chart-data', [DashboardController::class, 'getDocumentChartData'])->name('dashboard.chart-data');
+    Route::get('/dashboard/quick-stats', [DashboardController::class, 'getQuickStats'])->name('dashboard.quick-stats');
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
     
     // User Management Routes (requires users.* permissions)
@@ -56,7 +58,6 @@ Route::middleware('auth')->group(function () {
     
     // Approval Workflow Routes (requires approval permissions)
     Route::prefix('approvals')->name('approvals.')->group(function () {
-        Route::get('/dashboard', [ApprovalController::class, 'dashboard'])->name('dashboard');
         Route::get('/pending', [ApprovalController::class, 'pending'])->name('pending');
         Route::get('/corrections', [ApprovalController::class, 'corrections'])->name('corrections');
         
@@ -127,5 +128,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [\App\Http\Controllers\SettingController::class, 'index'])->name('index');
         Route::put('/notifications', [\App\Http\Controllers\SettingController::class, 'updateNotifications'])->name('notifications.update');
         Route::put('/system', [\App\Http\Controllers\SettingController::class, 'updateSystem'])->name('system.update');
+        Route::post('/backup', [\App\Http\Controllers\SettingController::class, 'backup'])->name('backup');
+        Route::get('/integration-config', [\App\Http\Controllers\SettingController::class, 'showIntegrationConfig'])->name('integration.config');
     });
 });

@@ -4,6 +4,12 @@
 
 @section('content')
 <div class="container-fluid py-4">
+    @php
+        $activeSchedules   = $stats['active_schedules'] ?? $stats['my_schedules'] ?? 0;
+        $incomingDocuments = $stats['incoming_documents'] ?? $stats['draft_documents'] ?? 0;
+        $pendingApprovals  = $stats['pending_approvals'] ?? $stats['pending_my_approval'] ?? $stats['pending_approval'] ?? 0;
+        $completedMonth    = $stats['completed_this_month'] ?? 0;
+    @endphp
     <!-- Header -->
     <div class="mb-4">
         <h2 class="text-dark fw-bold mb-1">Dashboard</h2>
@@ -19,7 +25,7 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <p class="text-muted mb-1 small">Jadwal Aktif</p>
-                            <h3 class="fw-bold mb-0">{{ $stats['active_schedules'] }}</h3>
+                            <h3 class="fw-bold mb-0">{{ $activeSchedules }}</h3>
                             <small class="text-muted">+2 dari minggu lalu</small>
                         </div>
                         <div class="bg-light rounded p-2">
@@ -37,7 +43,7 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <p class="text-muted mb-1 small">Surat Masuk</p>
-                            <h3 class="fw-bold mb-0">{{ $stats['incoming_documents'] }}</h3>
+                            <h3 class="fw-bold mb-0">{{ $incomingDocuments }}</h3>
                             <small class="text-muted">Hari ini</small>
                         </div>
                         <div class="bg-light rounded p-2">
@@ -55,7 +61,7 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <p class="text-muted mb-1 small">Menunggu Persetujuan</p>
-                            <h3 class="fw-bold mb-0">{{ $stats['pending_approvals'] }}</h3>
+                            <h3 class="fw-bold mb-0">{{ $pendingApprovals }}</h3>
                             <small class="text-muted">Surat keluar</small>
                         </div>
                         <div class="bg-light rounded p-2">
@@ -73,7 +79,7 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <p class="text-muted mb-1 small">Selesai Bulan Ini</p>
-                            <h3 class="fw-bold mb-0">{{ $stats['completed_this_month'] }}</h3>
+                            <h3 class="fw-bold mb-0">{{ $completedMonth }}</h3>
                             <small class="text-muted">Dokumen</small>
                         </div>
                         <div class="bg-light rounded p-2">

@@ -103,7 +103,7 @@
                             <strong>Tanggal:</strong>
                         </div>
                         <div class="col-md-8">
-                            {{ $document->date->format('d F Y') }}
+                            {{ $document->date ? $document->date->format('d F Y') : '-' }}
                         </div>
                     </div>
 
@@ -112,7 +112,7 @@
                             <strong>{{ $document->isIncoming() ? 'Pengirim' : 'Penerima' }}:</strong>
                         </div>
                         <div class="col-md-8">
-                            {{ $document->isIncoming() ? $document->sender : $document->recipient }}
+                            {{ $document->isIncoming() ? ($document->sender ?? '-') : ($document->recipient ?? '-') }}
                         </div>
                     </div>
 
@@ -198,8 +198,10 @@
                             <strong>Dibuat oleh:</strong>
                         </div>
                         <div class="col-md-8">
-                            {{ $document->creator->name }}
-                            <small class="text-muted">({{ $document->created_at->format('d/m/Y H:i') }})</small>
+                            {{ $document->creator?->name ?? 'Unknown' }}
+                            @if($document->created_at)
+                                <small class="text-muted">({{ $document->created_at->format('d/m/Y H:i') }})</small>
+                            @endif
                         </div>
                     </div>
 
@@ -209,8 +211,10 @@
                                 <strong>Terakhir diubah:</strong>
                             </div>
                             <div class="col-md-8">
-                                {{ $document->updater->name }}
-                                <small class="text-muted">({{ $document->updated_at->format('d/m/Y H:i') }})</small>
+                                {{ $document->updater?->name ?? 'Unknown' }}
+                                @if($document->updated_at)
+                                    <small class="text-muted">({{ $document->updated_at->format('d/m/Y H:i') }})</small>
+                                @endif
                             </div>
                         </div>
                     @endif
@@ -539,3 +543,5 @@
 </div>
 
 @endsection
+
+

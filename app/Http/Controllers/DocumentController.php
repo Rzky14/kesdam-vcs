@@ -2,24 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Dokumen;
+use App\Models\Document;
 use App\Services\EncryptionService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
 
-/**
- * DokumenController
- * 
- * Menangani request HTTP untuk Dokumen.
- * Mengikuti Single Responsibility Principle - hanya menangani layer HTTP.
- * Sesuai dengan UML Class Diagram dan SOLID Principles.
- */
-class DokumenController extends Controller
+class DocumentController extends Controller
 {
     use AuthorizesRequests;
     
@@ -31,13 +23,13 @@ class DokumenController extends Controller
     }
 
     /**
-     * Menampilkan daftar dokumen dengan pencarian dan filter.
+     * Display a listing of documents with search and filter.
      */
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Dokumen::class);
+        $this->authorize('viewAny', Document::class);
 
-        $query = Dokumen::with(['pembuat', 'pengubah']);
+        $query = Document::with(['creator', 'updater']);
 
         // Search by subject or number
         if ($request->filled('search')) {
@@ -80,44 +72,15 @@ class DokumenController extends Controller
 
         $documents = $query->paginate(15)->withQueryString();
 
-        // Decrypt sensitive fields for display
-        foreach ($documents as $document) {
-            if ($document->is_encrypted && $document->classification === 'rahasia') {
-                try {
-                    // Try to decrypt subject
-                    if ($document->subject) {
-                        $decrypted = Crypt::decryptString($document->subject);
-                        $document->subject = $decrypted;
-                    }
-                } catch (\Exception $e) {
-                    // If decrypt fails, data might not be encrypted properly
-                    // Keep original value and mark as non-encrypted to fix
-                    Log::warning("Document {$document->id} marked as encrypted but failed to decrypt subject");
-                    $document->is_encrypted = false;
-                }
-
-                try {
-                    // Try to decrypt description
-                    if ($document->description) {
-                        $decrypted = Crypt::decryptString($document->description);
-                        $document->description = $decrypted;
-                    }
-                } catch (\Exception $e) {
-                    // Keep original if decrypt fails
-                    Log::warning("Document {$document->id} failed to decrypt description");
-                }
-            }
-        }
-
         return view('documents.index', compact('documents'));
     }
 
     /**
-     * Menampilkan form untuk membuat dokumen baru.
+     * Show the form for creating a new document.
      */
     public function create(Request $request)
     {
-        $this->authorize('create', Dokumen::class);
+        $this->authorize('create', Document::class);
 
         $type = $request->query('type', 'masuk');
 
@@ -125,11 +88,11 @@ class DokumenController extends Controller
     }
 
     /**
-     * Menyimpan dokumen baru ke database.
+     * Store a newly created document in storage.
      */
     public function store(Request $request)
     {
-        $this->authorize('create', Dokumen::class);
+        $this->authorize('create', Document::class);
 
         $validated = $request->validate([
             'type' => ['required', Rule::in(['masuk', 'keluar'])],
@@ -141,7 +104,6 @@ class DokumenController extends Controller
             'subject' => ['required', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
             'priority' => ['required', Rule::in(['normal', 'high', 'urgent'])],
-            'attachments' => ['nullable', 'array'],
             'attachments.*' => ['nullable', 'file', 'max:10240'], // 10MB max per file
         ]);
 
@@ -157,12 +119,10 @@ class DokumenController extends Controller
         $attachmentPaths = [];
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
-                $path = $file->store('documents', 'local'); // simpan di storage/app/documents
+                $path = $file->store('documents', 'private');
                 $attachmentPaths[] = $path;
             }
             $validated['attachments'] = $attachmentPaths;
-        } else {
-            $validated['attachments'] = [];
         }
 
         // Set encryption flag for classified documents
@@ -180,7 +140,7 @@ class DokumenController extends Controller
         $validated['created_by'] = Auth::id();
         $validated['status'] = 'draft';
 
-        $document = Dokumen::create($validated);
+        $document = Document::create($validated);
 
         return redirect()
             ->route('documents.show', $document)
@@ -188,16 +148,16 @@ class DokumenController extends Controller
     }
 
     /**
-     * Menampilkan detail dokumen.
+     * Display the specified document.
      */
-    public function show(Dokumen $document)
+    public function show(Document $document)
     {
         $this->authorize('view', $document);
 
         $document->load(['creator', 'updater']);
 
         // Decrypt sensitive fields if needed
-        if ($document->is_encrypted && $document->adalahRahasia()) {
+        if ($document->is_encrypted && $document->isClassified()) {
             try {
                 $document->subject = Crypt::decryptString($document->subject);
                 if (!empty($document->description)) {
@@ -205,7 +165,7 @@ class DokumenController extends Controller
                 }
             } catch (\Exception $e) {
                 // Log error but continue
-                Log::error('Failed to decrypt document: ' . $e->getMessage());
+                \Log::error('Failed to decrypt document: ' . $e->getMessage());
             }
         }
 
@@ -213,9 +173,9 @@ class DokumenController extends Controller
     }
 
     /**
-     * Menampilkan form untuk edit dokumen.
+     * Show the form for editing the specified document.
      */
-    public function edit(Dokumen $document)
+    public function edit(Document $document)
     {
         $this->authorize('update', $document);
 
@@ -227,14 +187,14 @@ class DokumenController extends Controller
         }
 
         // Decrypt sensitive fields if needed
-        if ($document->is_encrypted && $document->adalahRahasia()) {
+        if ($document->is_encrypted && $document->isClassified()) {
             try {
                 $document->subject = Crypt::decryptString($document->subject);
                 if (!empty($document->description)) {
                     $document->description = Crypt::decryptString($document->description);
                 }
             } catch (\Exception $e) {
-                Log::error('Failed to decrypt document: ' . $e->getMessage());
+                \Log::error('Failed to decrypt document: ' . $e->getMessage());
             }
         }
 
@@ -242,9 +202,9 @@ class DokumenController extends Controller
     }
 
     /**
-     * Memperbarui dokumen di database.
+     * Update the specified document in storage.
      */
-    public function update(Request $request, Dokumen $document)
+    public function update(Request $request, Document $document)
     {
         $this->authorize('update', $document);
 
@@ -276,7 +236,7 @@ class DokumenController extends Controller
         if ($request->filled('remove_attachments')) {
             foreach ($request->remove_attachments as $pathToRemove) {
                 if (($key = array_search($pathToRemove, $existingAttachments)) !== false) {
-                    Storage::disk('local')->delete($pathToRemove);
+                    Storage::disk('private')->delete($pathToRemove);
                     unset($existingAttachments[$key]);
                 }
             }
@@ -286,7 +246,7 @@ class DokumenController extends Controller
         // Add new attachments
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
-                $path = $file->store('documents', 'local');
+                $path = $file->store('documents', 'private');
                 $existingAttachments[] = $path;
             }
         }
@@ -315,9 +275,9 @@ class DokumenController extends Controller
     }
 
     /**
-     * Menghapus dokumen dari database.
+     * Remove the specified document from storage.
      */
-    public function destroy(Dokumen $document)
+    public function destroy(Document $document)
     {
         $this->authorize('delete', $document);
 
@@ -331,7 +291,7 @@ class DokumenController extends Controller
         // Delete associated files
         if (!empty($document->attachments)) {
             foreach ($document->attachments as $path) {
-                Storage::disk('local')->delete($path);
+                Storage::disk('private')->delete($path);
             }
         }
 
@@ -343,9 +303,9 @@ class DokumenController extends Controller
     }
 
     /**
-     * Ajukan dokumen untuk persetujuan.
+     * Submit document for approval.
      */
-    public function submit(Dokumen $document)
+    public function submit(Document $document)
     {
         $this->authorize('update', $document);
 
@@ -366,9 +326,9 @@ class DokumenController extends Controller
     }
 
     /**
-     * Arsipkan dokumen.
+     * Archive the document.
      */
-    public function archive(Dokumen $document)
+    public function archive(Document $document)
     {
         $this->authorize('update', $document);
 
@@ -390,9 +350,9 @@ class DokumenController extends Controller
     }
 
     /**
-     * Download lampiran dokumen.
+     * Download document attachment.
      */
-    public function download(Dokumen $document, $attachmentIndex)
+    public function download(Document $document, $attachmentIndex)
     {
         $this->authorize('view', $document);
 
@@ -402,32 +362,11 @@ class DokumenController extends Controller
 
         $path = $document->attachments[$attachmentIndex];
 
-        if (!Storage::disk('local')->exists($path)) {
+        if (!Storage::disk('private')->exists($path)) {
             abort(404, 'File not found.');
         }
 
-        $file = Storage::disk('local')->get($path);
-        $fileName = basename($path);
-        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-        
-        $mimeTypes = [
-            'pdf' => 'application/pdf',
-            'doc' => 'application/msword',
-            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'xls' => 'application/vnd.ms-excel',
-            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'gif' => 'image/gif',
-        ];
-        
-        $mimeType = $mimeTypes[strtolower($extension)] ?? 'application/octet-stream';
-
-        return response($file, 200, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
-        ]);
+        return Storage::disk('private')->download($path);
     }
 
     /**
@@ -451,7 +390,7 @@ class DokumenController extends Controller
         $month = date('m');
 
         // Get the last document number for this type, classification, and month
-        $lastDokumen = Dokumen::where('type', $type)
+        $lastDocument = Document::where('type', $type)
             ->where('classification', $classification)
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
@@ -460,9 +399,9 @@ class DokumenController extends Controller
 
         $sequenceNumber = 1;
         
-        if ($lastDokumen) {
+        if ($lastDocument) {
             // Extract sequence number from last document number
-            preg_match('/(\\d+)\\//', $lastDokumen->number, $matches);
+            preg_match('/(\d+)\//', $lastDocument->number, $matches);
             if (!empty($matches[1])) {
                 $sequenceNumber = intval($matches[1]) + 1;
             }
@@ -474,103 +413,4 @@ class DokumenController extends Controller
             ? "{$prefix}-{$classPrefix}/{$number}/{$month}/{$year}" 
             : "{$prefix}/{$number}/{$month}/{$year}";
     }
-
-    /**
-     * Setujui dokumen.
-     */
-    public function approve(Request $request, Dokumen $document)
-    {
-        $this->authorize('approve', $document);
-
-        try {
-            // Get next approver before approval
-            $nextRole = $document->ambilRolePenyetujuBerikutnya();
-            
-            $document->setujui(
-                Auth::user(),
-                $request->input('notes')
-            );
-
-            // Refresh document to get updated status
-            $document->refresh();
-            
-            // Determine success message based on document status
-            if ($document->adalahDisetujui()) {
-                $message = 'Dokumen berhasil disetujui secara penuh. Semua tahap persetujuan telah selesai.';
-            } else {
-                $nextApproverLabel = match($nextRole) {
-                    'kaur' => 'Kepala Urusan (KAUR)',
-                    'kasi' => 'Kepala Seksi (KASI)',
-                    'pimpinan' => 'Pimpinan/Pejabat Tinggi',
-                    default => 'Level berikutnya',
-                };
-                $message = "Dokumen berhasil Anda setujui dan akan diteruskan ke {$nextApproverLabel}.";
-            }
-
-            return redirect()
-                ->route('documents.index')
-                ->with('success', $message);
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage());
-        }
-    }
-
-    /**
-     * Tolak dokumen.
-     */
-    public function reject(Request $request, Dokumen $document)
-    {
-        $this->authorize('reject', $document);
-
-        $request->validate([
-            'reason' => 'required|string|min:10',
-        ]);
-
-        try {
-            $document->tolak(
-                Auth::user(),
-                $request->input('reason')
-            );
-
-            return redirect()
-                ->route('documents.index')
-                ->with('success', 'Dokumen berhasil ditolak dan dikembalikan kepada pembuat.');
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage());
-        }
-    }
-
-    /**
-     * Minta koreksi untuk dokumen.
-     */
-    public function requestCorrection(Request $request, Dokumen $document)
-    {
-        $this->authorize('requestCorrection', $document);
-
-        $request->validate([
-            'reason' => 'required|string|min:10',
-        ]);
-
-        try {
-            $document->mintaKoreksi(
-                Auth::user(),
-                $request->input('reason')
-            );
-
-            return redirect()
-                ->route('documents.index')
-                ->with('success', 'Permintaan koreksi berhasil dikirim kepada pembuat dokumen.');
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage());
-        }
-    }
 }
-
-
-

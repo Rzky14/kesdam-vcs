@@ -337,20 +337,84 @@
         margin-top: 30px;
     }
     
+    .pagination nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .pagination .flex,
+    .pagination .flex-1 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
     .pagination a,
     .pagination span {
+        min-width: 40px;
+        height: 40px;
         padding: 8px 12px;
-        border-radius: 6px;
+        border-radius: 8px;
         text-decoration: none;
         color: #666;
         border: 1px solid #e0e0e0;
         background: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
     }
     
-    .pagination .active {
+    .pagination a:hover:not(.disabled) {
+        background: #f5f5f5;
+        border-color: #1a472a;
+        color: #1a472a;
+        transform: translateY(-1px);
+    }
+    
+    .pagination .active span,
+    .pagination span[aria-current="page"] {
         background: #1a472a;
         color: white;
         border-color: #1a472a;
+    }
+    
+    .pagination .disabled,
+    .pagination .disabled span,
+    .pagination span[aria-disabled="true"] {
+        background: #f9f9f9;
+        color: #ccc;
+        border-color: #e0e0e0;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    .pagination svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .pagination .hidden {
+        display: none !important;
+    }
+    
+    .pagination p.text-sm {
+        color: #666;
+        font-size: 14px;
+        margin: 0 15px;
+        display: none;
+    }
+    
+    .pagination .relative {
+        display: contents;
+    }
+    
+    /* Hide Laravel's default text */
+    .pagination .leading-5 {
+        display: none;
     }
 </style>
 
@@ -428,7 +492,7 @@
         <div class="document-card">
             <div class="document-info">
                 <div class="document-title">
-                    {{ $document->subject }}
+                    {{ $document->subject ?? 'Tanpa Perihal' }}
                     
                     @if($document->classification == 'biasa')
                         <span class="badge badge-biasa">Biasa</span>
@@ -535,7 +599,7 @@
     
     @if($documents->hasPages())
     <div class="pagination">
-        {{ $documents->appends(request()->query())->links() }}
+        {{ $documents->appends(request()->query())->links('vendor.pagination.custom') }}
     </div>
     @endif
 </div>

@@ -32,23 +32,49 @@ class ScheduleController extends Controller
 
         $query = Schedule::with(['creator', 'updater']);
 
+        // Pembatasan data berdasarkan peran
+        if ($user->hasRole('pimpinan') || $user->hasRole('admin_sistem')) {
+            // Melihat semua jadwal
+        } elseif ($user->hasRole('kasi') || $user->hasRole('kaur')) {
+            // Hanya jadwal dalam unit yang sama
+            $teamUserIds = User::where('unit', $user->unit)
+                ->where('is_active', true)
+                ->pluck('id')
+                ->toArray();
+
+            $query->where(function ($q) use ($teamUserIds) {
+                $q->whereIn('created_by', $teamUserIds)
+                  ->orWhere(function ($q2) use ($teamUserIds) {
+                      foreach ($teamUserIds as $id) {
+                          $q2->orWhereJsonContains('personnel', (string) $id);
+                      }
+                  });
+            });
+        } else {
+            // Batih/Staf hanya jadwal milik sendiri / diikutkan
+            $query->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                  ->orWhereJsonContains('personnel', (string) $user->id);
+            });
+        }
+
         // Fitur pencarian
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $query->search($request->search);
         }
 
         // Filter berdasarkan tipe
-        if ($request->has('type') && $request->type !== '') {
+        if ($request->filled('type')) {
             $query->ofType($request->type);
         }
 
         // Filter berdasarkan status
-        if ($request->has('status') && $request->status !== '') {
+        if ($request->filled('status')) {
             $query->withStatus($request->status);
         }
 
         // Filter berdasarkan rentang tanggal
-        if ($request->has('start_date') && $request->has('end_date')) {
+        if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->betweenDates($request->start_date, $request->end_date);
         }
 

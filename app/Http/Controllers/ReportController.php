@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Report;
 use App\Services\ReportService;
+use App\Services\ReportExportService;
 use App\Http\Requests\StoreScheduleReportRequest;
 use App\Http\Requests\StoreDocumentReportRequest;
 use App\Http\Requests\StoreEffectivenessReportRequest;
@@ -16,8 +17,10 @@ use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
 {
-    public function __construct(private ReportService $reportService)
-    {
+    public function __construct(
+        private ReportService $reportService,
+        private ReportExportService $exportService
+    ) {
     }
 
     /**
@@ -172,8 +175,8 @@ class ReportController extends Controller
             // Load relasi yang dibutuhkan
             $report->load('generatedBy');
             
-            // Generate HTML content
-            $html = $this->generatePdfContent($report);
+            // Generate HTML content menggunakan ReportExportService
+            $html = $this->exportService->generatePdfContent($report);
             
             // Generate PDF using DomPDF
             $pdf = Pdf::loadHTML($html);
@@ -195,27 +198,21 @@ class ReportController extends Controller
     }
 
     /**
-     * Ekspor laporan ke Excel (CSV).
+     * Ekspor laporan ke Excel (XLSX).
      */
-    public function exportExcel(Report $report): \Symfony\Component\HttpFoundation\StreamedResponse|\Illuminate\Http\RedirectResponse
+    public function exportExcel(Report $report): \Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\RedirectResponse
     {
         try {
             // Load relasi yang dibutuhkan
             $report->load('generatedBy');
             
-            // Buat konten CSV kompatibel Excel
-            $csv = $this->generateExcelContent($report);
+            // Generate Excel menggunakan ReportExportService
+            $tempFile = $this->exportService->generateExcel($report);
             
-            // Kembalikan sebagai CSV (kompatibel Excel)
-            $filename = $this->sanitizeFileName($report->name) . '_' . date('YmdHis') . '.csv';
+            // Return as download
+            $filename = $this->sanitizeFileName($report->name) . '_' . date('YmdHis') . '.xlsx';
+            return response()->download($tempFile, $filename)->deleteFileAfterSend(true);
             
-            return response()->streamDownload(function () use ($csv) {
-                echo "\xEF\xBB\xBF"; // UTF-8 BOM untuk Excel
-                echo $csv;
-            }, $filename, [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            ]);
         } catch (\Exception $e) {
             Log::error('Error exporting Excel: ' . $e->getMessage(), [
                 'report_id' => $report->id,
@@ -243,87 +240,232 @@ class ReportController extends Controller
     <meta charset="UTF-8">
     <title>{$report->name}</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { color: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .header { margin-bottom: 30px; }
-        .info { color: #666; font-size: 12px; margin-bottom: 10px; }
+        @page { margin: 15mm; }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            margin: 0;
+            padding: 20px;
+            font-size: 11pt;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #1a472a;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .header h1 { 
+            color: #1a472a; 
+            margin: 0 0 5px 0;
+            font-size: 18pt;
+            font-weight: bold;
+        }
+        .header .logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px;
+        }
+        .info-box {
+            background: #f5f5f5;
+            border-left: 4px solid #1a472a;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+        }
+        .info-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .info-box td {
+            padding: 4px 8px;
+            font-size: 10pt;
+        }
+        .info-box td:first-child {
+            font-weight: bold;
+            width: 140px;
+            color: #555;
+        }
+        h2 { 
+            color: #1a472a; 
+            font-size: 14pt;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+            margin: 25px 0 15px 0;
+        }
+        table.data-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px;
+            font-size: 10pt;
+        }
+        table.data-table th, 
+        table.data-table td { 
+            border: 1px solid #ddd; 
+            padding: 10px 12px; 
+            text-align: left; 
+        }
+        table.data-table th { 
+            background-color: #1a472a; 
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+        table.data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        table.data-table td:last-child {
+            text-align: right;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 15px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 9pt;
+            color: #777;
+            text-align: center;
+        }
+        .stat-highlight {
+            background: #fff9e6;
+            font-weight: bold;
+            color: #d4af37;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>{$report->name}</h1>
-        <div class="info">
-            <p><strong>Tipe:</strong> {$report->type}</p>
-            <p><strong>Periode:</strong> {$periodStart} s/d {$periodEnd}</p>
-            <p><strong>Dibuat:</strong> {$createdAt}</p>
-            <p><strong>Dibuat oleh:</strong> {$creatorName}</p>
-        </div>
+        <h1>KESDAM III/SILIWANGI</h1>
+        <div style="font-size: 10pt; color: #666;">Sistem Manajemen Penjadwalan & Surat</div>
     </div>
     
-    <h3>Ringkasan Data</h3>
-    <table>
-        <tr>
-            <th>Keterangan</th>
-            <th>Nilai</th>
-        </tr>
+    <h1 style="text-align: center; color: #1a472a; margin: 20px 0;">{$report->name}</h1>
+    
+    <div class="info-box">
+        <table>
+            <tr>
+                <td>Tipe Laporan</td>
+                <td>: {$this->getTypeLabel($report->type)}</td>
+            </tr>
+            <tr>
+                <td>Periode</td>
+                <td>: {$periodStart} s/d {$periodEnd}</td>
+            </tr>
+            <tr>
+                <td>Dibuat</td>
+                <td>: {$createdAt}</td>
+            </tr>
+            <tr>
+                <td>Dibuat oleh</td>
+                <td>: {$creatorName}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <h2>Ringkasan Data</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 70%;">Keterangan</th>
+                <th style="width: 30%;">Nilai</th>
+            </tr>
+        </thead>
+        <tbody>
 HTML;
 
-        // Tambahkan baris data ringkas
+        // Tambahkan data yang lebih terstruktur
         if (!empty($report->data) && is_array($report->data)) {
+            $hasData = false;
             foreach ($report->data as $key => $value) {
                 if (!is_array($value) && !is_object($value)) {
-                    $displayValue = htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-                    $displayKey = htmlspecialchars((string)$key, ENT_QUOTES, 'UTF-8');
-                    $html .= "<tr><td>{$displayKey}</td><td>{$displayValue}</td></tr>";
+                    $hasData = true;
+                    $displayValue = $this->formatValue($value);
+                    $displayKey = $this->formatKey($key);
+                    $highlightClass = strpos($key, 'total') !== false || strpos($key, 'rate') !== false ? ' class="stat-highlight"' : '';
+                    $html .= "<tr><td>{$displayKey}</td><td{$highlightClass}>{$displayValue}</td></tr>";
                 }
             }
+            
+            if (!$hasData) {
+                $html .= "<tr><td colspan='2' class='empty-message'>Tidak ada data tersedia</td></tr>";
+            }
         } else {
-            $html .= "<tr><td colspan='2'>Tidak ada data tersedia</td></tr>";
+            $html .= "<tr><td colspan='2' class='empty-message'>Tidak ada data tersedia</td></tr>";
         }
 
         $html .= <<<HTML
+        </tbody>
     </table>
+    
+    <div class="footer">
+        <p>Dokumen ini dihasilkan secara otomatis oleh sistem KESDAM III/SILIWANGI</p>
+        <p>Dicetak pada: {$createdAt}</p>
+    </div>
 </body>
 </html>
 HTML;
 
         return $html;
     }
-
+    
     /**
-     * Bangun konten Excel (CSV) dari laporan.
+     * Format key menjadi label yang lebih readable
      */
-    private function generateExcelContent(Report $report): string
+    private function formatKey(string $key): string
     {
-        $creatorName = $report->generatedBy?->name ?? 'Sistem';
-        $periodStart = $report->period_start ? $report->period_start->format('d-m-Y') : '-';
-        $periodEnd = $report->period_end ? $report->period_end->format('d-m-Y') : '-';
-        $createdAt = $report->created_at ? $report->created_at->format('d-m-Y H:i') : '-';
+        $labels = [
+            'total_schedules' => 'Total Jadwal',
+            'total_documents' => 'Total Dokumen',
+            'approval_rate' => 'Tingkat Persetujuan',
+            'pending_count' => 'Menunggu Persetujuan',
+            'approved_count' => 'Disetujui',
+            'rejected_count' => 'Ditolak',
+            'average_duration' => 'Rata-rata Durasi',
+            'effectiveness_rate' => 'Tingkat Efektivitas',
+            'completed_schedules' => 'Jadwal Selesai',
+            'active_schedules' => 'Jadwal Aktif',
+            'cancelled_schedules' => 'Jadwal Dibatalkan',
+        ];
         
-        $csv = "LAPORAN,{$report->name}\n";
-        $csv .= "Periode,{$periodStart} s/d {$periodEnd}\n";
-        $csv .= "Tipe,{$report->type}\n";
-        $csv .= "Dibuat,{$createdAt}\n";
-        $csv .= "Dibuat oleh,{$creatorName}\n\n";
-        
-        $csv .= "Data:\n";
-        $csv .= "Keterangan,Nilai\n";
-
-        // Tambahkan data ringkas
-        if (!empty($report->data) && is_array($report->data)) {
-            foreach ($report->data as $key => $value) {
-                if (!is_array($value) && !is_object($value)) {
-                    $csv .= "\"{$key}\",\"{$value}\"\n";
-                }
+        return $labels[$key] ?? ucwords(str_replace('_', ' ', $key));
+    }
+    
+    /**
+     * Format value untuk display
+     */
+    private function formatValue($value): string
+    {
+        if (is_numeric($value) && strpos((string)$value, '.') !== false) {
+            // Jika angka desimal, format sebagai persentase atau angka desimal
+            if ($value <= 1 && $value >= 0) {
+                return round($value * 100, 2) . '%';
             }
-        } else {
-            $csv .= "\"Tidak ada data\",\"-\"\n";
+            return number_format($value, 2);
         }
-
-        return $csv;
+        
+        if (is_bool($value)) {
+            return $value ? 'Ya' : 'Tidak';
+        }
+        
+        return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    }
+    
+    /**
+     * Get type label
+     */
+    private function getTypeLabel(string $type): string
+    {
+        $labels = [
+            'schedule' => 'Laporan Jadwal',
+            'document' => 'Laporan Dokumen',
+            'effectiveness' => 'Laporan Efektivitas',
+        ];
+        
+        return $labels[$type] ?? ucfirst($type);
     }
 
     /**

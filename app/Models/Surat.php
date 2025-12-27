@@ -573,7 +573,9 @@ class Surat extends Model
 
     /**
      * Cek apakah dokumen diarsipkan.
-     *
+     *    Ctrl+C (tekan beberapa kali)
+    git commit -m "Refactor: Ganti Document jadi Surat"
+    git push origin fix/bug-name
      * @return bool
      */
     public function adalahDiarsipkan(): bool

@@ -26,7 +26,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Display a listing of documents with search and filter.
+     * Tampilkan daftar surat dengan pencarian dan filter.
      */
     public function index(Request $request)
     {
@@ -34,7 +34,7 @@ class SuratController extends Controller
 
         $query = Surat::with(['creator', 'updater']);
 
-        // Search by subject or number
+        // Cari berdasarkan perihal atau nomor
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -45,32 +45,32 @@ class SuratController extends Controller
             });
         }
 
-        // Filter by type (masuk/keluar)
+        // Filter berdasarkan jenis (masuk/keluar)
         if ($request->filled('type')) {
             $query->ofType($request->type);
         }
 
-        // Filter by classification
+        // Filter berdasarkan klasifikasi
         if ($request->filled('classification')) {
             $query->ofClassification($request->classification);
         }
 
-        // Filter by status
+        // Filter berdasarkan status
         if ($request->filled('status')) {
             $query->withStatus($request->status);
         }
 
-        // Filter by priority
+        // Filter berdasarkan prioritas
         if ($request->filled('priority')) {
             $query->where('priority', $request->priority);
         }
 
-        // Filter by date range
+        // Filter berdasarkan rentang tanggal
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->dateRange($request->start_date, $request->end_date);
         }
 
-        // Sort by latest
+        // Urutkan berdasarkan terbaru
         $query->latest('date');
 
         $documents = $query->paginate(15)->withQueryString();
@@ -79,7 +79,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Show the form for creating a new document.
+     * Tampilkan form untuk membuat surat baru.
      */
     public function create(Request $request)
     {
@@ -91,7 +91,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Store a newly created document in storage.
+     * Simpan surat baru ke database.
      */
     public function store(Request $request)
     {
@@ -110,7 +110,7 @@ class SuratController extends Controller
             'attachments.*' => ['nullable', 'file', 'max:10240'], // 10MB max per file
         ]);
 
-        // Handle file uploads
+        // Tangani upload file
         $attachmentPaths = [];
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
@@ -131,7 +131,7 @@ class SuratController extends Controller
             }
         }
 
-        // Set creator
+        // Set pembuat dokumen
         $validated['created_by'] = Auth::id();
         $validated['status'] = 'draft';
 
@@ -171,7 +171,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Display the specified document.
+     * Tampilkan detail surat.
      */
     public function show(Surat $document)
     {
@@ -187,7 +187,7 @@ class SuratController extends Controller
                     $document->description = Crypt::decryptString($document->description);
                 }
             } catch (\Exception $e) {
-                // Log error but continue
+                // Log error tapi tetap lanjut
                 \Log::error('Failed to decrypt document: ' . $e->getMessage());
             }
         }
@@ -196,7 +196,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Show the form for editing the specified document.
+     * Tampilkan form untuk edit surat.
      */
     public function edit(Surat $document)
     {
@@ -225,7 +225,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Update the specified document in storage.
+     * Update surat yang ada di database.
      */
     public function update(Request $request, Surat $document)
     {
@@ -255,7 +255,7 @@ class SuratController extends Controller
         // Handle file uploads
         $existingAttachments = $document->attachments ?? [];
         
-        // Remove specified attachments
+        // Hapus lampiran yang ditentukan
         if ($request->filled('remove_attachments')) {
             foreach ($request->remove_attachments as $pathToRemove) {
                 if (($key = array_search($pathToRemove, $existingAttachments)) !== false) {
@@ -266,7 +266,7 @@ class SuratController extends Controller
             $existingAttachments = array_values($existingAttachments);
         }
 
-        // Add new attachments
+        // Tambah lampiran baru
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('documents', 'private');
@@ -287,7 +287,7 @@ class SuratController extends Controller
             }
         }
 
-        // Set updater
+        // Set yang mengupdate
         $validated['updated_by'] = Auth::id();
 
         $document->update($validated);
@@ -298,20 +298,20 @@ class SuratController extends Controller
     }
 
     /**
-     * Remove the specified document from storage.
+     * Hapus surat dari database.
      */
     public function destroy(Surat $document)
     {
         $this->authorize('delete', $document);
 
-        // Only allow deleting draft documents
+        // Hanya izinkan hapus dokumen draft
         if ($document->status !== 'draft') {
             return redirect()
                 ->route('surat.index')
                 ->with('error', 'Hanya dokumen dengan status Draft yang dapat dihapus.');
         }
 
-        // Delete associated files
+        // Hapus file terkait
         if (!empty($document->attachments)) {
             foreach ($document->attachments as $path) {
                 Storage::disk('private')->delete($path);
@@ -326,7 +326,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Submit document for approval.
+     * Ajukan dokumen untuk persetujuan.
      */
     public function submit(Surat $document)
     {
@@ -349,7 +349,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Approve the document.
+     * Setujui dokumen.
      */
     public function approve(Request $request, Surat $surat)
     {
@@ -373,7 +373,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Reject the document.
+     * Tolak dokumen.
      */
     public function reject(Request $request, Surat $surat)
     {
@@ -397,7 +397,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Request correction for the document.
+     * Minta koreksi dokumen.
      */
     public function requestCorrection(Request $request, Surat $surat)
     {
@@ -421,7 +421,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Archive the document.
+     * Arsipkan dokumen.
      */
     public function archive(Surat $document)
     {
@@ -445,7 +445,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Download document attachment.
+     * Download lampiran dokumen.
      */
     public function download(Surat $document, $attachmentIndex)
     {
@@ -465,7 +465,7 @@ class SuratController extends Controller
     }
 
     /**
-     * Generate unique document number.
+     * Generate nomor dokumen unik.
      */
     private function generateDocumentNumber($type, $classification)
     {

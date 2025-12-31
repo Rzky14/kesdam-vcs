@@ -102,8 +102,8 @@ class SuratPolicy
      */
     public function approve(User $user, Surat $surat): bool
     {
-        // Only Pimpinan and Kasi/Kaur can approve documents
-        return $user->hasAnyRole(['Pimpinan/Pejabat Tinggi', 'Kasi/Kaur']) 
+        // Only Pimpinan, Kasi, and Kaur can approve documents
+        return $user->hasAnyRole(['pimpinan', 'kasi', 'kaur', 'kasi_kaur', 'Admin Sistem']) 
             && $user->hasPermission('approve_documents')
             && $surat->isPendingApproval();
     }

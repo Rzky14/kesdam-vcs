@@ -13,6 +13,13 @@ class SettingController extends Controller
 {
     public function __construct(private SettingService $settingService)
     {
+        // Only Admin Sistem can access settings
+        $this->middleware(function ($request, $next) {
+            if (!auth()->user()->hasRole('Admin Sistem')) {
+                abort(403, 'Hanya Admin Sistem yang dapat mengakses pengaturan.');
+            }
+            return $next($request);
+        });
     }
 
     /**

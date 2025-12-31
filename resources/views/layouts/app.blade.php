@@ -526,13 +526,11 @@
                         <i class="fas fa-file-alt"></i> Laporan
                     </a>
                 </li>
-                @if(Auth::user()->hasRole('Admin Sistem'))
                 <li>
                     <a href="{{ route('settings.index') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">
                         <i class="fas fa-cog"></i> Pengaturan
                     </a>
                 </li>
-                @endif
             </ul>
         </div>
         

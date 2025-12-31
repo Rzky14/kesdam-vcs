@@ -349,6 +349,78 @@ class SuratController extends Controller
     }
 
     /**
+     * Approve the document.
+     */
+    public function approve(Request $request, Surat $surat)
+    {
+        $this->authorize('approve', $surat);
+
+        $request->validate([
+            'comment' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $surat->setujui(Auth::user(), $request->comment);
+
+            return redirect()
+                ->route('surat.show', $surat)
+                ->with('success', 'Dokumen berhasil disetujui.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('surat.show', $surat)
+                ->with('error', 'Gagal menyetujui dokumen: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Reject the document.
+     */
+    public function reject(Request $request, Surat $surat)
+    {
+        $this->authorize('approve', $surat);
+
+        $request->validate([
+            'comment' => 'required|string|max:1000',
+        ]);
+
+        try {
+            $surat->tolak(Auth::user(), $request->comment);
+
+            return redirect()
+                ->route('surat.show', $surat)
+                ->with('success', 'Dokumen berhasil ditolak.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('surat.show', $surat)
+                ->with('error', 'Gagal menolak dokumen: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Request correction for the document.
+     */
+    public function requestCorrection(Request $request, Surat $surat)
+    {
+        $this->authorize('approve', $surat);
+
+        $request->validate([
+            'comment' => 'required|string|max:1000',
+        ]);
+
+        try {
+            $surat->mintaKoreksi(Auth::user(), $request->comment);
+
+            return redirect()
+                ->route('surat.show', $surat)
+                ->with('success', 'Permintaan koreksi berhasil dikirim.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('surat.show', $surat)
+                ->with('error', 'Gagal mengirim permintaan koreksi: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Archive the document.
      */
     public function archive(Surat $document)

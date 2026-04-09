@@ -16,24 +16,24 @@ class ApprovalWorkflowSeeder extends Seeder
     {
         // Get role IDs
         $adminRole = Role::where('name', 'admin_sistem')->first();
-        $pimpinanRole = Role::where('name', 'pimpinan')->first();
-        $kasiRole = Role::where('name', 'kasi_kaur')->first();
-        $batihRole = Role::where('name', 'batih_staf')->first();
+        $kasiRole = Role::where('name', 'kasi')->first();
+        $kaurRole = Role::where('name', 'kaur')->first();
+        $batihRole = Role::where('name', 'batih')->first();
 
-        if (!$adminRole || !$pimpinanRole || !$kasiRole || !$batihRole) {
+        if (!$adminRole || !$kasiRole || !$kaurRole || !$batihRole) {
             $this->command->error('Roles not found. Please run RoleSeeder first.');
             return;
         }
 
         // Standard Document Approval Workflow (Biasa)
-        // Flow: Staf -> Kaur -> Kasi -> Pimpinan
+        // Flow: Batih -> Kaur -> Kasi
         ApprovalWorkflow::create([
             'name' => 'Standard Document Approval',
             'document_type' => null, // Applies to both masuk and keluar
             'classification' => 'biasa',
             'approval_chain' => [
-                $kasiRole->id,      // Level 1: Kasi/Kaur
-                $pimpinanRole->id,  // Level 2: Pimpinan
+                $kaurRole->id,      // Level 1: Kaur
+                $kasiRole->id,      // Level 2: Kasi
             ],
             'is_active' => true,
             'priority' => 1,
@@ -46,8 +46,8 @@ class ApprovalWorkflowSeeder extends Seeder
             'document_type' => null,
             'classification' => 'rahasia',
             'approval_chain' => [
-                $kasiRole->id,      // Level 1: Kasi/Kaur (verification)
-                $pimpinanRole->id,  // Level 2: Pimpinan (approval)
+                $kaurRole->id,      // Level 1: Kaur (verification)
+                $kasiRole->id,      // Level 2: Kasi (approval)
                 $adminRole->id,     // Level 3: Admin (security verification)
             ],
             'is_active' => true,
@@ -61,7 +61,7 @@ class ApprovalWorkflowSeeder extends Seeder
             'document_type' => null,
             'classification' => 'telegram',
             'approval_chain' => [
-                $pimpinanRole->id,  // Level 1: Direct to Pimpinan
+                $kasiRole->id,      // Level 1: Direct to Kasi
             ],
             'is_active' => true,
             'priority' => 20, // Highest priority
@@ -73,8 +73,8 @@ class ApprovalWorkflowSeeder extends Seeder
             'document_type' => 'masuk',
             'classification' => 'biasa',
             'approval_chain' => [
-                $kasiRole->id,      // Level 1: Verification
-                $pimpinanRole->id,  // Level 2: Acknowledgement
+                $kaurRole->id,      // Level 1: Verification
+                $kasiRole->id,      // Level 2: Acknowledgement
             ],
             'is_active' => true,
             'priority' => 2,
@@ -86,8 +86,8 @@ class ApprovalWorkflowSeeder extends Seeder
             'document_type' => 'keluar',
             'classification' => 'biasa',
             'approval_chain' => [
-                $kasiRole->id,      // Level 1: Content review
-                $pimpinanRole->id,  // Level 2: Final approval & signature
+                $kaurRole->id,      // Level 1: Content review
+                $kasiRole->id,      // Level 2: Final approval & signature
             ],
             'is_active' => true,
             'priority' => 2,
@@ -105,9 +105,9 @@ class ApprovalWorkflowSeeder extends Seeder
     private function seedApprovalRolePermissions(): void
     {
         $adminRole = Role::where('name', 'admin_sistem')->first();
-        $pimpinanRole = Role::where('name', 'pimpinan')->first();
-        $kasiRole = Role::where('name', 'kasi_kaur')->first();
-        $batihRole = Role::where('name', 'batih_staf')->first();
+        $kasiRole = Role::where('name', 'kasi')->first();
+        $kaurRole = Role::where('name', 'kaur')->first();
+        $batihRole = Role::where('name', 'batih')->first();
 
         $permissions = [
             // Admin can do everything
@@ -116,12 +116,13 @@ class ApprovalWorkflowSeeder extends Seeder
             ['role_id' => $adminRole->id, 'action' => 'approve', 'document_type' => null, 'classification' => null],
             ['role_id' => $adminRole->id, 'action' => 'request_correction', 'document_type' => null, 'classification' => null],
 
-            // Pimpinan - final approver
-            ['role_id' => $pimpinanRole->id, 'action' => 'view', 'document_type' => null, 'classification' => null],
-            ['role_id' => $pimpinanRole->id, 'action' => 'approve', 'document_type' => null, 'classification' => null],
-            ['role_id' => $pimpinanRole->id, 'action' => 'request_correction', 'document_type' => null, 'classification' => null],
+            // Kaur - first approver
+            ['role_id' => $kaurRole->id, 'action' => 'view', 'document_type' => null, 'classification' => null],
+            ['role_id' => $kaurRole->id, 'action' => 'approve', 'document_type' => null, 'classification' => 'biasa'],
+            ['role_id' => $kaurRole->id, 'action' => 'approve', 'document_type' => null, 'classification' => 'rahasia'],
+            ['role_id' => $kaurRole->id, 'action' => 'request_correction', 'document_type' => null, 'classification' => null],
 
-            // Kasi/Kaur - mid-level approver
+            // Kasi - final approver
             ['role_id' => $kasiRole->id, 'action' => 'view', 'document_type' => null, 'classification' => null],
             ['role_id' => $kasiRole->id, 'action' => 'approve', 'document_type' => null, 'classification' => 'biasa'],
             ['role_id' => $kasiRole->id, 'action' => 'approve', 'document_type' => null, 'classification' => 'rahasia'],

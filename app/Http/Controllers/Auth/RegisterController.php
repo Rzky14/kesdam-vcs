@@ -18,6 +18,10 @@ class RegisterController extends Controller
      */
     public function showRegistrationForm()
     {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         return view('auth.register');
     }
 
@@ -26,6 +30,10 @@ class RegisterController extends Controller
      */
     public function register(Request $request)
     {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'nrp' => ['required', 'string', 'max:50', 'unique:users'],
@@ -50,8 +58,8 @@ class RegisterController extends Controller
             'is_active' => true,
         ]);
 
-        // Assign default role (Batih/Staf)
-        $user->berikanPeran('batih_staf');
+        // Assign default role (Batih)
+        $user->berikanPeran('batih');
 
         // Log registration
         AuditLog::log(

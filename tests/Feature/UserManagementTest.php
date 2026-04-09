@@ -48,7 +48,7 @@ class UserManagementTest extends TestCase
     public function admin_can_create_new_user()
     {
         $admin = $this->createAdminUser();
-        $role = Role::where('name', 'batih_staf')->first();
+        $role = Role::where('name', 'batih')->first();
 
         $userData = [
             'name' => 'Test User',
@@ -61,7 +61,7 @@ class UserManagementTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'is_active' => true,
-            'roles' => ['batih_staf'],
+            'roles' => ['batih'],
         ];
 
         $response = $this->actingAs($admin)->post(route('users.store'), $userData);
@@ -75,7 +75,7 @@ class UserManagementTest extends TestCase
         ]);
 
         $user = User::where('email', 'testuser@example.com')->first();
-        $this->assertTrue($user->hasRole('batih_staf'));
+        $this->assertTrue($user->hasRole('batih'));
 
         // Check audit log
         $this->assertDatabaseHas('audit_logs', [
@@ -112,7 +112,7 @@ class UserManagementTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'is_active' => true,
-            'roles' => ['batih_staf'],
+            'roles' => ['batih'],
         ];
 
         $response = $this->actingAs($admin)->post(route('users.store'), $userData);
@@ -150,7 +150,7 @@ class UserManagementTest extends TestCase
             'email' => $user->email,
             'phone' => '089999999999',
             'is_active' => false,
-            'roles' => ['kasi_kaur'],
+            'roles' => ['kasi'],
         ];
 
         $response = $this->actingAs($admin)->put(route('users.update', $user), $updateData);
@@ -167,8 +167,8 @@ class UserManagementTest extends TestCase
         ]);
 
         $user->refresh();
-        $this->assertTrue($user->hasRole('kasi_kaur'));
-        $this->assertFalse($user->hasRole('batih_staf'));
+        $this->assertTrue($user->hasRole('kasi'));
+        $this->assertFalse($user->hasRole('batih'));
 
         // Check audit log
         $this->assertDatabaseHas('audit_logs', [
@@ -195,7 +195,7 @@ class UserManagementTest extends TestCase
             'password' => 'newpassword123',
             'password_confirmation' => 'newpassword123',
             'is_active' => true,
-            'roles' => ['batih_staf'],
+            'roles' => ['batih'],
         ];
 
         $response = $this->actingAs($admin)->put(route('users.update', $user), $updateData);
@@ -275,12 +275,12 @@ class UserManagementTest extends TestCase
         $admin = $this->createAdminUser();
         
         $staffUser = User::factory()->create();
-        $staffUser->assignRole('batih_staf');
+        $staffUser->assignRole('batih');
         
         $kasiUser = User::factory()->create();
-        $kasiUser->assignRole('kasi_kaur');
+        $kasiUser->assignRole('kasi');
 
-        $response = $this->actingAs($admin)->get(route('users.index', ['role' => 'batih_staf']));
+        $response = $this->actingAs($admin)->get(route('users.index', ['role' => 'batih']));
 
         $response->assertStatus(200);
         $response->assertSee($staffUser->name);
@@ -341,7 +341,7 @@ class UserManagementTest extends TestCase
         $user = User::factory()->create([
             'password' => Hash::make('oldpassword'),
         ]);
-        $user->assignRole('batih_staf');
+        $user->assignRole('batih');
 
         $response = $this->actingAs($user)->put(route('profile.password.update'), [
             'current_password' => 'oldpassword',
@@ -369,7 +369,7 @@ class UserManagementTest extends TestCase
         $user = User::factory()->create([
             'password' => Hash::make('oldpassword'),
         ]);
-        $user->assignRole('batih_staf');
+        $user->assignRole('batih');
 
         $response = $this->actingAs($user)->put(route('profile.password.update'), [
             'current_password' => 'wrongpassword',
@@ -402,8 +402,8 @@ class UserManagementTest extends TestCase
             'password' => Hash::make('password'),
         ]);
         
-        // Assign batih_staf role
-        $staffRole = Role::where('name', 'batih_staf')->first();
+        // Assign batih role
+        $staffRole = Role::where('name', 'batih')->first();
         $user->roles()->attach($staffRole->id);
         
         return $user;

@@ -17,14 +17,12 @@ Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-// Guest routes (unauthenticated users)
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'login']);
-    
-    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
-});
+// Auth entry routes. Controller handles redirect for authenticated users.
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {

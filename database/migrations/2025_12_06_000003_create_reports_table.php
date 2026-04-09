@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamp('period_end');
             $table->foreignId('generated_by')->constrained('users')->cascadeOnDelete();
             $table->json('data')->nullable(); // Data laporan dalam JSON
-            $table->enum('status', ['draft', 'in_progress', 'completed', 'failed'])->default('draft');
+            $table->enum('status', ['draft', 'in_progress', 'generated', 'completed', 'failed'])->default('draft');
             $table->timestamps();
             $table->softDeletes();
 

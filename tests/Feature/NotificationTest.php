@@ -158,6 +158,7 @@ class NotificationTest extends TestCase
         $response->assertRedirect(route('notifications.index'));
         $response->assertSessionHas('success');
 
+        $this->user->refresh();
         $this->assertEquals(0, $this->user->notifications->count());
     }
 
@@ -314,6 +315,7 @@ class NotificationTest extends TestCase
 
         // Mark one as read
         $this->user->unreadNotifications->first()->markAsRead();
+        $this->user->refresh();
 
         $response = $this->actingAs($this->user)
             ->get(route('notifications.index', ['filter' => 'unread']));

@@ -74,14 +74,6 @@ class RolePermissionSeeder extends Seeder
             ]
         );
 
-        $pimpinanRole = Role::firstOrCreate(
-            ['name' => 'pimpinan'],
-            [
-                'display_name' => 'Pimpinan/Pejabat Tinggi',
-                'description' => 'Leadership role with final approval authority'
-            ]
-        );
-
         $kasiRole = Role::firstOrCreate(
             ['name' => 'kasi'],
             [
@@ -98,14 +90,6 @@ class RolePermissionSeeder extends Seeder
             ]
         );
 
-        $stafRole = Role::firstOrCreate(
-            ['name' => 'staf'],
-            [
-                'display_name' => 'Staf',
-                'description' => 'Staff role for document creation and data entry'
-            ]
-        );
-
         $batihRole = Role::firstOrCreate(
             ['name' => 'batih'],
             [
@@ -118,40 +102,6 @@ class RolePermissionSeeder extends Seeder
 
         // Admin Sistem - All permissions
         $adminRole->permissions()->sync(Permission::all());
-
-        // Pimpinan - View, Final Approval, Report (18 permissions)
-        $pimpinanRole->permissions()->sync(
-            Permission::whereIn('name', [
-                // Users
-                'view_users',
-                
-                // Documents - Full approval authority (Level 3)
-                'view_documents',
-                'view_classified_documents',
-                'approve_documents',
-                'reject_documents',
-                'request_correction_documents',
-                'download_documents',
-                'print_documents',
-                'upload_signature',
-                
-                // Schedules - Approval authority
-                'view_schedules',
-                'approve_schedules',
-                'publish_schedules',
-                
-                // Reports - Full access
-                'view_reports',
-                'generate_reports',
-                'export_reports',
-                
-                // System
-                'view_audit_logs',
-                
-                // Notifications
-                'view_notifications',
-            ])->pluck('id')
-        );
 
         // KASI - Section Head, Level 2 Approver (22 permissions)
         $kasiRole->permissions()->sync(
@@ -226,30 +176,6 @@ class RolePermissionSeeder extends Seeder
             ])->pluck('id')
         );
 
-        // STAF - Staff (12 permissions)
-        $stafRole->permissions()->sync(
-            Permission::whereIn('name', [
-                // Documents - Basic operations
-                'view_documents',
-                'create_documents',
-                'edit_documents',
-                'download_documents',
-                'print_documents',
-                
-                // Schedules - Basic operations
-                'view_schedules',
-                'create_schedules',
-                'edit_schedules',
-                'delete_schedules',
-                
-                // Reports - View only
-                'view_reports',
-                
-                // Notifications
-                'view_notifications',
-            ])->pluck('id')
-        );
-
         // BATIH - Direct Subordinate (12 permissions)
         $batihRole->permissions()->sync(
             Permission::whereIn('name', [
@@ -280,10 +206,8 @@ class RolePermissionSeeder extends Seeder
         $this->command->info('');
         $this->command->info('Role Assignments:');
         $this->command->info('- Admin Sistem: ' . $adminRole->permissions()->count() . ' permissions');
-        $this->command->info('- Pimpinan (Level 3): ' . $pimpinanRole->permissions()->count() . ' permissions');
         $this->command->info('- KASI (Level 2): ' . $kasiRole->permissions()->count() . ' permissions');
         $this->command->info('- KAUR (Level 1): ' . $kaurRole->permissions()->count() . ' permissions');
-        $this->command->info('- STAF: ' . $stafRole->permissions()->count() . ' permissions');
         $this->command->info('- BATIH: ' . $batihRole->permissions()->count() . ' permissions');
     }
 }

@@ -6,6 +6,7 @@ use App\Models\Arsip;
 use App\Models\Dokumen;
 use App\Models\Schedule;
 use App\Models\Report;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -34,14 +35,16 @@ class ArchiveFactory extends Factory
         ]);
 
         return [
+            'name' => $this->faker->sentence(3),
             'archiveable_type' => $archiveableType,
             'archiveable_id' => 1, // Will be set by states
             'archive_date' => $archivedAt,
             'retention_until' => $retentionUntil,
             'category' => $this->faker->randomElement(['dokumen', 'jadwal', 'laporan', 'administratif', 'operasional']),
-            'tags' => json_encode([$this->faker->word(), $this->faker->word()]),
+            'tags' => [$this->faker->word(), $this->faker->word()],
             'is_indexed' => true,
-            'notes' => $this->faker->optional()->sentence(),
+            'archived_by' => User::factory(),
+            'description' => $this->faker->optional()->sentence(),
         ];
     }
 
@@ -54,7 +57,7 @@ class ArchiveFactory extends Factory
             'archiveable_type' => 'App\\Models\\Dokumen',
             'archiveable_id' => Dokumen::factory(),
             'category' => 'dokumen',
-            'tags' => json_encode(['dokumen', 'surat', $this->faker->randomElement(['masuk', 'keluar'])]),
+            'tags' => ['dokumen', 'surat', $this->faker->randomElement(['masuk', 'keluar'])],
         ]);
     }
 
@@ -67,7 +70,7 @@ class ArchiveFactory extends Factory
             'archiveable_type' => 'App\\Models\\Schedule',
             'archiveable_id' => Schedule::factory(),
             'category' => 'jadwal',
-            'tags' => json_encode(['jadwal', $this->faker->randomElement(['dukkes', 'jaga', 'kegiatan_satuan'])]),
+            'tags' => ['jadwal', $this->faker->randomElement(['dukkes', 'jaga', 'kegiatan_satuan'])],
         ]);
     }
 

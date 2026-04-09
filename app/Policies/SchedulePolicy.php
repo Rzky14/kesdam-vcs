@@ -52,7 +52,7 @@ class SchedulePolicy
         }
 
         // Pimpinan dan Kasi/Kaur dapat memperbarui jadwal untuk persetujuan
-        if ($user->hasAnyRole(['pimpinan', 'kasi_kaur']) && $user->hasPermission('approve_schedules')) {
+        if ($user->hasAnyRole(['kasi', 'kaur']) && $user->hasPermission('approve_schedules')) {
             return true;
         }
 
@@ -96,7 +96,7 @@ class SchedulePolicy
      */
     public function approve(User $user, Schedule $schedule): bool
     {
-        return $user->hasAnyRole(['pimpinan', 'kasi_kaur']) 
+        return $user->hasAnyRole(['kasi', 'kaur']) 
             && $user->hasPermission('approve_schedules')
             && $schedule->status === 'pending';
     }
@@ -106,7 +106,7 @@ class SchedulePolicy
      */
     public function publish(User $user, Schedule $schedule): bool
     {
-        return $user->hasAnyRole(['pimpinan', 'kasi_kaur']) 
+        return $user->hasAnyRole(['kasi', 'kaur']) 
             && $user->hasPermission('publish_schedules')
             && $schedule->status === 'approved';
     }

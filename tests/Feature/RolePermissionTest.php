@@ -36,23 +36,23 @@ class RolePermissionTest extends TestCase
         $user = User::factory()->create();
         
         $user->assignRole('admin_sistem');
-        $user->assignRole('pimpinan');
+        $user->assignRole('kasi');
 
         $this->assertTrue($user->hasRole('admin_sistem'));
-        $this->assertTrue($user->hasRole('pimpinan'));
+        $this->assertTrue($user->hasRole('kasi'));
         $this->assertCount(2, $user->roles);
     }
 
     public function test_user_can_remove_role(): void
     {
         $user = User::factory()->create();
-        $role = Role::where('name', 'batih_staf')->first();
+        $role = Role::where('name', 'batih')->first();
 
         $user->assignRole($role);
-        $this->assertTrue($user->hasRole('batih_staf'));
+        $this->assertTrue($user->hasRole('batih'));
 
         $user->removeRole($role);
-        $this->assertFalse($user->hasRole('batih_staf'));
+        $this->assertFalse($user->hasRole('batih'));
     }
 
     public function test_role_can_have_permissions(): void
@@ -71,12 +71,12 @@ class RolePermissionTest extends TestCase
         $this->assertTrue($user->hasPermission('view_documents'));
     }
 
-    public function test_pimpinan_role_has_correct_permissions(): void
+    public function test_kasi_role_has_correct_permissions(): void
     {
         $user = User::factory()->create();
-        $user->assignRole('pimpinan');
+        $user->assignRole('kasi');
 
-        // Pimpinan should be able to view and approve
+        // Kasi should be able to view and approve
         $this->assertTrue($user->hasPermission('view_documents'));
         $this->assertTrue($user->hasPermission('approve_documents'));
         
@@ -85,12 +85,12 @@ class RolePermissionTest extends TestCase
         $this->assertFalse($user->hasPermission('delete_users'));
     }
 
-    public function test_batih_staf_role_has_limited_permissions(): void
+    public function test_batih_role_has_limited_permissions(): void
     {
         $user = User::factory()->create();
-        $user->assignRole('batih_staf');
+        $user->assignRole('batih');
 
-        // Batih/Staf can view and create
+        // Batih can view and create
         $this->assertTrue($user->hasPermission('view_documents'));
         $this->assertTrue($user->hasPermission('create_documents'));
         
@@ -101,7 +101,7 @@ class RolePermissionTest extends TestCase
 
     public function test_role_can_give_permission(): void
     {
-        $role = Role::where('name', 'batih_staf')->first();
+        $role = Role::where('name', 'batih')->first();
         $permission = Permission::where('name', 'view_audit_logs')->first();
 
         $initialCount = $role->permissions->count();

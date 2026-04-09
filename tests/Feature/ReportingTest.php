@@ -217,7 +217,7 @@ class ReportingTest extends TestCase
         $response = $this->delete(route('reports.destroy', $report));
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('reports', ['id' => $report->id]);
+        $this->assertSoftDeleted('reports', ['id' => $report->id]);
     }
 
     /**

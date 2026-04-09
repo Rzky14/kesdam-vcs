@@ -15,6 +15,10 @@ class LoginController extends Controller
      */
     public function showLoginForm()
     {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         return view('auth.login');
     }
 
@@ -23,6 +27,10 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
@@ -48,7 +56,7 @@ class LoginController extends Controller
                 description: 'User logged in successfully'
             );
 
-            return redirect()->intended(route('dashboard'))
+            return redirect()->route('dashboard')
                 ->with('success', 'Login berhasil! Selamat datang, ' . $user->name);
         }
 

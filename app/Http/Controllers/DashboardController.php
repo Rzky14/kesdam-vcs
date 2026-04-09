@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Schedule;
 use App\Models\Surat;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -23,6 +22,7 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         
         // Ambil statistik berdasarkan peran pengguna
@@ -342,6 +342,7 @@ class DashboardController extends Controller
      */
     public function getQuickStats()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $today = Carbon::today();
         

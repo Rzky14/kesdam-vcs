@@ -6,7 +6,6 @@ use App\Models\Role;
 use App\Models\Permission;
 use App\Models\Schedule;
 use App\Models\User;
-use App\Models\AuditLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -26,7 +25,7 @@ class ScheduleManagementTest extends TestCase
 
         // Create roles
         $this->adminRole = Role::factory()->create(['name' => 'admin_sistem']);
-        $this->staffRole = Role::factory()->create(['name' => 'batih_staf']);
+        $this->staffRole = Role::factory()->create(['name' => 'batih']);
 
         // Create permissions
         $viewSchedules = Permission::factory()->create(['name' => 'view_schedules']);

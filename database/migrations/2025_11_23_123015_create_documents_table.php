@@ -38,8 +38,8 @@ return new class extends Migration
             $table->json('attachments')->nullable();
             
             // Document Status
-            // draft, pending_approval, approved, rejected, archived
-            $table->enum('status', ['draft', 'pending_approval', 'approved', 'rejected', 'archived'])
+            // draft, pending_approval, approved, rejected, correction_requested, archived
+            $table->enum('status', ['draft', 'pending_approval', 'approved', 'rejected', 'correction_requested', 'archived'])
                   ->default('draft');
             
             // Priority Level (optional)

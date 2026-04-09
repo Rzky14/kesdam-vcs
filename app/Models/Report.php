@@ -29,6 +29,7 @@ class Report extends Model
         'reportable_id',
         'period_start',
         'period_end',
+        'created_by',
         'generated_by',
         'data',
         'status', // 'draft', 'in_progress', 'completed', 'failed'
@@ -70,6 +71,22 @@ class Report extends Model
     public function generatedBy(): BelongsTo
     {
         return $this->dibuatOleh();
+    }
+
+    /**
+     * Alias atribut created_by ke generated_by untuk kompatibilitas factory/test.
+     */
+    public function setCreatedByAttribute($value): void
+    {
+        $this->attributes['generated_by'] = $value;
+    }
+
+    /**
+     * Tetap dukung pengisian generated_by secara langsung.
+     */
+    public function setGeneratedByAttribute($value): void
+    {
+        $this->attributes['generated_by'] = $value;
     }
 
     /**

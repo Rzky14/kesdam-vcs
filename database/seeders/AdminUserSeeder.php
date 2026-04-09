@@ -14,24 +14,26 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create admin user
-        $admin = User::create([
-            'name' => 'Admin System',
-            'email' => 'admin@kesdam.mil.id',
-            'password' => Hash::make('password123'),
-            'nrp' => '123456',
-            'rank' => 'Mayor',
-            'position' => 'Administrator Sistem',
-            'unit' => 'KESDAM III/Siliwangi',
-            'phone' => '081234567890',
-            'is_active' => true,
-            'email_verified_at' => now(),
-        ]);
+        // Create or update admin user safely for repeated seeding.
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@kesdam.mil.id'],
+            [
+                'name' => 'Admin System',
+                'password' => Hash::make('password123'),
+                'nrp' => '123456',
+                'rank' => 'Mayor',
+                'position' => 'Administrator Sistem',
+                'unit' => 'KESDAM III/Siliwangi',
+                'phone' => '081234567890',
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
 
         // Attach admin role
         $adminRole = Role::where('name', 'admin_sistem')->first();
         if ($adminRole) {
-            $admin->roles()->attach($adminRole->id);
+            $admin->roles()->syncWithoutDetaching([$adminRole->id]);
         }
 
         $this->command->info('Admin user created successfully!');

@@ -287,6 +287,17 @@ class User extends Authenticatable
     }
 
     /**
+     * Alias for berikanPeran() - mempertahankan kompatibilitas dengan test lama.
+     *
+     * @param Role|string $role
+     * @return void
+     */
+    public function assignRole($role): void
+    {
+        $this->berikanPeran($role);
+    }
+
+    /**
      * Hapus peran dari pengguna.
      *
      * @param Role|string $peran
@@ -299,6 +310,17 @@ class User extends Authenticatable
         }
 
         $this->roles()->detach($peran->id);
+    }
+
+    /**
+     * Alias for hapusPeran() - mempertahankan kompatibilitas dengan test lama.
+     *
+     * @param Role|string $role
+     * @return void
+     */
+    public function removeRole($role): void
+    {
+        $this->hapusPeran($role);
     }
 
     /**
@@ -319,6 +341,16 @@ class User extends Authenticatable
     public function preferensiNotifikasi()
     {
         return $this->hasMany(NotificationPreference::class);
+    }
+
+    /**
+     * Alias untuk preferensiNotifikasi() - kompatibilitas.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function notificationPreferences()
+    {
+        return $this->preferensiNotifikasi();
     }
 
     /**
@@ -349,6 +381,22 @@ class User extends Authenticatable
             ->first();
 
         return $preferensi ? $preferensi->email_enabled : false; // Default: nonaktif
+    }
+
+    /**
+     * Alias untuk notifikasiInAppAktif() - kompatibilitas.
+     */
+    public function hasInAppNotificationEnabled(string $tipe): bool
+    {
+        return $this->notifikasiInAppAktif($tipe);
+    }
+
+    /**
+     * Alias untuk notifikasiEmailAktif() - kompatibilitas.
+     */
+    public function hasEmailNotificationEnabled(string $tipe): bool
+    {
+        return $this->notifikasiEmailAktif($tipe);
     }
 }
 

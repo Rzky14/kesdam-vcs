@@ -17,7 +17,7 @@ class NotificationPreference extends Model
      *
      * @var string
      */
-    protected $table = 'user_notification_preferences';
+    protected $table = 'notification_preferences';
 
     /**
      * Atribut yang dapat diisi massal.

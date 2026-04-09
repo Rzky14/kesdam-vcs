@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\ArchiveFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -17,6 +18,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Arsip extends Model
 {
     use HasFactory, SoftDeletes;
+
+    /**
+     * Create the model factory instance.
+     */
+    protected static function newFactory()
+    {
+        return ArchiveFactory::new();
+    }
 
     /**
      * Nama tabel yang digunakan oleh model.
@@ -83,7 +92,7 @@ class Arsip extends Model
      */
     public function arsipkan(): MorphTo
     {
-        return $this->morphTo();
+        return $this->morphTo('archiveable', 'archiveable_type', 'archiveable_id');
     }
 
     /**

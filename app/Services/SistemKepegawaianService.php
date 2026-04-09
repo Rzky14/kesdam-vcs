@@ -287,9 +287,6 @@ class SistemKepegawaianService implements SistemKepegawaian
     protected function getStrukturLokal(): array
     {
         return [
-            'pimpinan' => User::whereHas('roles', function ($q) {
-                $q->where('name', 'pimpinan');
-            })->get()->toArray(),
             'kasi' => User::whereHas('roles', function ($q) {
                 $q->where('name', 'kasi');
             })->get()->toArray(),
@@ -298,9 +295,6 @@ class SistemKepegawaianService implements SistemKepegawaian
             })->get()->toArray(),
             'batih' => User::whereHas('roles', function ($q) {
                 $q->where('name', 'batih');
-            })->get()->toArray(),
-            'staff' => User::whereHas('roles', function ($q) {
-                $q->where('name', 'staff');
             })->get()->toArray(),
         ];
     }

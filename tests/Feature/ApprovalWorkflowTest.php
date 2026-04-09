@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Role;
 use App\Models\User;
-use App\Models\Dokumen;
+use App\Models\Surat;
 use App\Models\ApprovalWorkflow;
-use App\Models\ApprovalHistory;
 use App\Services\ApprovalWorkflowService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,9 +15,12 @@ class ApprovalWorkflowTest extends TestCase
     use RefreshDatabase;
 
     private ApprovalWorkflowService $approvalService;
+    private Role $batihRole;
+    private Role $kaurRole;
+    private Role $kasiRole;
     private User $approver;
     private User $creator;
-    private Dokumen $document;
+    private Surat $document;
     private ApprovalWorkflow $workflow;
 
     protected function setUp(): void
@@ -26,22 +29,32 @@ class ApprovalWorkflowTest extends TestCase
 
         $this->approvalService = app(ApprovalWorkflowService::class);
 
+        $this->artisan('db:seed', ['--class' => 'RolePermissionSeeder']);
+        $this->artisan('db:seed', ['--class' => 'ApprovalWorkflowSeeder']);
+
+        $this->batihRole = Role::where('name', 'batih')->firstOrFail();
+        $this->kaurRole = Role::where('name', 'kaur')->firstOrFail();
+        $this->kasiRole = Role::where('name', 'kasi')->firstOrFail();
+
         // Create users with roles
-        $this->creator = User::factory()->create(['role_id' => 4]); // Staf
-        $this->approver = User::factory()->create(['role_id' => 3]); // Kasi
+        $this->creator = User::factory()->create();
+        $this->creator->roles()->attach($this->batihRole->id);
+
+        $this->approver = User::factory()->create();
+        $this->approver->roles()->attach($this->kaurRole->id);
 
         // Create workflow
         $this->workflow = ApprovalWorkflow::create([
             'name' => 'Test Workflow',
             'document_type' => 'masuk',
             'classification' => 'biasa',
-            'approval_chain' => json_encode([3, 2, 1]), // Role IDs
+            'approval_chain' => [$this->kaurRole->id, $this->kasiRole->id],
             'is_active' => true,
             'priority' => 1,
         ]);
 
         // Create document
-        $this->document = Dokumen::factory()->create([
+        $this->document = Surat::factory()->create([
             'type' => 'masuk',
             'classification' => 'biasa',
             'created_by' => $this->creator->id,

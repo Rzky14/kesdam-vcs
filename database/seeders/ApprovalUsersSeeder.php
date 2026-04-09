@@ -15,8 +15,7 @@ class ApprovalUsersSeeder extends Seeder
      * Creates test users for each approval level:
      * - KAUR (Kepala Urusan) - Level 1 Approver
      * - KASI (Kepala Seksi) - Level 2 Approver
-     * - PIMPINAN (Pejabat Tinggi) - Level 3 Final Approver
-     * - STAF (Staff) - Document Creator (cannot approve)
+    * - BATIH (Bawahan) - Document Creator (cannot approve)
      */
     public function run(): void
     {
@@ -64,59 +63,17 @@ class ApprovalUsersSeeder extends Seeder
             $kasi->roles()->attach($kasiRole->id);
         }
 
-        // 3. Create PIMPINAN (Pejabat Tinggi) - Level 3 Final Approver
-        $pimpinan = User::firstOrCreate(
-            ['email' => 'pimpinan@kesdam.mil.id'],
-            [
-                'name' => 'Kolonel Ir. Suryadi, M.M.',
-                'password' => Hash::make('pimpinan123'),
-                'nrp' => '210003',
-                'rank' => 'Kolonel',
-                'position' => 'Kepala Kesdam III/Siliwangi',
-                'unit' => 'KESDAM III/Siliwangi',
-                'phone' => '081234567803',
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
-
-        $pimpinanRole = Role::where('name', 'pimpinan')->first();
-        if ($pimpinanRole && !$pimpinan->roles()->where('role_id', $pimpinanRole->id)->exists()) {
-            $pimpinan->roles()->attach($pimpinanRole->id);
-        }
-
-        // 4. Create STAF (Staff) - Document Creator (for testing)
-        $staf = User::firstOrCreate(
-            ['email' => 'staf@kesdam.mil.id'],
-            [
-                'name' => 'Sersan Dua Rizky Pratama',
-                'password' => Hash::make('staf123'),
-                'nrp' => '210004',
-                'rank' => 'Serda',
-                'position' => 'Staf Administrasi',
-                'unit' => 'KESDAM III/Siliwangi',
-                'phone' => '081234567804',
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
-
-        $stafRole = Role::where('name', 'staf')->first();
-        if ($stafRole && !$staf->roles()->where('role_id', $stafRole->id)->exists()) {
-            $staf->roles()->attach($stafRole->id);
-        }
-
-        // 5. Create BATIH (Bawahan) - Document Creator (for testing)
+        // 3. Create BATIH (Bawahan) - Document Creator (for testing)
         $batih = User::firstOrCreate(
             ['email' => 'batih@kesdam.mil.id'],
             [
                 'name' => 'Kopral Satu Andi Wijaya',
                 'password' => Hash::make('batih123'),
-                'nrp' => '210005',
+                'nrp' => '210003',
                 'rank' => 'Koptu',
                 'position' => 'Bawahan Langsung',
                 'unit' => 'KESDAM III/Siliwangi',
-                'phone' => '081234567805',
+                'phone' => '081234567803',
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]
@@ -146,21 +103,7 @@ class ApprovalUsersSeeder extends Seeder
         $this->command->info('   Name     : Mayor Budi Santoso');
         $this->command->info('   Role     : Approve dokumen setelah KAUR');
         $this->command->info('');
-        $this->command->info('3️⃣  LEVEL 3 - PIMPINAN (Final Approver)');
-        $this->command->info('   Email    : pimpinan@kesdam.mil.id');
-        $this->command->info('   Password : pimpinan123');
-        $this->command->info('   Name     : Kolonel Ir. Suryadi, M.M.');
-        $this->command->info('   Role     : Final approval setelah KASI');
-        $this->command->info('');
-        $this->command->info('📝 DOCUMENT CREATORS (for testing):');
-        $this->command->info('');
-        $this->command->info('4️⃣  STAF (Staff)');
-        $this->command->info('   Email    : staf@kesdam.mil.id');
-        $this->command->info('   Password : staf123');
-        $this->command->info('   Name     : Sersan Dua Rizky Pratama');
-        $this->command->info('   Role     : Submit dokumen (cannot approve)');
-        $this->command->info('');
-        $this->command->info('5️⃣  BATIH (Bawahan)');
+        $this->command->info('3️⃣  BATIH (Bawahan)');
         $this->command->info('   Email    : batih@kesdam.mil.id');
         $this->command->info('   Password : batih123');
         $this->command->info('   Name     : Kopral Satu Andi Wijaya');
@@ -168,7 +111,7 @@ class ApprovalUsersSeeder extends Seeder
         $this->command->info('');
         $this->command->info('========================================');
         $this->command->info('🔄 APPROVAL FLOW:');
-        $this->command->info('STAF/BATIH submit → KAUR approve → KASI approve → PIMPINAN approve → ✅ APPROVED');
+        $this->command->info('BATIH submit → KAUR approve → KASI approve → ✅ APPROVED');
         $this->command->info('========================================');
     }
 }

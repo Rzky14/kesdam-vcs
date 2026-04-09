@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\DocumentFactory;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,6 +36,14 @@ use Illuminate\Support\Facades\DB;
 class Surat extends Model
 {
     use HasFactory, SoftDeletes, Auditable;
+
+    /**
+     * Create the model factory instance.
+     */
+    protected static function newFactory()
+    {
+        return DocumentFactory::new();
+    }
 
     /**
      * Nama tabel yang digunakan oleh model.
@@ -738,6 +747,7 @@ class Surat extends Model
             'pending_approval' => 'Menunggu Persetujuan',
             'approved' => 'Disetujui',
             'rejected' => 'Ditolak',
+            'correction_requested' => 'Perlu Koreksi',
             'archived' => 'Diarsipkan',
             default => ucfirst($this->status),
         };
@@ -794,6 +804,7 @@ class Surat extends Model
             'pending_approval' => 'badge bg-warning',
             'approved' => 'badge bg-success',
             'rejected' => 'badge bg-danger',
+            'correction_requested' => 'badge bg-warning',
             'archived' => 'badge bg-info',
             default => 'badge bg-secondary',
         };
@@ -899,7 +910,7 @@ class Surat extends Model
     /**
      * Mendapatkan role penyetuju berikutnya yang diperlukan untuk dokumen ini.
      * 
-     * @return string|null Nama role penyetuju berikutnya (kaur, kasi, pimpinan) atau null jika sudah sepenuhnya disetujui
+    * @return string|null Nama role penyetuju berikutnya (kaur, kasi) atau null jika sudah sepenuhnya disetujui
      */
     public function ambilRolePenyetujuBerikutnya(): ?string
     {
@@ -908,7 +919,6 @@ class Surat extends Model
         return match($levelSaatIni) {
             0 => 'kaur',        // Level 1: Menunggu Kaur
             1 => 'kasi',        // Level 2: Menunggu Kasi (Kaur sudah approve)
-            2 => 'pimpinan',    // Level 3: Menunggu Pimpinan (Kasi sudah approve)
             default => null,    // Semua sudah approve
         };
     }
@@ -968,7 +978,6 @@ class Surat extends Model
         return match($role) {
             'kaur' => 1,
             'kasi' => 2,
-            'pimpinan' => 3,
             default => 0,
         };
     }
@@ -1013,8 +1022,8 @@ class Surat extends Model
                 'action_date' => now(),
             ]);
 
-            // Cek apakah ini persetujuan final (Pimpinan)
-            if ($roleBerikutnya === 'pimpinan') {
+            // Cek apakah ini persetujuan final (Kasi)
+            if ($roleBerikutnya === 'kasi') {
                 $this->update([
                     'status' => 'approved',
                     'updated_by' => $pengguna->id,

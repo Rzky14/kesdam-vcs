@@ -73,7 +73,7 @@ class ReportService
             'period_end' => $endDate,
             'generated_by' => Auth::id() ?? 1,
             'data' => $data,
-            'status' => 'completed',
+            'status' => 'generated',
         ]);
     }
 
@@ -175,6 +175,29 @@ class ReportService
                 'tercepat' => $fastestApproval,
                 'terlama' => $slowestApproval,
             ],
+            'by_type' => [
+                'masuk' => ['count' => $incomingCount, 'percent' => $incomingPercent],
+                'keluar' => ['count' => $outgoingCount, 'percent' => $outgoingPercent],
+            ],
+            'by_classification' => [
+                'biasa' => ['count' => $biasaCount, 'percent' => $biasaPercent],
+                'rahasia' => ['count' => $rahasiaCount, 'percent' => $rahasiaPercent],
+                'telegram' => ['count' => $telegramCount, 'percent' => $telegramPercent],
+            ],
+            'by_status' => [
+                'draft' => $draftCount,
+                'pending_approval' => $pendingCount,
+                'approved' => $approvedCount,
+                'rejected' => $rejectedCount,
+            ],
+            'documents' => $documents->map(function ($doc) {
+                return [
+                    'id' => $doc->id,
+                    'type' => $doc->type,
+                    'classification' => $doc->classification,
+                    'status' => $doc->status,
+                ];
+            })->toArray(),
         ];
 
         return Report::create([
@@ -184,7 +207,7 @@ class ReportService
             'period_end' => $endDate,
             'generated_by' => Auth::id() ?? 1,
             'data' => $data,
-            'status' => 'completed',
+            'status' => 'generated',
         ]);
     }
 

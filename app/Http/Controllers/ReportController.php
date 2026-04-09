@@ -32,6 +32,8 @@ class ReportController extends Controller
         $latestReports = Report::latest()
             ->take(10)
             ->get();
+        $selectedType = $request->query('type');
+        $reports = $latestReports;
         
         // Statistik
         $totalReports = Report::count();
@@ -55,6 +57,8 @@ class ReportController extends Controller
         
         return view('reports.index', compact(
             'latestReports',
+            'reports',
+            'selectedType',
             'totalReports',
             'monthlyReports',
             'completedReports',

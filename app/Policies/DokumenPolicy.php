@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Surat;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 /**
  * DokumenPolicy
@@ -124,8 +123,7 @@ class DokumenPolicy
         
         return match($currentLevel) {
             0 => $user->hasRole('kaur'),        // Level 1: KAUR
-            1 => $user->hasRole('kasi'),        // Level 2: KASI  
-            2 => $user->hasRole('pimpinan'),    // Level 3: PIMPINAN
+            1 => $user->hasRole('kasi'),        // Level 2: KASI
             default => false,
         };
     }
